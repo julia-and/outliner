@@ -23,6 +23,7 @@ export interface NodeData {
 
 export interface OutletNode {
   id: string
+  parentId: string | null
   title: string
   depth: number
   style: NodeStyle

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { OutletNode } from "../types"
 import { updateStyle } from "../store"
 import { ICON_MAP } from "../utils/iconMap"
@@ -11,10 +11,10 @@ interface NoteHeaderProps {
   onUpdateTitle: (id: string, title: string) => void
 }
 
-export const NoteHeader: React.FC<NoteHeaderProps> = ({
+export const NoteHeader = ({
   node,
   onUpdateTitle,
-}) => {
+}: NoteHeaderProps) => {
   const [pickerOpen, setPickerOpen] = useState(false)
   const s = node.style
   const IconComponent = s.icon ? ICON_MAP[s.icon] : null

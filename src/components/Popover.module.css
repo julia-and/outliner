@@ -7,6 +7,11 @@
   outline: none;
 }
 
+.arrow path {
+  fill: var(--bg-primary);
+  stroke: var(--border);
+}
+
 .trigger {
   display: inline-flex;
 }

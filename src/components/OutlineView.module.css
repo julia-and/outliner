@@ -8,7 +8,7 @@
 .searchBar {
   display: flex;
   align-items: center;
-  padding: 6px 8px;
+  padding: 6px;
   border-bottom: 1px solid var(--border);
   gap: 4px;
   background: var(--bg-primary);
@@ -50,6 +50,7 @@
   min-height: 0;
   overflow: auto;
   outline: none;
+  padding: 5px;
 }
 
 .emptyState {
@@ -104,4 +105,41 @@
 .menuButton:hover {
   background-color: var(--bg-hover);
   border-radius: 4px;
+}
+
+.dropInto {
+  outline: 2px solid var(--resizer-active);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.dropIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--resizer-active);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.dragOverlay {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0.6;
+  transform: scale(0.9);
+  transform-origin: left center;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

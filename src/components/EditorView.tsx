@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import * as Y from "yjs"
 import { Crepe } from "@milkdown/crepe"
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react"
@@ -54,12 +54,17 @@ function countWords(text: string): number {
   return stripped === "" ? 0 : stripped.split(/\s+/).length
 }
 
-const LoadedEditor: React.FC<{
+const LoadedEditor = ({
+  doc,
+  onCountsChange,
+  spellcheck,
+  autocorrect,
+}: {
   doc: Y.Doc
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
-}> = ({ doc, onCountsChange, spellcheck, autocorrect }) => {
+}) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -122,12 +127,17 @@ const LoadedEditor: React.FC<{
   )
 }
 
-const Editor: React.FC<{
+const Editor = ({
+  nodeId,
+  onCountsChange,
+  spellcheck,
+  autocorrect,
+}: {
   nodeId: string
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
-}> = ({ nodeId, onCountsChange, spellcheck, autocorrect }) => {
+}) => {
   const node = useLiveQuery(() => db.nodes.get(nodeId), [nodeId])
   const provider = useDocument(node?.content)
   const [loaded, setLoaded] = useState(false)
@@ -158,13 +168,13 @@ interface EditorViewProps {
   onNavigate: (id: string) => void
 }
 
-export const EditorView: React.FC<EditorViewProps> = ({
+export const EditorView = ({
   activeId,
   activeNode,
   ancestors,
   updateTitle,
   onNavigate,
-}) => {
+}: EditorViewProps) => {
   const [words, setWords] = useState(0)
   const [chars, setChars] = useState(0)
   const [options, setOptions] = useState<EditorOptions>(loadOptions)

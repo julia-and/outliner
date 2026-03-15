@@ -27,7 +27,7 @@ interface SplitLayoutProps {
   right: React.ReactNode
 }
 
-export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, right }) => {
+export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
   const [direction, setDirection] = useState<"horizontal" | "vertical">(
     getLayoutDirection,
   )

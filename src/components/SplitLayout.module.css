@@ -51,7 +51,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {
@@ -91,7 +93,9 @@
   position: absolute;
   background-color: var(--resizer-line);
   border-radius: 2px;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .resizer[aria-orientation="vertical"]::before {
@@ -110,9 +114,12 @@
   transform: translateY(-50%);
 }
 
+.resizer:focus-visible {
+  outline: none;
+}
+
 /* Hover and active states */
 .resizer[data-separator="hover"]::before,
 .resizer[data-separator="active"]::before {
   background-color: var(--resizer-active);
-  box-shadow: 0 0 0 2px var(--resizer-glow);
 }

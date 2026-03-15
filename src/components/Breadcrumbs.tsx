@@ -7,10 +7,10 @@ interface BreadcrumbsProps {
   onNavigate: (id: string) => void
 }
 
-export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
+export const Breadcrumbs = ({
   ancestors,
   onNavigate,
-}) => {
+}: BreadcrumbsProps) => {
   if (ancestors.length === 0) return null
 
   return (

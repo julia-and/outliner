@@ -1,7 +1,14 @@
-import React, { useRef, useState, useEffect } from "react"
+import React, { useRef, useState, useEffect, useCallback } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { OutlineRow } from "./OutlineRow"
-import { updateStyle, createNode } from "../store"
+import {
+  updateStyle,
+  createNode,
+  toggleCollapse,
+  moveNodeBefore,
+  moveNodeAfter,
+  moveNodeAsLastChild,
+} from "../store"
 import { VirtualElement } from "@floating-ui/react"
 import styles from "./OutlineView.module.css"
 import { OutletNode } from "../types"
@@ -19,7 +26,59 @@ interface OutlineViewProps {
   handleKeyDown: (e: React.KeyboardEvent | KeyboardEvent) => void
 }
 
-export const OutlineView: React.FC<OutlineViewProps> = ({
+type DropTarget = {
+  nodeId: string
+  index: number
+  position: "before" | "after" | "into"
+}
+
+type DragState = {
+  draggingId: string
+  subtreeIds: Set<string>
+  mouseX: number
+  mouseY: number
+  dropTarget: DropTarget | null
+}
+
+function getDraggingSubtree(id: string, nodes: OutletNode[]): Set<string> {
+  const idx = nodes.findIndex((n) => n.id === id)
+  if (idx === -1) return new Set([id])
+  const result = new Set<string>()
+  result.add(id)
+  const baseDepth = nodes[idx].depth
+  for (let i = idx + 1; i < nodes.length; i++) {
+    if (nodes[i].depth <= baseDepth) break
+    result.add(nodes[i].id)
+  }
+  return result
+}
+
+function computeDropTarget(
+  mouseY: number,
+  container: HTMLDivElement,
+  displayNodes: OutletNode[],
+  virtualItems: Array<{ index: number; start: number; size: number }>,
+  subtreeIds: Set<string>,
+): DropTarget | null {
+  const containerRect = container.getBoundingClientRect()
+  const relativeY = mouseY - containerRect.top + container.scrollTop
+  for (const vItem of virtualItems) {
+    const node = displayNodes[vItem.index]
+    if (!node || subtreeIds.has(node.id)) continue
+    const itemTop = vItem.start
+    const itemBottom = vItem.start + vItem.size
+    if (relativeY >= itemTop && relativeY < itemBottom) {
+      let position: DropTarget["position"]
+      if (relativeY < itemTop + vItem.size * 0.3) position = "before"
+      else if (relativeY > itemTop + vItem.size * 0.7) position = "after"
+      else position = "into"
+      return { nodeId: node.id, index: vItem.index, position }
+    }
+  }
+  return null
+}
+
+export const OutlineView = ({
   nodes,
   activeId,
   mode,
@@ -27,7 +86,7 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
   setMode,
   updateTitle,
   handleKeyDown,
-}) => {
+}: OutlineViewProps) => {
   const parentRef = useRef<HTMLDivElement>(null)
 
   const [filterText, setFilterText] = useState("")
@@ -43,11 +102,20 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
     nodeId: string | null
   }>({ open: false, element: null, nodeId: null })
 
+  const [dragState, setDragState] = useState<DragState | null>(null)
+  const dragStateRef = useRef<DragState | null>(null)
+  useEffect(() => {
+    dragStateRef.current = dragState
+  }, [dragState])
+
   const displayNodes = filterText.trim()
     ? nodes.filter((n) =>
         n.title.toLowerCase().includes(filterText.toLowerCase()),
       )
     : nodes
+
+  const displayNodesRef = useRef(displayNodes)
+  displayNodesRef.current = displayNodes
 
   const rowVirtualizer = useVirtualizer({
     count: displayNodes.length,
@@ -55,6 +123,8 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
     estimateSize: () => 32,
     overscan: 5,
   })
+  const virtualizerRef = useRef(rowVirtualizer)
+  virtualizerRef.current = rowVirtualizer
 
   // Focus management
   useEffect(() => {
@@ -66,6 +136,99 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
       parentRef.current?.focus({ preventScroll: true })
     }
   }, [mode])
+
+  // Drag: start
+  const startDrag = useCallback((id: string, e: React.PointerEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const subtreeIds = getDraggingSubtree(id, displayNodesRef.current)
+    const newDs: DragState = {
+      draggingId: id,
+      subtreeIds,
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      dropTarget: null,
+    }
+    dragStateRef.current = newDs
+    setDragState(newDs)
+  }, [])
+
+  // Drag: global pointer handlers (only active while dragging)
+  useEffect(() => {
+    const draggingId = dragState?.draggingId
+    if (!draggingId) return
+
+    const handleMove = (e: PointerEvent) => {
+      const container = parentRef.current
+      const ds = dragStateRef.current
+      if (!container || !ds) return
+      const virtualItems = virtualizerRef.current.getVirtualItems()
+      const dropTarget = computeDropTarget(
+        e.clientY,
+        container,
+        displayNodesRef.current,
+        virtualItems,
+        ds.subtreeIds,
+      )
+      const newDs: DragState = {
+        ...ds,
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        dropTarget,
+      }
+      dragStateRef.current = newDs
+      setDragState(newDs)
+    }
+
+    const handleUp = () => {
+      const ds = dragStateRef.current
+      if (ds?.dropTarget) {
+        const { nodeId, position } = ds.dropTarget
+        if (position === "before") moveNodeBefore(ds.draggingId, nodeId)
+        else if (position === "after") moveNodeAfter(ds.draggingId, nodeId)
+        else moveNodeAsLastChild(ds.draggingId, nodeId)
+      }
+      dragStateRef.current = null
+      setDragState(null)
+    }
+
+    window.addEventListener("pointermove", handleMove)
+    window.addEventListener("pointerup", handleUp)
+    return () => {
+      window.removeEventListener("pointermove", handleMove)
+      window.removeEventListener("pointerup", handleUp)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragState?.draggingId])
+
+  // Drag: auto-scroll
+  useEffect(() => {
+    const draggingId = dragState?.draggingId
+    if (!draggingId) return
+    const container = parentRef.current
+    if (!container) return
+
+    let rafId: number
+    const scroll = () => {
+      const ds = dragStateRef.current
+      if (!ds) return
+      const rect = container.getBoundingClientRect()
+      const threshold = 60
+      const maxSpeed = 8
+      const mouseY = ds.mouseY
+      if (mouseY - rect.top < threshold && mouseY >= rect.top) {
+        const factor = 1 - (mouseY - rect.top) / threshold
+        container.scrollTop -= maxSpeed * factor
+      } else if (rect.bottom - mouseY < threshold && mouseY <= rect.bottom) {
+        const factor = 1 - (rect.bottom - mouseY) / threshold
+        container.scrollTop += maxSpeed * factor
+      }
+      rafId = requestAnimationFrame(scroll)
+    }
+    rafId = requestAnimationFrame(scroll)
+    return () => cancelAnimationFrame(rafId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragState?.draggingId])
 
   const contextMenuVirtualRef: VirtualElement = {
     getBoundingClientRect: () => ({
@@ -95,7 +258,6 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
     setIconPicker({ open: true, element, nodeId: id })
   }
 
-  // Format panel handlers
   const handleToggleFormat = (key: "bold" | "italic" | "strikethrough") => {
     if (!contextMenu.nodeId) return
     const node = nodes.find((n) => n.id === contextMenu.nodeId)
@@ -138,7 +300,6 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
     parentRef.current?.focus()
   }
 
-  // Icon picker handlers
   const handleSelectIcon = (name: string) => {
     if (!iconPicker.nodeId) return
     updateStyle(iconPicker.nodeId, { icon: name })
@@ -178,6 +339,27 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
       </div>
     )
   }
+
+  // Drop indicator position (line for before/after; null for "into" which uses row highlight)
+  const dropIndicatorY = (() => {
+    const dt = dragState?.dropTarget
+    if (!dt || dt.position === "into") return null
+    const vItems = rowVirtualizer.getVirtualItems()
+    const vItem = vItems.find((v) => displayNodes[v.index]?.id === dt.nodeId)
+    if (!vItem) return null
+    return dt.position === "before" ? vItem.start : vItem.start + vItem.size
+  })()
+
+  const dropIntoNodeId =
+    dragState?.dropTarget?.position === "into"
+      ? dragState.dropTarget.nodeId
+      : null
+
+  // Drag overlay
+  const draggingNode = dragState
+    ? displayNodes.find((n) => n.id === dragState.draggingId)
+    : null
+  const containerRect = dragState ? parentRef.current?.getBoundingClientRect() : null
 
   return (
     <div className={styles.wrapper}>
@@ -231,7 +413,11 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
               return (
                 <div
                   key={node.id}
-                  className={styles.virtualRow}
+                  className={
+                    node.id === dropIntoNodeId
+                      ? `${styles.virtualRow} ${styles.dropInto}`
+                      : styles.virtualRow
+                  }
                   style={{
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
@@ -249,13 +435,35 @@ export const OutlineView: React.FC<OutlineViewProps> = ({
                     onRowContextMenu={handleContextMenu}
                     onUpdateTitle={updateTitle}
                     onBulletClick={handleBulletClick}
+                    onToggleCollapse={toggleCollapse}
+                    onDragHandlePointerDown={startDrag}
+                    isDragging={dragState?.subtreeIds.has(node.id)}
                   />
                 </div>
               )
             })}
+            {dropIndicatorY !== null && (
+              <div
+                className={styles.dropIndicator}
+                style={{ top: dropIndicatorY - 1 }}
+              />
+            )}
           </div>
         )}
       </div>
+
+      {draggingNode && containerRect && (
+        <div
+          className={styles.dragOverlay}
+          style={{
+            top: dragState!.mouseY - 16,
+            left: containerRect.left,
+            width: containerRect.width,
+          }}
+        >
+          <span>{draggingNode.title || "Untitled"}</span>
+        </div>
+      )}
 
       <Popover
         open={contextMenu.open}

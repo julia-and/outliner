@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import { useRef, useEffect } from "react"
 import {
   useFloating,
   autoUpdate,
@@ -33,7 +33,7 @@ export function Popover({
   trigger,
   virtualRef,
   placement = "bottom-start",
-  offset: offsetVal = 4,
+  offset: offsetVal = 12,
 }: PopoverProps) {
   const arrowRef = useRef(null)
 
@@ -51,7 +51,7 @@ export function Popover({
   })
 
   // If virtualRef is provided, update reference
-  React.useEffect(() => {
+  useEffect(() => {
     if (virtualRef) {
       refs.setPositionReference(virtualRef)
     }
@@ -88,8 +88,7 @@ export function Popover({
             <FloatingArrow
               ref={arrowRef}
               context={context}
-              fill="white"
-              stroke="#ddd"
+              className={styles.arrow}
               strokeWidth={1}
             />
             {children}

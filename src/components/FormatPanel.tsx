@@ -1,4 +1,3 @@
-import React from "react"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import styles from "./FormatPanel.module.css"
@@ -40,14 +39,14 @@ interface FormatPanelProps {
   onApplyPreset: (preset: { color: string; backgroundColor: string }) => void
 }
 
-export const FormatPanel: React.FC<FormatPanelProps> = ({
+export const FormatPanel = ({
   nodeStyle,
   onToggle,
   onClearFormat,
   onSetColor,
   onSetBackground,
   onApplyPreset,
-}) => {
+}: FormatPanelProps) => {
   return (
     <div className={styles.panel}>
       <div className={styles.section}>

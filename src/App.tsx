@@ -1,11 +1,11 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { useOutline } from "./hooks/useOutline"
 import { SplitLayout } from "./components/SplitLayout"
 import { OutlineView } from "./components/OutlineView"
 import { EditorView } from "./components/EditorView"
 import { getAncestors } from "./store"
 
-export const App: React.FC = () => {
+export const App = () => {
   const outline = useOutline()
   const activeNode =
     outline.nodes.find((n) => n.id === outline.activeId) ?? null

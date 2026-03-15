@@ -281,6 +281,35 @@ export function updateStyle(id: string, style: Partial<NodeStyle>) {
   })
 }
 
+export async function moveNodeBefore(id: string, targetId: string): Promise<void> {
+  const target = await db.nodes.get(targetId)
+  if (!target) return
+  const siblings = await getSortedSiblings(target.parentId)
+  const filtered = siblings.filter((s) => s.id !== id)
+  const idx = filtered.findIndex((s) => s.id === targetId)
+  const prev = filtered[idx - 1]
+  const order = prev ? (prev.order + target.order) / 2 : target.order - 1
+  await db.nodes.update(id, { parentId: target.parentId, order })
+}
+
+export async function moveNodeAfter(id: string, targetId: string): Promise<void> {
+  const target = await db.nodes.get(targetId)
+  if (!target) return
+  const siblings = await getSortedSiblings(target.parentId)
+  const filtered = siblings.filter((s) => s.id !== id)
+  const idx = filtered.findIndex((s) => s.id === targetId)
+  const next = filtered[idx + 1]
+  const order = next ? (target.order + next.order) / 2 : target.order + 1
+  await db.nodes.update(id, { parentId: target.parentId, order })
+}
+
+export async function moveNodeAsLastChild(id: string, targetParentId: string): Promise<void> {
+  const children = await getSortedSiblings(targetParentId)
+  const filtered = children.filter((c) => c.id !== id)
+  const order = filtered.length > 0 ? filtered[filtered.length - 1].order + 1 : 0
+  await db.nodes.update(id, { parentId: targetParentId, order })
+}
+
 export function toggleCollapse(id: string) {
   db.nodes.get(id).then((node) => {
     if (node) db.nodes.update(id, { collapsed: !node.collapsed })

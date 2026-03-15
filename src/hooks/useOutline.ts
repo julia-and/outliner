@@ -32,6 +32,7 @@ function flattenVisibleNodes(allNodes: NodeData[]): OutletNode[] {
     const children = childMap.get(node.id) ?? []
     result.push({
       id: node.id,
+      parentId: node.parentId,
       title: node.title,
       depth,
       style: node.style || {},

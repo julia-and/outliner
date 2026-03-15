@@ -1,4 +1,3 @@
-import React from "react"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import { ICON_NAMES, ICON_MAP } from "../utils/iconMap"
@@ -24,12 +23,12 @@ interface IconPickerPanelProps {
   onSelectColor: (color: string) => void
 }
 
-export const IconPickerPanel: React.FC<IconPickerPanelProps> = ({
+export const IconPickerPanel = ({
   nodeStyle,
   onSelectIcon,
   onRemoveIcon,
   onSelectColor,
-}) => {
+}: IconPickerPanelProps) => {
   return (
     <div className={styles.panel}>
       <div className={styles.iconGrid}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import classNames from "classnames"
+import { ChevronRight, ChevronDown, GripVertical } from "lucide-react"
 import { OutletNode } from "../types"
 import { ICON_MAP } from "../utils/iconMap"
 import styles from "./OutlineRow.module.css"
@@ -13,9 +14,12 @@ interface OutlineRowProps {
   onRowContextMenu: (id: string, x: number, y: number) => void
   onUpdateTitle: (id: string, title: string) => void
   onBulletClick: (id: string, element: HTMLElement) => void
+  onToggleCollapse: (id: string) => void
+  onDragHandlePointerDown: (id: string, e: React.PointerEvent) => void
+  isDragging?: boolean
 }
 
-export const OutlineRow: React.FC<OutlineRowProps> = ({
+export const OutlineRow = ({
   node,
   isActive,
   mode,
@@ -24,7 +28,10 @@ export const OutlineRow: React.FC<OutlineRowProps> = ({
   onRowContextMenu,
   onUpdateTitle,
   onBulletClick,
-}) => {
+  onToggleCollapse,
+  onDragHandlePointerDown,
+  isDragging,
+}: OutlineRowProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -50,7 +57,10 @@ export const OutlineRow: React.FC<OutlineRowProps> = ({
 
   return (
     <div
-      className={classNames(styles.row, { [styles.active]: isActive })}
+      className={classNames(styles.row, {
+        [styles.active]: isActive,
+        [styles.dragging]: isDragging,
+      })}
       style={rowStyle}
       onClick={() => onRowClick(node.id)}
       onDoubleClick={() => onRowDblClick(node.id)}
@@ -60,6 +70,20 @@ export const OutlineRow: React.FC<OutlineRowProps> = ({
         className={styles.mainColumn}
         style={{ paddingLeft: `${node.depth * 16}px` }}
       >
+        <button
+          className={classNames(styles.caret, {
+            [styles.caretVisible]: node.hasChildren,
+          })}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (node.hasChildren) onToggleCollapse(node.id)
+          }}
+          tabIndex={-1}
+        >
+          {node.hasChildren && (
+            node.collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />
+          )}
+        </button>
         <button
           className={classNames(styles.bullet, {
             [styles.hasChildren]: node.hasChildren && !IconComponent,
@@ -88,6 +112,16 @@ export const OutlineRow: React.FC<OutlineRowProps> = ({
           disabled={mode !== "insert" || !isActive}
         />
       </div>
+      <button
+        className={styles.dragHandle}
+        onPointerDown={(e) => {
+          e.stopPropagation()
+          onDragHandlePointerDown(node.id, e)
+        }}
+        tabIndex={-1}
+      >
+        <GripVertical size={14} />
+      </button>
     </div>
   )
 }
