@@ -1,0 +1,118 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-surface);
+}
+
+.toolbar {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background-color: var(--bg-primary);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.syncLabel {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.paneContainer {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Separator hit area */
+.resizer {
+  position: relative;
+  background-color: var(--resizer-bg);
+}
+
+/* Horizontal group → vertical separator line */
+.resizer[aria-orientation="vertical"] {
+  width: 9px;
+  cursor: col-resize;
+}
+
+/* Vertical group → horizontal separator line */
+.resizer[aria-orientation="horizontal"] {
+  height: 9px;
+  cursor: row-resize;
+}
+
+/* Hairline centered inside the hit area */
+.resizer::before {
+  content: "";
+  position: absolute;
+  background-color: var(--resizer-line);
+  border-radius: 2px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.resizer[aria-orientation="vertical"]::before {
+  width: 1px;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.resizer[aria-orientation="horizontal"]::before {
+  height: 1px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Hover and active states */
+.resizer[data-separator="hover"]::before,
+.resizer[data-separator="active"]::before {
+  background-color: var(--resizer-active);
+  box-shadow: 0 0 0 2px var(--resizer-glow);
+}

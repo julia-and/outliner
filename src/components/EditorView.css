@@ -1,0 +1,170 @@
+.editor-outer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+  box-sizing: border-box;
+}
+
+.editor-container > div,
+.editor-container .milkdown {
+  height: 100%;
+}
+
+/* ── Milkdown theme ── */
+/* Most variables reference app tokens so dark mode is automatic. */
+.milkdown {
+  --crepe-color-background: var(--bg-primary);
+  --crepe-color-on-background: var(--text-primary);
+  --crepe-color-surface: var(--bg-surface);
+  --crepe-color-surface-low: var(--bg-hover);
+  --crepe-color-on-surface: var(--text-primary);
+  --crepe-color-on-surface-variant: var(--text-secondary);
+  --crepe-color-outline: var(--icon);
+  --crepe-color-primary: var(--resizer-active);
+  --crepe-color-secondary: var(--active-bg);
+  --crepe-color-on-secondary: var(--active-text);
+  --crepe-color-hover: var(--bg-hover);
+  --crepe-color-selected: var(--active-bg);
+  --crepe-color-inline-area: var(--bg-surface);
+  /* These don't have token equivalents; dark overrides them below in styles.css */
+  --crepe-color-inverse: #1a1a1a;
+  --crepe-color-on-inverse: #ffffff;
+  --crepe-color-inline-code: #c0392b;
+  --crepe-color-error: #c0392b;
+  --crepe-shadow-1:
+    0px 1px 3px 1px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.08);
+  --crepe-shadow-2:
+    0px 2px 6px 2px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.08);
+
+  --crepe-font-default: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --crepe-font-title: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --crepe-font-code:
+    "Fira Code", Menlo, Monaco, "Courier New", Courier, monospace;
+}
+
+/* Tighter prose padding to fit app layout */
+.milkdown .ProseMirror {
+  padding: 24px 80px;
+}
+
+.editor-inner {
+  height: 100%;
+}
+
+.editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 4px 40px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.editor-footer-counts {
+  display: flex;
+  gap: 16px;
+}
+
+.editor-footer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+
+.editor-footer-btn:hover {
+  opacity: 1;
+  background: var(--bg-hover);
+}
+
+.editor-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+  min-width: 180px;
+}
+
+.editor-options-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.editor-options-item:hover {
+  background: var(--bg-hover);
+}
+
+.editor-options-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--resizer-active);
+}
+
+.editor-options-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 8px;
+}
+
+/*
+ * Block handle sizing — adjust --handle-icon-size to resize everything at once.
+ *
+ * Alignment math (paragraph: padding 4px, line-height 24px, rect 32px):
+ * - "left" (centered): triggers when handleHeight >= contentHeight (24px). The handle
+ *   center = rect center = rect.top + 16px = text center. ✓
+ * - "left-start" (top-aligned): triggers when handleHeight < contentHeight (e.g. 2-line
+ *   wrapped paragraph). Handle center = rect.top + 16px (half of 32px min-height) = first
+ *   line text center. ✓
+ * min-height: 32px (= full single-line paragraph rect) keeps both cases correct regardless
+ * of --handle-icon-size.
+ */
+.milkdown {
+  --handle-icon-size: 18px; /* change this to resize the drag handle icons */
+}
+.milkdown .milkdown-block-handle {
+  min-height: 32px;
+}
+.milkdown .milkdown-block-handle .operation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--handle-icon-size) + 8px);
+  height: calc(var(--handle-icon-size) + 8px);
+  padding: 2px;
+}
+.milkdown .milkdown-block-handle .operation-item svg {
+  width: var(--handle-icon-size);
+  height: var(--handle-icon-size);
+  flex-shrink: 0;
+}

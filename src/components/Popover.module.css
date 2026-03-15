@@ -1,0 +1,12 @@
+.content {
+  z-index: 1000;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px var(--popover-shadow);
+  outline: none;
+}
+
+.trigger {
+  display: inline-flex;
+}

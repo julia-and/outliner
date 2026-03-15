@@ -3,18 +3,70 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #1a1a1a;
+  background-color: #f5f5f5;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Light theme tokens */
+  --bg-primary: #ffffff;
+  --bg-surface: #f5f5f5;
+  --bg-hover: #eeeeee;
+  --border: #e0e0e0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --icon: var(--text-secondary);
+  --active-bg: #e3f2fd;
+  --active-text: #333333;
+  --bullet-empty: #cccccc;
+  --resizer-bg: #f0f0f0;
+  --resizer-line: #c8c8c8;
+  --resizer-active: #4a90e2;
+  --resizer-glow: #c6dcf7;
+  --sync-ok: #4a9256;
+  --popover-shadow: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  color: #e0e0e0;
+  background-color: #252525;
+
+  --bg-primary: #1e1e1e;
+  --bg-surface: #252525;
+  --bg-hover: #333333;
+  --border: #3a3a3a;
+  --text-primary: #e0e0e0;
+  --text-secondary: #999999;
+  --active-bg: #1a3a5c;
+  --active-text: #90caf9;
+  --bullet-empty: #555555;
+  --resizer-bg: #2a2a2a;
+  --resizer-line: #4a4a4a;
+  --resizer-active: #4a90e2;
+  --resizer-glow: rgba(74, 144, 226, 0.3);
+  --sync-ok: #5ab56a;
+  --popover-shadow: rgba(0, 0, 0, 0.5);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+/* Milkdown dark overrides — only values the app tokens can't cover */
+[data-theme="dark"] .milkdown {
+  --crepe-color-inverse: var(--text-primary);
+  --crepe-color-on-inverse: var(--bg-primary);
+  --crepe-color-inline-code: #ff8a80;
+  --crepe-color-error: #ff8a80;
+  --crepe-shadow-1:
+    0px 1px 3px 1px var(--popover-shadow), 0px 1px 2px 0px var(--popover-shadow);
+  --crepe-shadow-2:
+    0px 2px 6px 2px var(--popover-shadow), 0px 1px 2px 0px var(--popover-shadow);
 }

@@ -1,0 +1,59 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  background: var(--bg-hover);
+}
+
+.iconPlaceholder {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bullet-empty);
+}
+
+.titleInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  min-width: 0;
+}
+
+.titleInput:focus {
+  background: var(--bg-hover);
+}
+
+.titleInput::placeholder {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
