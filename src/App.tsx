@@ -27,6 +27,7 @@ export const App = () => {
           setMode={outline.setMode}
           updateTitle={outline.updateTitle}
           handleKeyDown={outline.handleKeyDown}
+          handlePasteEvent={outline.handlePasteEvent}
         />
       }
       right={

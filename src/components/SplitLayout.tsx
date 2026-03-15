@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { Panel, Group, Separator } from "react-resizable-panels"
 import {
   Columns,
+  Keyboard,
   Rows,
   Moon,
   Sun,
@@ -20,6 +21,7 @@ import {
 } from "../store"
 import type { SyncState } from "dexie-cloud-addon"
 import styles from "./SplitLayout.module.css"
+import { KeyboardShortcuts } from "./KeyboardShortcuts"
 type SyncStatePhase = SyncState["phase"]
 
 interface SplitLayoutProps {
@@ -34,6 +36,7 @@ export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
   const [darkMode, setDarkModeState] = useState(getDarkMode)
   const [syncPhase, setSyncPhase] = useState<SyncStatePhase>("initial")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
 
   useEffect(() => {
     const s1 = db.cloud.syncState.subscribe((s) => setSyncPhase(s.phase))
@@ -49,6 +52,24 @@ export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? "dark" : "light"
   }, [darkMode])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as Element
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        (target as HTMLElement).isContentEditable
+      )
+        return
+      if (e.key === "?") {
+        e.preventDefault()
+        setShowShortcuts((v) => !v)
+      }
+    }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [])
 
   const toggleDirection = () => {
     setDirection((prev) => {
@@ -89,7 +110,19 @@ export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
         </button>
         <div className={styles.divider} />
         <SyncButton phase={syncPhase} isLoggedIn={isLoggedIn} />
+        <div className={styles.spacer} />
+        <button
+          onClick={() => setShowShortcuts(true)}
+          className={styles.button}
+          title="Keyboard Shortcuts (?)"
+        >
+          <Keyboard size={18} />
+        </button>
       </div>
+      <KeyboardShortcuts
+        open={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
       <div className={styles.content}>
         <Group
           orientation={direction}

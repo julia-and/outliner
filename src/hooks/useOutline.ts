@@ -11,9 +11,18 @@ import {
   indentNode,
   outdentNode,
   updateTitle as storeUpdateTitle,
+  getActiveNodeId,
+  setActiveNodeId,
+  pasteSubtree,
 } from "../store"
-import { isCmd } from "../utils/keyboard"
+import { getBindings, matchesBinding } from "../utils/shortcuts"
 import { NodeData, OutletNode } from "../types"
+import {
+  buildClipboardPayload,
+  payloadToHtml,
+  payloadToPlainText,
+  parseClipboard,
+} from "../utils/clipboard"
 
 function flattenVisibleNodes(allNodes: NodeData[]): OutletNode[] {
   const result: OutletNode[] = []
@@ -51,7 +60,7 @@ function flattenVisibleNodes(allNodes: NodeData[]): OutletNode[] {
 }
 
 export function useOutline() {
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(getActiveNodeId)
   const [mode, setMode] = useState<"nav" | "insert">("nav")
 
   const activeIdRef = useRef(activeId)
@@ -60,6 +69,7 @@ export function useOutline() {
 
   useEffect(() => {
     activeIdRef.current = activeId
+    setActiveNodeId(activeId)
   }, [activeId])
 
   useEffect(() => {
@@ -78,11 +88,17 @@ export function useOutline() {
     nodesRef.current = nodes
   }, [nodes])
 
-  // Auto-select first node
+  const allNodesRef = useRef(allNodes)
   useEffect(() => {
-    if (!activeIdRef.current && nodes.length > 0) {
-      setActiveId(nodes[0].id)
-    }
+    allNodesRef.current = allNodes
+  }, [allNodes])
+
+  // Auto-select: restore persisted selection if still valid, else fall back to first node
+  useEffect(() => {
+    if (nodes.length === 0) return
+    const current = activeIdRef.current
+    if (current && nodes.some((n) => n.id === current)) return
+    setActiveId(nodes[0].id)
   }, [nodes])
 
   const handleSetActive = useCallback((id: string) => {
@@ -108,20 +124,22 @@ export function useOutline() {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
+      const bindings = getBindings()
+      const m = (id: string) => matchesBinding(e, bindings[id])
+
       const currentNodes = nodesRef.current
       const currentActiveId = activeIdRef.current
       const currentMode = modeRef.current
-
       const idx = currentNodes.findIndex((n) => n.id === currentActiveId)
 
       if (currentMode === "insert") {
-        if (e.key === "Escape") {
+        if (m("insert.cancel")) {
           e.preventDefault()
           if (currentActiveId && originalTitleRef.current !== null) {
             storeUpdateTitle(currentActiveId, originalTitleRef.current)
           }
           handleSetMode("nav")
-        } else if (e.key === "Enter") {
+        } else if (m("insert.confirm")) {
           e.preventDefault()
           handleSetMode("nav")
         }
@@ -131,29 +149,7 @@ export function useOutline() {
       if (currentMode === "nav") {
         const node = currentNodes[idx]
 
-        if (isCmd(e)) {
-          if (e.key === "ArrowUp") {
-            e.preventDefault()
-            if (currentActiveId) moveNode(currentActiveId, "up")
-            return
-          }
-          if (e.key === "ArrowDown") {
-            e.preventDefault()
-            if (currentActiveId) moveNode(currentActiveId, "down")
-            return
-          }
-          if (e.key === "ArrowRight") {
-            e.preventDefault()
-            if (currentActiveId) indentNode(currentActiveId)
-            return
-          }
-          if (e.key === "ArrowLeft") {
-            e.preventDefault()
-            if (currentActiveId) outdentNode(currentActiveId)
-            return
-          }
-        }
-
+        // Tab is a hardcoded alias for indent/outdent (always works regardless of remap)
         if (e.key === "Tab") {
           e.preventDefault()
           if (currentActiveId) {
@@ -163,80 +159,175 @@ export function useOutline() {
           return
         }
 
-        switch (e.key) {
-          case "ArrowUp":
-            e.preventDefault()
-            if (idx > 0) handleSetActive(currentNodes[idx - 1].id)
-            break
-          case "ArrowDown":
-            e.preventDefault()
-            if (idx < currentNodes.length - 1)
-              handleSetActive(currentNodes[idx + 1].id)
-            break
-          case "ArrowRight":
-            e.preventDefault()
-            if (node?.hasChildren && node.collapsed) toggleCollapse(node.id)
-            break
-          case "ArrowLeft":
-            e.preventDefault()
-            if (node?.hasChildren && !node.collapsed) toggleCollapse(node.id)
-            else {
-              for (let i = idx - 1; i >= 0; i--) {
-                if (currentNodes[i].depth < node.depth) {
-                  handleSetActive(currentNodes[i].id)
-                  break
-                }
+        // Check modifier+arrow shortcuts before plain arrows
+        if (m("node.move-up")) {
+          e.preventDefault()
+          if (currentActiveId) moveNode(currentActiveId, "up")
+          return
+        }
+        if (m("node.move-down")) {
+          e.preventDefault()
+          if (currentActiveId) moveNode(currentActiveId, "down")
+          return
+        }
+        if (m("node.indent")) {
+          e.preventDefault()
+          if (currentActiveId) indentNode(currentActiveId)
+          return
+        }
+        if (m("node.outdent")) {
+          e.preventDefault()
+          if (currentActiveId) outdentNode(currentActiveId)
+          return
+        }
+
+        // Check most-specific Enter combos first
+        if (m("node.add-root")) {
+          e.preventDefault()
+          if (currentActiveId) {
+            addRootSibling(currentActiveId).then((newId) => {
+              handleSetActive(newId)
+              handleSetMode("insert")
+            })
+          }
+          return
+        }
+        if (m("node.add-child")) {
+          e.preventDefault()
+          if (currentActiveId) {
+            addChild(currentActiveId).then((newId) => {
+              handleSetActive(newId)
+              handleSetMode("insert")
+            })
+          }
+          return
+        }
+        if (m("node.add-sibling")) {
+          e.preventDefault()
+          if (currentActiveId) {
+            addSibling(currentActiveId).then((newId) => {
+              handleSetActive(newId)
+              handleSetMode("insert")
+            })
+          }
+          return
+        }
+
+        if (m("node.copy") || m("node.cut")) {
+          e.preventDefault()
+          if (!currentActiveId) return
+          const payload = buildClipboardPayload(currentActiveId, allNodesRef.current)
+          navigator.clipboard
+            .write([
+              new ClipboardItem({
+                "text/html": new Blob([payloadToHtml(payload)], { type: "text/html" }),
+                "text/plain": new Blob([payloadToPlainText(payload)], { type: "text/plain" }),
+              }),
+            ])
+            .catch(() => {
+              const ta = document.createElement("textarea")
+              ta.value = payloadToPlainText(payload)
+              document.body.appendChild(ta)
+              ta.select()
+              document.execCommand("copy")
+              document.body.removeChild(ta)
+            })
+          if (m("node.cut")) {
+            let nextId: string | null = null
+            const nodeToDelete = currentNodes[idx]
+            if (idx > 0) {
+              nextId = currentNodes[idx - 1].id
+            } else if (idx < currentNodes.length - 1) {
+              const found = currentNodes
+                .slice(idx + 1)
+                .find((n) => n.depth <= nodeToDelete.depth)
+              if (found) nextId = found.id
+            }
+            const idToDelete = currentActiveId
+            if (nextId) handleSetActive(nextId)
+            deleteNode(idToDelete)
+          }
+          return
+        }
+        if (m("node.paste")) {
+          // actual paste is handled via onPaste DOM event
+          return
+        }
+
+        if (m("nav.up")) {
+          e.preventDefault()
+          if (idx > 0) handleSetActive(currentNodes[idx - 1].id)
+          return
+        }
+        if (m("nav.down")) {
+          e.preventDefault()
+          if (idx < currentNodes.length - 1)
+            handleSetActive(currentNodes[idx + 1].id)
+          return
+        }
+        if (m("nav.expand")) {
+          e.preventDefault()
+          if (node?.hasChildren && node.collapsed) toggleCollapse(node.id)
+          return
+        }
+        if (m("nav.collapse")) {
+          e.preventDefault()
+          if (node?.hasChildren && !node.collapsed) {
+            toggleCollapse(node.id)
+          } else {
+            for (let i = idx - 1; i >= 0; i--) {
+              if (currentNodes[i].depth < node.depth) {
+                handleSetActive(currentNodes[i].id)
+                break
               }
             }
-            break
-          case "Enter":
-            e.preventDefault()
-            if (isCmd(e) && e.shiftKey && currentActiveId) {
-              addRootSibling(currentActiveId).then((newId) => {
-                handleSetActive(newId)
-                handleSetMode("insert")
-              })
-              return
+          }
+          return
+        }
+        if (m("node.edit")) {
+          e.preventDefault()
+          handleSetMode("insert")
+          return
+        }
+        if (m("node.delete")) {
+          e.preventDefault()
+          if (currentActiveId) {
+            let nextId: string | null = null
+            const nodeToDelete = currentNodes[idx]
+            if (idx > 0) {
+              nextId = currentNodes[idx - 1].id
+            } else if (idx < currentNodes.length - 1) {
+              const found = currentNodes
+                .slice(idx + 1)
+                .find((n) => n.depth <= nodeToDelete.depth)
+              if (found) nextId = found.id
             }
-            if (isCmd(e) && currentActiveId) {
-              addChild(currentActiveId).then((newId) => {
-                handleSetActive(newId)
-                handleSetMode("insert")
-              })
-            } else if (currentActiveId) {
-              addSibling(currentActiveId).then((newId) => {
-                handleSetActive(newId)
-                handleSetMode("insert")
-              })
-            }
-            break
-          case "i":
-            e.preventDefault()
-            handleSetMode("insert")
-            break
-          case "Backspace":
-            if (currentActiveId) {
-              let nextId: string | null = null
-              const nodeToDelete = currentNodes[idx]
-
-              if (idx > 0) {
-                nextId = currentNodes[idx - 1].id
-              } else if (idx < currentNodes.length - 1) {
-                const found = currentNodes
-                  .slice(idx + 1)
-                  .find((n) => n.depth <= nodeToDelete.depth)
-                if (found) nextId = found.id
-              }
-
-              const idToDelete = currentActiveId
-              if (nextId) handleSetActive(nextId)
-              deleteNode(idToDelete)
-            }
-            break
+            const idToDelete = currentActiveId
+            if (nextId) handleSetActive(nextId)
+            deleteNode(idToDelete)
+          }
+          return
         }
       }
     },
     [handleSetActive, handleSetMode],
+  )
+
+  const handlePasteEvent = useCallback(
+    async (e: React.ClipboardEvent) => {
+      const currentActiveId = activeIdRef.current
+      if (!currentActiveId) return
+      e.preventDefault()
+      const html = e.clipboardData.getData("text/html") || null
+      const plain = e.clipboardData.getData("text/plain") || null
+      const payload = parseClipboard(html, plain)
+      if (payload.nodes.length === 0) return
+      const node = nodesRef.current.find((n) => n.id === currentActiveId)
+      const parentId = node?.parentId ?? null
+      const newIds = await pasteSubtree(payload, parentId, currentActiveId)
+      if (newIds.length > 0) handleSetActive(newIds[0])
+    },
+    [handleSetActive],
   )
 
   return {
@@ -248,5 +339,6 @@ export function useOutline() {
     setMode: handleSetMode,
     updateTitle: handleUpdateTitle,
     handleKeyDown,
+    handlePasteEvent,
   }
 }

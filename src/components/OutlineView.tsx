@@ -24,6 +24,7 @@ interface OutlineViewProps {
   setMode: (mode: "nav" | "insert") => void
   updateTitle: (id: string, title: string) => void
   handleKeyDown: (e: React.KeyboardEvent | KeyboardEvent) => void
+  handlePasteEvent: (e: React.ClipboardEvent) => void
 }
 
 type DropTarget = {
@@ -86,6 +87,7 @@ export const OutlineView = ({
   setMode,
   updateTitle,
   handleKeyDown,
+  handlePasteEvent,
 }: OutlineViewProps) => {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -399,6 +401,7 @@ export const OutlineView = ({
           }
           handleKeyDown(e)
         }}
+        onPaste={handlePasteEvent}
         tabIndex={0}
       >
         {displayNodes.length === 0 && filterText ? (

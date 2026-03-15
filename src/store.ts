@@ -3,6 +3,7 @@ import Dexie, { EntityTable, Table } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
 import yDexie from "y-dexie"
 import { NodeData, NodeStyle } from "./types"
+import type { ClipboardPayload, ClipboardNode } from "./utils/clipboard"
 
 // --- Schema ---
 
@@ -11,6 +12,7 @@ interface UiStateRow {
   panelLayout?: { [id: string]: number }
   layoutDirection: "horizontal" | "vertical"
   darkMode: boolean
+  activeNodeId?: string
 }
 
 class OutlineDB extends Dexie {
@@ -70,6 +72,10 @@ export function getDarkMode(): boolean {
   return uiCache.darkMode
 }
 
+export function getActiveNodeId(): string | null {
+  return uiCache.activeNodeId ?? null
+}
+
 export function setPanelLayout(layout: { [id: string]: number }) {
   uiCache = { ...uiCache, panelLayout: layout }
   db.uiState.put(uiCache)
@@ -82,6 +88,11 @@ export function setLayoutDirection(direction: "horizontal" | "vertical") {
 
 export function setDarkMode(value: boolean) {
   uiCache = { ...uiCache, darkMode: value }
+  db.uiState.put(uiCache)
+}
+
+export function setActiveNodeId(id: string | null) {
+  uiCache = { ...uiCache, activeNodeId: id ?? undefined }
   db.uiState.put(uiCache)
 }
 
@@ -313,6 +324,57 @@ export async function moveNodeAsLastChild(id: string, targetParentId: string): P
 export function toggleCollapse(id: string) {
   db.nodes.get(id).then((node) => {
     if (node) db.nodes.update(id, { collapsed: !node.collapsed })
+  })
+}
+
+export async function pasteSubtree(
+  payload: ClipboardPayload,
+  parentId: string | null,
+  afterNodeId: string,
+): Promise<string[]> {
+  if (payload.nodes.length === 0) return []
+
+  return db.transaction("rw", db.nodes, async () => {
+    const afterNode = await db.nodes.get(afterNodeId)
+    if (!afterNode) return []
+
+    const siblings = await getSortedSiblings(parentId)
+    const afterIdx = siblings.findIndex((s) => s.id === afterNodeId)
+    const nextSibling = siblings[afterIdx + 1]
+    const N = payload.nodes.length
+
+    const rootIds: string[] = []
+
+    const insertNode = async (
+      node: ClipboardNode,
+      nodeParentId: string | null,
+      order: number,
+    ): Promise<void> => {
+      const newId = await createNode(nodeParentId, node.title, undefined, order)
+      if (Object.keys(node.style).length > 0) {
+        await db.nodes.update(newId, { style: node.style })
+      }
+      if (nodeParentId === parentId) rootIds.push(newId)
+      for (const child of node.children) {
+        await insertNode(child, newId, 0)
+      }
+    }
+
+    if (nextSibling) {
+      const gap = nextSibling.order - afterNode.order
+      const step = gap / (N + 1)
+      for (let i = 0; i < N; i++) {
+        const order = afterNode.order + step * (i + 1)
+        await insertNode(payload.nodes[i], parentId, order)
+      }
+    } else {
+      for (let i = 0; i < N; i++) {
+        const order = afterNode.order + (i + 1)
+        await insertNode(payload.nodes[i], parentId, order)
+      }
+    }
+
+    return rootIds
   })
 }
 

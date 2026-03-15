@@ -151,12 +151,14 @@ const Editor = ({
 
   if (!loaded || !node) return null
   return (
-    <LoadedEditor
-      doc={node.content}
-      onCountsChange={onCountsChange}
-      spellcheck={spellcheck}
-      autocorrect={autocorrect}
-    />
+    <MilkdownProvider>
+      <LoadedEditor
+        doc={node.content}
+        onCountsChange={onCountsChange}
+        spellcheck={spellcheck}
+        autocorrect={autocorrect}
+      />
+    </MilkdownProvider>
   )
 }
 
@@ -206,15 +208,13 @@ export const EditorView = ({
       <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />
       <NoteHeader node={activeNode} onUpdateTitle={updateTitle} />
       <div className="editor-container">
-        <MilkdownProvider>
-          <Editor
-            key={activeId}
-            nodeId={activeId}
-            onCountsChange={handleCountsChange}
-            spellcheck={options.spellcheck}
-            autocorrect={options.autocorrect}
-          />
-        </MilkdownProvider>
+        <Editor
+          key={activeId}
+          nodeId={activeId}
+          onCountsChange={handleCountsChange}
+          spellcheck={options.spellcheck}
+          autocorrect={options.autocorrect}
+        />
       </div>
       <div className="editor-footer">
         <div className="editor-footer-counts">
