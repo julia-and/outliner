@@ -1,7 +1,6 @@
 import { useState } from "react"
-import { OutletNode } from "../types"
-import { updateStyle } from "../store"
-import { ICON_MAP } from "../utils/iconMap"
+import { OutletNode, NodeStyle } from "../types"
+import { NodeIcon } from "./NodeIcon"
 import { IconPickerPanel } from "./IconPickerPanel"
 import { Popover } from "./Popover"
 import styles from "./NoteHeader.module.css"
@@ -9,18 +8,32 @@ import styles from "./NoteHeader.module.css"
 interface NoteHeaderProps {
   node: OutletNode
   onUpdateTitle: (id: string, title: string) => void
+  onUpdateStyle: (id: string, style: Partial<NodeStyle>) => void
+  syncStyle?: boolean
 }
 
 export const NoteHeader = ({
   node,
   onUpdateTitle,
+  onUpdateStyle,
+  syncStyle = true,
 }: NoteHeaderProps) => {
   const [pickerOpen, setPickerOpen] = useState(false)
   const s = node.style
-  const IconComponent = s.icon ? ICON_MAP[s.icon] : null
+
+  const containerStyle = syncStyle ? {
+    color: s.color,
+    backgroundColor: s.backgroundColor,
+  } : undefined
+
+  const titleStyle = syncStyle ? {
+    fontWeight: s.bold ? 700 : undefined,
+    fontStyle: s.italic ? "italic" : undefined,
+    textDecoration: s.strikethrough ? "line-through" : undefined,
+  } : undefined
 
   return (
-    <div className={styles.header}>
+    <div className={styles.header} style={containerStyle}>
       <Popover
         open={pickerOpen}
         onOpenChange={setPickerOpen}
@@ -29,10 +42,10 @@ export const NoteHeader = ({
           <button
             className={styles.iconBtn}
             title="Change icon"
-            style={IconComponent ? { color: s.iconColor ?? "var(--text-secondary)" } : undefined}
+            style={s.icon ? { color: s.iconColor ?? "var(--text-secondary)" } : undefined}
           >
-            {IconComponent ? (
-              <IconComponent size={28} />
+            {s.icon ? (
+              <NodeIcon name={s.icon} size={28} />
             ) : (
               <span className={styles.iconPlaceholder} />
             )}
@@ -42,20 +55,21 @@ export const NoteHeader = ({
         <IconPickerPanel
           nodeStyle={s}
           onSelectIcon={(name) => {
-            updateStyle(node.id, { icon: name })
+            onUpdateStyle(node.id, { icon: name })
           }}
           onRemoveIcon={() => {
-            updateStyle(node.id, { icon: undefined, iconColor: undefined })
+            onUpdateStyle(node.id, { icon: undefined, iconColor: undefined })
             setPickerOpen(false)
           }}
           onSelectColor={(color) => {
-            updateStyle(node.id, { iconColor: color })
+            onUpdateStyle(node.id, { iconColor: color })
           }}
         />
       </Popover>
 
       <input
         className={styles.titleInput}
+        style={titleStyle}
         value={node.title}
         onChange={(e) => onUpdateTitle(node.id, e.target.value)}
         placeholder="Untitled"

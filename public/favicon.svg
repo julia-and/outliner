@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#1a1a1a"/>
+  <!-- root line -->
+  <rect x="6" y="9" width="14" height="2.5" rx="1.25" fill="white"/>
+  <!-- child line 1 -->
+  <rect x="10" y="14.75" width="10" height="2.5" rx="1.25" fill="white" opacity="0.75"/>
+  <!-- child line 2 -->
+  <rect x="10" y="20.5" width="7" height="2.5" rx="1.25" fill="white" opacity="0.75"/>
+  <!-- grandchild line -->
+  <rect x="14" y="20.5" width="0" height="0"/>
+  <!-- indent dots -->
+  <circle cx="7.5" cy="16" r="1.25" fill="white" opacity="0.4"/>
+  <circle cx="7.5" cy="21.75" r="1.25" fill="white" opacity="0.4"/>
+</svg>

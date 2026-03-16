@@ -1,0 +1,30 @@
+Carefully audit the Dexie syncing code. The expected behavior is as follows:
+
+ - When not logged in to Dexie cloud:
+   - All changes stored locally. 
+   - Changes should persist between hard refreshes. 
+   - Changes will be lost if site data is discarded in the browser.
+ - When logged in to Dexie cloud with a single browser:
+   - All changes stored locally first, and synced to cloud. 
+   - Changes should still persist between hard refreshes. 
+   - Changes that have been synced to the cloud are NOT lost if browser site data is discarded:
+     - Changes should be synced from the cloud, so if browser site data was deleted:
+       - Once the user logs in to the cloud again, cloud data should download back to the browser
+ - When logged in to Dexie cloud with multiple browsers / devices:
+   - All changes stored locally first, and synced to cloud
+   - Changes should still persist between hard refreshes.
+   - Changes made in browser/device A should sync to browser/device B.
+   - Changes made in browser/device B should sync to browser/device A.
+   - Ideally the changes would be rendered as they are synced, so if you have both devices side-by-side and edit on one, the changes would soon appear on the other device.
+
+
+Observed behavior:
+ - Running locally (`npm run dev`):
+   - Works as expected
+ - Running in "production" (app deployed to S3-compatible storage with web hosting enabled, in Scaleway):
+   - It appears no changes are persisted between hard refreshes
+   - It appears no changes get uploaded to dexie cloud
+   - Some changes do get downloaded from dexie cloud
+     - Example: If I log in to the same account in both a local instance (`npm run dev`) and the "production instance", some color/style/outline item changes will sync from Local -> Production, but never the other way around. 
+
+In other words, I expect full two-way sync with eventual consistency (the typical CRDT / Yjs local-first model). But something is preventing this, particularly in deployed copy of the app.

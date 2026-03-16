@@ -27,9 +27,10 @@ type SyncStatePhase = SyncState["phase"]
 interface SplitLayoutProps {
   left: React.ReactNode
   right: React.ReactNode
+  outlineSwitcher?: React.ReactNode
 }
 
-export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
+export const SplitLayout = ({ left, right, outlineSwitcher }: SplitLayoutProps) => {
   const [direction, setDirection] = useState<"horizontal" | "vertical">(
     getLayoutDirection,
   )
@@ -90,6 +91,12 @@ export const SplitLayout = ({ left, right }: SplitLayoutProps) => {
   return (
     <div className={styles.container}>
       <div className={styles.toolbar}>
+        {outlineSwitcher && (
+          <>
+            {outlineSwitcher}
+            <div className={styles.divider} />
+          </>
+        )}
         <button
           onClick={toggleDirection}
           className={styles.button}

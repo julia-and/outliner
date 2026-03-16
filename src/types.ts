@@ -10,17 +10,17 @@ export interface NodeStyle {
   iconColor?: string
 }
 
-export interface NodeData {
-  id: string
+// Stored as Y.Map value in the outline Y.Doc
+export interface NodeYRecord {
   parentId: string | null
   title: string
   order: number
   collapsed: boolean
   style: NodeStyle
   data: Record<string, any>
-  content: Y.Doc
 }
 
+// View model (flattened, passed to React)
 export interface OutletNode {
   id: string
   parentId: string | null
@@ -29,4 +29,11 @@ export interface OutletNode {
   style: NodeStyle
   collapsed: boolean
   hasChildren: boolean
+}
+
+export interface OutlineRow {
+  id: string
+  name: string
+  createdAt: number
+  content: Y.Doc
 }

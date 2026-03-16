@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react"
+import * as Y from "yjs"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { OutlineRow } from "./OutlineRow"
 import {
@@ -17,6 +18,7 @@ import { FormatPanel } from "./FormatPanel"
 import { IconPickerPanel } from "./IconPickerPanel"
 
 interface OutlineViewProps {
+  outlineDoc: Y.Doc
   nodes: OutletNode[]
   activeId: string | null
   mode: "nav" | "insert"
@@ -80,6 +82,7 @@ function computeDropTarget(
 }
 
 export const OutlineView = ({
+  outlineDoc,
   nodes,
   activeId,
   mode,
@@ -186,19 +189,29 @@ export const OutlineView = ({
       const ds = dragStateRef.current
       if (ds?.dropTarget) {
         const { nodeId, position } = ds.dropTarget
-        if (position === "before") moveNodeBefore(ds.draggingId, nodeId)
-        else if (position === "after") moveNodeAfter(ds.draggingId, nodeId)
-        else moveNodeAsLastChild(ds.draggingId, nodeId)
+        if (position === "before") moveNodeBefore(outlineDoc, ds.draggingId, nodeId)
+        else if (position === "after") moveNodeAfter(outlineDoc, ds.draggingId, nodeId)
+        else moveNodeAsLastChild(outlineDoc, ds.draggingId, nodeId)
       }
       dragStateRef.current = null
       setDragState(null)
     }
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        dragStateRef.current = null
+        setDragState(null)
+      }
+    }
+
     window.addEventListener("pointermove", handleMove)
     window.addEventListener("pointerup", handleUp)
+    window.addEventListener("keydown", handleKeyDown)
     return () => {
       window.removeEventListener("pointermove", handleMove)
       window.removeEventListener("pointerup", handleUp)
+      window.removeEventListener("keydown", handleKeyDown)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState?.draggingId])
@@ -264,13 +277,13 @@ export const OutlineView = ({
     if (!contextMenu.nodeId) return
     const node = nodes.find((n) => n.id === contextMenu.nodeId)
     if (node) {
-      updateStyle(contextMenu.nodeId, { [key]: !node.style[key] })
+      updateStyle(outlineDoc, contextMenu.nodeId, { [key]: !node.style[key] })
     }
   }
 
   const handleClearFormat = () => {
     if (!contextMenu.nodeId) return
-    updateStyle(contextMenu.nodeId, {
+    updateStyle(outlineDoc, contextMenu.nodeId, {
       bold: undefined,
       italic: undefined,
       strikethrough: undefined,
@@ -281,12 +294,12 @@ export const OutlineView = ({
 
   const handleSetColor = (color: string | undefined) => {
     if (!contextMenu.nodeId) return
-    updateStyle(contextMenu.nodeId, { color })
+    updateStyle(outlineDoc, contextMenu.nodeId, { color })
   }
 
   const handleSetBackground = (color: string | undefined) => {
     if (!contextMenu.nodeId) return
-    updateStyle(contextMenu.nodeId, { backgroundColor: color })
+    updateStyle(outlineDoc, contextMenu.nodeId, { backgroundColor: color })
   }
 
   const handleApplyPreset = (preset: {
@@ -294,7 +307,7 @@ export const OutlineView = ({
     backgroundColor: string
   }) => {
     if (!contextMenu.nodeId) return
-    updateStyle(contextMenu.nodeId, {
+    updateStyle(outlineDoc, contextMenu.nodeId, {
       color: preset.color,
       backgroundColor: preset.backgroundColor,
     })
@@ -304,19 +317,19 @@ export const OutlineView = ({
 
   const handleSelectIcon = (name: string) => {
     if (!iconPicker.nodeId) return
-    updateStyle(iconPicker.nodeId, { icon: name })
+    updateStyle(outlineDoc, iconPicker.nodeId, { icon: name })
     setIconPicker((prev) => ({ ...prev, open: false }))
   }
 
   const handleRemoveIcon = () => {
     if (!iconPicker.nodeId) return
-    updateStyle(iconPicker.nodeId, { icon: undefined, iconColor: undefined })
+    updateStyle(outlineDoc, iconPicker.nodeId, { icon: undefined, iconColor: undefined })
     setIconPicker((prev) => ({ ...prev, open: false }))
   }
 
   const handleSelectIconColor = (color: string) => {
     if (!iconPicker.nodeId) return
-    updateStyle(iconPicker.nodeId, { iconColor: color })
+    updateStyle(outlineDoc, iconPicker.nodeId, { iconColor: color })
   }
 
   const contextMenuNode = nodes.find((n) => n.id === contextMenu.nodeId)
@@ -328,10 +341,9 @@ export const OutlineView = ({
         <div className={styles.emptyState}>
           <button
             onClick={() => {
-              createNode(null).then((id) => {
-                setActiveId(id)
-                setMode("insert")
-              })
+              const id = createNode(outlineDoc, null)
+              setActiveId(id)
+              setMode("insert")
             }}
             className={styles.startButton}
           >
@@ -438,7 +450,7 @@ export const OutlineView = ({
                     onRowContextMenu={handleContextMenu}
                     onUpdateTitle={updateTitle}
                     onBulletClick={handleBulletClick}
-                    onToggleCollapse={toggleCollapse}
+                    onToggleCollapse={(id) => toggleCollapse(outlineDoc, id)}
                     onDragHandlePointerDown={startDrag}
                     isDragging={dragState?.subtreeIds.has(node.id)}
                   />

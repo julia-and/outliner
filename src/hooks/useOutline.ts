@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import { useLiveQuery } from "dexie-react-hooks"
+import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from "react"
+import * as Y from "yjs"
 import {
-  db,
   addSibling,
   addRootSibling,
   addChild,
@@ -14,9 +13,11 @@ import {
   getActiveNodeId,
   setActiveNodeId,
   pasteSubtree,
+  createNode,
+  getNodesMap,
 } from "../store"
 import { getBindings, matchesBinding } from "../utils/shortcuts"
-import { NodeData, OutletNode } from "../types"
+import { NodeYRecord, OutletNode } from "../types"
 import {
   buildClipboardPayload,
   payloadToHtml,
@@ -24,23 +25,23 @@ import {
   parseClipboard,
 } from "../utils/clipboard"
 
-function flattenVisibleNodes(allNodes: NodeData[]): OutletNode[] {
+function flattenVisibleNodes(nodesSnapshot: Map<string, NodeYRecord>): OutletNode[] {
   const result: OutletNode[] = []
 
-  const childMap = new Map<string | null, NodeData[]>()
-  for (const node of allNodes) {
+  const childMap = new Map<string | null, [string, NodeYRecord][]>()
+  for (const [id, node] of nodesSnapshot) {
     const key = node.parentId
     if (!childMap.has(key)) childMap.set(key, [])
-    childMap.get(key)!.push(node)
+    childMap.get(key)!.push([id, node])
   }
   for (const children of childMap.values()) {
-    children.sort((a, b) => a.order - b.order)
+    children.sort(([, a], [, b]) => a.order - b.order)
   }
 
-  const visit = (node: NodeData, depth: number) => {
-    const children = childMap.get(node.id) ?? []
+  const visit = (id: string, node: NodeYRecord, depth: number) => {
+    const children = childMap.get(id) ?? []
     result.push({
-      id: node.id,
+      id,
       parentId: node.parentId,
       title: node.title,
       depth,
@@ -49,17 +50,46 @@ function flattenVisibleNodes(allNodes: NodeData[]): OutletNode[] {
       hasChildren: children.length > 0,
     })
     if (!node.collapsed) {
-      for (const child of children) visit(child, depth + 1)
+      for (const [childId, childNode] of children) visit(childId, childNode, depth + 1)
     }
   }
 
   const roots = childMap.get(null) ?? []
-  for (const root of roots) visit(root, 0)
+  for (const [id, node] of roots) visit(id, node, 0)
 
   return result
 }
 
-export function useOutline() {
+function useNodesSnapshot(nodesMap: Y.Map<NodeYRecord>): Map<string, NodeYRecord> {
+  const cacheRef = useRef<{ map: Y.Map<NodeYRecord>; snapshot: Map<string, NodeYRecord> }>({
+    map: nodesMap,
+    snapshot: new Map(nodesMap.entries()),
+  })
+
+  // Synchronously update cache if nodesMap changed (outline switch)
+  if (cacheRef.current.map !== nodesMap) {
+    cacheRef.current = { map: nodesMap, snapshot: new Map(nodesMap.entries()) }
+  }
+
+  const subscribe = useCallback(
+    (cb: () => void) => {
+      const handler = () => {
+        cacheRef.current = { ...cacheRef.current, snapshot: new Map(nodesMap.entries()) }
+        cb()
+      }
+      nodesMap.observeDeep(handler)
+      return () => nodesMap.unobserveDeep(handler)
+    },
+    [nodesMap],
+  )
+
+  // Stable getter — always returns the cached snapshot reference
+  const getSnapshot = useCallback(() => cacheRef.current.snapshot, [])
+
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+}
+
+export function useOutline(outlineDoc: Y.Doc, isNew = false) {
   const [activeId, setActiveId] = useState<string | null>(getActiveNodeId)
   const [mode, setMode] = useState<"nav" | "insert">("nav")
 
@@ -76,22 +106,34 @@ export function useOutline() {
     modeRef.current = mode
   }, [mode])
 
-  const allNodes = useLiveQuery(() => db.nodes.toArray(), []) ?? []
-  const nodeMap = useMemo(
-    () => new Map(allNodes.map((n) => [n.id, n])),
-    [allNodes],
+  const nodesMap = useMemo(() => getNodesMap(outlineDoc), [outlineDoc])
+  const undoManager = useMemo(
+    () => new Y.UndoManager(nodesMap, { captureTimeout: 500 }),
+    [nodesMap],
   )
-  const nodes = useMemo(() => flattenVisibleNodes(allNodes), [allNodes])
+
+  const nodesSnapshot = useNodesSnapshot(nodesMap)
+  const nodes = useMemo(() => flattenVisibleNodes(nodesSnapshot), [nodesSnapshot])
+  const nodeMap = nodesSnapshot
 
   const nodesRef = useRef(nodes)
   useEffect(() => {
     nodesRef.current = nodes
   }, [nodes])
 
-  const allNodesRef = useRef(allNodes)
+  const nodesSnapshotRef = useRef(nodesSnapshot)
   useEffect(() => {
-    allNodesRef.current = allNodes
-  }, [allNodes])
+    nodesSnapshotRef.current = nodesSnapshot
+  }, [nodesSnapshot])
+
+  // Auto-init empty outline: only seed for outlines created in this session.
+  // Read nodesMap.size directly (not the React snapshot) so StrictMode's double-fire
+  // sees the node added by the first invocation and skips the second.
+  useEffect(() => {
+    if (isNew && nodesMap.size === 0) {
+      createNode(outlineDoc, null, "Welcome to Outline")
+    }
+  }, [outlineDoc, isNew, nodesMap])
 
   // Auto-select: restore persisted selection if still valid, else fall back to first node
   useEffect(() => {
@@ -105,22 +147,30 @@ export function useOutline() {
     setActiveId(id)
   }, [])
 
-  const handleSetMode = useCallback(
-    (m: "nav" | "insert") => {
-      if (m === "insert") {
-        const node = nodesRef.current.find((n) => n.id === activeIdRef.current)
-        originalTitleRef.current = node ? node.title : ""
-      } else {
-        originalTitleRef.current = null
-      }
-      setMode(m)
+  const handleSetMode = useCallback((m: "nav" | "insert") => {
+    if (m === "insert") {
+      const node = nodesRef.current.find((n) => n.id === activeIdRef.current)
+      originalTitleRef.current = node ? node.title : ""
+    } else {
+      originalTitleRef.current = null
+    }
+    setMode(m)
+  }, [])
+
+  const handleUpdateTitle = useCallback(
+    (id: string, text: string) => {
+      storeUpdateTitle(outlineDoc, id, text)
     },
-    [],
+    [outlineDoc],
   )
 
-  const handleUpdateTitle = useCallback((id: string, text: string) => {
-    storeUpdateTitle(id, text)
-  }, [])
+  const handleUndo = useCallback(() => {
+    undoManager.undo()
+  }, [undoManager])
+
+  const handleRedo = useCallback(() => {
+    undoManager.redo()
+  }, [undoManager])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
@@ -136,7 +186,7 @@ export function useOutline() {
         if (m("insert.cancel")) {
           e.preventDefault()
           if (currentActiveId && originalTitleRef.current !== null) {
-            storeUpdateTitle(currentActiveId, originalTitleRef.current)
+            storeUpdateTitle(outlineDoc, currentActiveId, originalTitleRef.current)
           }
           handleSetMode("nav")
         } else if (m("insert.confirm")) {
@@ -149,66 +199,72 @@ export function useOutline() {
       if (currentMode === "nav") {
         const node = currentNodes[idx]
 
-        // Tab is a hardcoded alias for indent/outdent (always works regardless of remap)
+        // Tab is a hardcoded alias for indent/outdent
         if (e.key === "Tab") {
           e.preventDefault()
           if (currentActiveId) {
-            if (e.shiftKey) outdentNode(currentActiveId)
-            else indentNode(currentActiveId)
+            if (e.shiftKey) outdentNode(outlineDoc, currentActiveId)
+            else indentNode(outlineDoc, currentActiveId)
           }
           return
         }
 
-        // Check modifier+arrow shortcuts before plain arrows
+        if (m("node.undo")) {
+          e.preventDefault()
+          handleUndo()
+          return
+        }
+        if (m("node.redo")) {
+          e.preventDefault()
+          handleRedo()
+          return
+        }
+
         if (m("node.move-up")) {
           e.preventDefault()
-          if (currentActiveId) moveNode(currentActiveId, "up")
+          if (currentActiveId) moveNode(outlineDoc, currentActiveId, "up")
           return
         }
         if (m("node.move-down")) {
           e.preventDefault()
-          if (currentActiveId) moveNode(currentActiveId, "down")
+          if (currentActiveId) moveNode(outlineDoc, currentActiveId, "down")
           return
         }
         if (m("node.indent")) {
           e.preventDefault()
-          if (currentActiveId) indentNode(currentActiveId)
+          if (currentActiveId) indentNode(outlineDoc, currentActiveId)
           return
         }
         if (m("node.outdent")) {
           e.preventDefault()
-          if (currentActiveId) outdentNode(currentActiveId)
+          if (currentActiveId) outdentNode(outlineDoc, currentActiveId)
           return
         }
 
-        // Check most-specific Enter combos first
         if (m("node.add-root")) {
           e.preventDefault()
           if (currentActiveId) {
-            addRootSibling(currentActiveId).then((newId) => {
-              handleSetActive(newId)
-              handleSetMode("insert")
-            })
+            const newId = addRootSibling(outlineDoc, currentActiveId)
+            handleSetActive(newId)
+            handleSetMode("insert")
           }
           return
         }
         if (m("node.add-child")) {
           e.preventDefault()
           if (currentActiveId) {
-            addChild(currentActiveId).then((newId) => {
-              handleSetActive(newId)
-              handleSetMode("insert")
-            })
+            const newId = addChild(outlineDoc, currentActiveId)
+            handleSetActive(newId)
+            handleSetMode("insert")
           }
           return
         }
         if (m("node.add-sibling")) {
           e.preventDefault()
           if (currentActiveId) {
-            addSibling(currentActiveId).then((newId) => {
-              handleSetActive(newId)
-              handleSetMode("insert")
-            })
+            const newId = addSibling(outlineDoc, currentActiveId)
+            handleSetActive(newId)
+            handleSetMode("insert")
           }
           return
         }
@@ -216,7 +272,7 @@ export function useOutline() {
         if (m("node.copy") || m("node.cut")) {
           e.preventDefault()
           if (!currentActiveId) return
-          const payload = buildClipboardPayload(currentActiveId, allNodesRef.current)
+          const payload = buildClipboardPayload(currentActiveId, nodesSnapshotRef.current)
           navigator.clipboard
             .write([
               new ClipboardItem({
@@ -245,12 +301,11 @@ export function useOutline() {
             }
             const idToDelete = currentActiveId
             if (nextId) handleSetActive(nextId)
-            deleteNode(idToDelete)
+            deleteNode(outlineDoc, idToDelete)
           }
           return
         }
         if (m("node.paste")) {
-          // actual paste is handled via onPaste DOM event
           return
         }
 
@@ -261,19 +316,18 @@ export function useOutline() {
         }
         if (m("nav.down")) {
           e.preventDefault()
-          if (idx < currentNodes.length - 1)
-            handleSetActive(currentNodes[idx + 1].id)
+          if (idx < currentNodes.length - 1) handleSetActive(currentNodes[idx + 1].id)
           return
         }
         if (m("nav.expand")) {
           e.preventDefault()
-          if (node?.hasChildren && node.collapsed) toggleCollapse(node.id)
+          if (node?.hasChildren && node.collapsed) toggleCollapse(outlineDoc, node.id)
           return
         }
         if (m("nav.collapse")) {
           e.preventDefault()
           if (node?.hasChildren && !node.collapsed) {
-            toggleCollapse(node.id)
+            toggleCollapse(outlineDoc, node.id)
           } else {
             for (let i = idx - 1; i >= 0; i--) {
               if (currentNodes[i].depth < node.depth) {
@@ -304,13 +358,13 @@ export function useOutline() {
             }
             const idToDelete = currentActiveId
             if (nextId) handleSetActive(nextId)
-            deleteNode(idToDelete)
+            deleteNode(outlineDoc, idToDelete)
           }
           return
         }
       }
     },
-    [handleSetActive, handleSetMode],
+    [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
   )
 
   const handlePasteEvent = useCallback(
@@ -322,12 +376,12 @@ export function useOutline() {
       const plain = e.clipboardData.getData("text/plain") || null
       const payload = parseClipboard(html, plain)
       if (payload.nodes.length === 0) return
-      const node = nodesRef.current.find((n) => n.id === currentActiveId)
+      const node = nodesSnapshotRef.current.get(currentActiveId)
       const parentId = node?.parentId ?? null
-      const newIds = await pasteSubtree(payload, parentId, currentActiveId)
+      const newIds = pasteSubtree(outlineDoc, payload, parentId, currentActiveId)
       if (newIds.length > 0) handleSetActive(newIds[0])
     },
-    [handleSetActive],
+    [outlineDoc, handleSetActive],
   )
 
   return {
@@ -340,5 +394,7 @@ export function useOutline() {
     updateTitle: handleUpdateTitle,
     handleKeyDown,
     handlePasteEvent,
+    handleUndo,
+    handleRedo,
   }
 }

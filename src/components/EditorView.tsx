@@ -3,7 +3,8 @@ import * as Y from "yjs"
 import { Crepe } from "@milkdown/crepe"
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
-import { useLiveQuery, useDocument } from "dexie-react-hooks"
+import { useLiveQuery } from "dexie-react-hooks"
+import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
 import { db } from "../store"
 import { OutletNode } from "../types"
@@ -17,6 +18,7 @@ interface EditorOptions {
   showChars: boolean
   spellcheck: boolean
   autocorrect: boolean
+  syncTitleStyle: boolean
 }
 
 const DEFAULT_OPTIONS: EditorOptions = {
@@ -24,6 +26,7 @@ const DEFAULT_OPTIONS: EditorOptions = {
   showChars: true,
   spellcheck: false,
   autocorrect: false,
+  syncTitleStyle: true,
 }
 
 const OPTIONS_KEY = "ol-editor-options"
@@ -138,22 +141,42 @@ const Editor = ({
   spellcheck: boolean
   autocorrect: boolean
 }) => {
-  const node = useLiveQuery(() => db.nodes.get(nodeId), [nodeId])
-  const provider = useDocument(node?.content)
+  const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
+  const doc = row?.content
   const [loaded, setLoaded] = useState(false)
+  const [remountKey, setRemountKey] = useState(0)
 
   useEffect(() => {
-    if (!provider) { setLoaded(false); return }
+    if (nodeId) db.nodeContents.add({ nodeId } as any).catch(() => {})
+  }, [nodeId])
+
+  useEffect(() => {
+    if (!doc) { setLoaded(false); return }
+    const provider = DexieYProvider.load(doc, { gracePeriod: 1000 })
     let active = true
     provider.whenLoaded.then(() => { if (active) setLoaded(true) })
-    return () => { active = false; setLoaded(false) }
-  }, [provider])
+    return () => {
+      active = false
+      setLoaded(false)
+      DexieYProvider.release(doc)
+    }
+  }, [doc])
 
-  if (!loaded || !node) return null
+  useEffect(() => {
+    if (!loaded || !doc) return
+    const yText = doc.getText()
+    const handler = (_event: Y.YTextEvent, tr: Y.Transaction) => {
+      if (!tr.local) setRemountKey(k => k + 1)
+    }
+    yText.observe(handler)
+    return () => yText.unobserve(handler)
+  }, [loaded, doc])
+
+  if (!loaded || !row) return null
   return (
-    <MilkdownProvider>
+    <MilkdownProvider key={remountKey}>
       <LoadedEditor
-        doc={node.content}
+        doc={doc!}
         onCountsChange={onCountsChange}
         spellcheck={spellcheck}
         autocorrect={autocorrect}
@@ -167,6 +190,7 @@ interface EditorViewProps {
   activeNode: OutletNode | null
   ancestors: { id: string; title: string }[]
   updateTitle: (id: string, title: string) => void
+  updateStyle: (id: string, style: Partial<import("../types").NodeStyle>) => void
   onNavigate: (id: string) => void
 }
 
@@ -175,6 +199,7 @@ export const EditorView = ({
   activeNode,
   ancestors,
   updateTitle,
+  updateStyle,
   onNavigate,
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
@@ -206,7 +231,7 @@ export const EditorView = ({
   return (
     <div className="editor-outer">
       <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />
-      <NoteHeader node={activeNode} onUpdateTitle={updateTitle} />
+      <NoteHeader node={activeNode} onUpdateTitle={updateTitle} onUpdateStyle={updateStyle} syncStyle={options.syncTitleStyle} />
       <div className="editor-container">
         <Editor
           key={activeId}
@@ -257,6 +282,15 @@ export const EditorView = ({
                 onChange={(e) => setOption("showChars", e.target.checked)}
               />
               Show character count
+            </label>
+            <div className="editor-options-divider" />
+            <label className="editor-options-item">
+              <input
+                type="checkbox"
+                checked={options.syncTitleStyle}
+                onChange={(e) => setOption("syncTitleStyle", e.target.checked)}
+              />
+              Sync title style
             </label>
             <div className="editor-options-divider" />
             <label className="editor-options-item">

@@ -9,6 +9,7 @@
   min-height: 32px;
   color: var(--text-primary);
   position: relative;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .active {

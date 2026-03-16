@@ -56,6 +56,8 @@ export const SHORTCUT_DEFS: ShortcutDef[] = [
   { id: "node.paste",     label: "Paste",        group: "Editing", defaultBinding: { key: "v", cmd: true } },
   { id: "insert.confirm", label: "Confirm edit", group: "Editing", defaultBinding: { key: "Enter" }, remappable: false },
   { id: "insert.cancel",  label: "Cancel edit",  group: "Editing", defaultBinding: { key: "Escape" }, remappable: false },
+  { id: "node.undo", label: "Undo", group: "Editing", defaultBinding: { key: "z", cmd: true } },
+  { id: "node.redo", label: "Redo", group: "Editing", defaultBinding: { key: "z", cmd: true, shift: true } },
 ]
 
 // Shortcuts that only apply in nav mode (for conflict detection)
@@ -65,6 +67,7 @@ const NAV_IDS = new Set([
   "node.add-sibling", "node.add-child", "node.add-root",
   "node.edit", "node.delete",
   "node.copy", "node.cut", "node.paste",
+  "node.undo", "node.redo",
 ])
 const INSERT_IDS = new Set(["insert.confirm", "insert.cancel"])
 

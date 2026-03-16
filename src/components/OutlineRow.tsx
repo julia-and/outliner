@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react"
 import classNames from "classnames"
 import { ChevronRight, ChevronDown, GripVertical } from "lucide-react"
 import { OutletNode } from "../types"
-import { ICON_MAP } from "../utils/iconMap"
+import { NodeIcon } from "./NodeIcon"
 import styles from "./OutlineRow.module.css"
 
 interface OutlineRowProps {
@@ -46,7 +46,6 @@ export const OutlineRow = ({
   }
 
   const s = node.style
-  const IconComponent = s.icon ? ICON_MAP[s.icon] : null
 
   const rowStyle: React.CSSProperties = {
     fontWeight: s.bold ? 700 : undefined,
@@ -86,21 +85,17 @@ export const OutlineRow = ({
         </button>
         <button
           className={classNames(styles.bullet, {
-            [styles.hasChildren]: node.hasChildren && !IconComponent,
-            [styles.bulletIcon]: !!IconComponent,
+            [styles.hasChildren]: node.hasChildren && !s.icon,
+            [styles.bulletIcon]: !!s.icon,
           })}
           onClick={(e) => {
             e.stopPropagation()
             onBulletClick(node.id, e.currentTarget)
           }}
           tabIndex={-1}
-          style={
-            IconComponent
-              ? { color: s.iconColor ?? "var(--text-secondary)" }
-              : undefined
-          }
+          style={s.icon ? { color: s.iconColor ?? "var(--text-secondary)" } : undefined}
         >
-          {IconComponent && <IconComponent size={14} />}
+          {s.icon && <NodeIcon name={s.icon} size={14} />}
         </button>
         <input
           className={styles.input}

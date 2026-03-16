@@ -1,34 +1,7 @@
 import classNames from "classnames"
 import { NodeStyle } from "../types"
+import { COLOR_PALETTE, PRESETS } from "../utils/palette"
 import styles from "./FormatPanel.module.css"
-
-const COLOR_PALETTE = [
-  "#ffffff",
-  "#9b9b9b",
-  "#000000",
-  "#d1335b",
-  "#e54d2e",
-  "#f76808",
-  "#ffca16",
-  "#4a9256",
-  "#2563eb",
-  "#7c3aed",
-]
-
-const PRESETS: { label: string; color: string; backgroundColor: string }[] = [
-  { label: "Green Light", color: "#1a5c2a", backgroundColor: "#d4edda" },
-  { label: "Yellow Light", color: "#7d5a00", backgroundColor: "#fff3cd" },
-  { label: "Red Light", color: "#7a1020", backgroundColor: "#f8d7da" },
-  { label: "Success", color: "#ffffff", backgroundColor: "#4a9256" },
-  { label: "Warning", color: "#1a1a1a", backgroundColor: "#ffca16" },
-  { label: "Danger!", color: "#ffffff", backgroundColor: "#d1335b" },
-  { label: "Soothing", color: "#1a3a5c", backgroundColor: "#e3f2fd" },
-  { label: "Royals", color: "#ffffff", backgroundColor: "#7c3aed" },
-  { label: "Solar", color: "#1a1a1a", backgroundColor: "#f76808" },
-  { label: "Invert", color: "#ffffff", backgroundColor: "#000000" },
-  { label: "Console", color: "#4a9256", backgroundColor: "#1a1a1a" },
-  { label: "Rusty", color: "#f76808", backgroundColor: "#2a1a0a" },
-]
 
 interface FormatPanelProps {
   nodeStyle: NodeStyle

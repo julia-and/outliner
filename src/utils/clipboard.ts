@@ -1,4 +1,4 @@
-import { NodeStyle, NodeData } from "../types"
+import { NodeStyle, NodeYRecord } from "../types"
 
 export interface ClipboardNode {
   title: string
@@ -12,23 +12,23 @@ export interface ClipboardPayload {
 
 export function buildClipboardPayload(
   rootId: string,
-  allNodes: NodeData[],
+  nodesMap: Map<string, NodeYRecord>,
 ): ClipboardPayload {
-  const childMap = new Map<string, NodeData[]>()
-  for (const node of allNodes) {
-    const key = node.parentId ?? "__root__"
+  const childMap = new Map<string | null, [string, NodeYRecord][]>()
+  for (const [id, node] of nodesMap) {
+    const key = node.parentId
     if (!childMap.has(key)) childMap.set(key, [])
-    childMap.get(key)!.push(node)
+    childMap.get(key)!.push([id, node])
   }
   for (const children of childMap.values()) {
-    children.sort((a, b) => a.order - b.order)
+    children.sort(([, a], [, b]) => a.order - b.order)
   }
 
   const buildNode = (id: string): ClipboardNode | null => {
-    const node = allNodes.find((n) => n.id === id)
+    const node = nodesMap.get(id)
     if (!node) return null
     const children = (childMap.get(id) ?? [])
-      .map((c) => buildNode(c.id))
+      .map(([childId]) => buildNode(childId))
       .filter((n): n is ClipboardNode => n !== null)
     return {
       title: node.title,
@@ -134,7 +134,6 @@ function parsePlainText(plain: string): ClipboardPayload {
   const lines = plain.split("\n").filter((l) => l.trim().length > 0)
   if (lines.length === 0) return { nodes: [] }
 
-  // Detect indent unit from first indented line
   let indentUnit = ""
   for (const line of lines) {
     const match = line.match(/^(\s+)/)

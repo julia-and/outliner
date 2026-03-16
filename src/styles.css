@@ -29,6 +29,30 @@
   --resizer-glow: #c6dcf7;
   --sync-ok: #4a9256;
   --popover-shadow: rgba(0, 0, 0, 0.15);
+
+  /* Node color palette — used in color pickers and stored in node styles */
+  --color-white: #ffffff;
+  --color-gray: #9b9b9b;
+  --color-black: #000000;
+  --color-rose: #d1335b;
+  --color-red: #e54d2e;
+  --color-orange: #f76808;
+  --color-yellow: #ffca16;
+  --color-green: #4a9256;
+  --color-blue: #2563eb;
+  --color-purple: #7c3aed;
+
+  /* Preset-specific colors (not in the main palette) */
+  --preset-green-light-fg: #1a5c2a;
+  --preset-green-light-bg: #d4edda;
+  --preset-yellow-light-fg: #7d5a00;
+  --preset-yellow-light-bg: #fff3cd;
+  --preset-red-light-fg: #7a1020;
+  --preset-red-light-bg: #f8d7da;
+  --preset-dark: #1a1a1a;
+  --preset-soothing-fg: #1a3a5c;
+  --preset-soothing-bg: #e3f2fd;
+  --preset-rusty-bg: #2a1a0a;
 }
 
 [data-theme="dark"] {
