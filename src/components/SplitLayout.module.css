@@ -54,6 +54,15 @@
   margin-left: 4px;
 }
 
+.commitHash {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  padding: 0 4px;
+  user-select: none;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

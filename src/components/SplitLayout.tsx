@@ -125,6 +125,7 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
         <div className={styles.divider} />
         <SyncButton phase={syncPhase} isLoggedIn={isLoggedIn} />
         <div className={styles.spacer} />
+        <span className={styles.commitHash}>{__COMMIT_HASH__}</span>
         <button
           onClick={() => setShowShortcuts(true)}
           className={styles.button}
