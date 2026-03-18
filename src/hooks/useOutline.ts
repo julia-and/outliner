@@ -94,6 +94,7 @@ export function useOutline(
   outlineDoc: Y.Doc,
   isNew = false,
   getTemplateContent?: (templateId: string) => string | undefined,
+  onFocusEditor?: () => void,
 ) {
   const [activeId, setActiveId] = useState<string | null>(getActiveNodeId)
   const [mode, setMode] = useState<"nav" | "insert">("nav")
@@ -130,6 +131,12 @@ export function useOutline(
   useEffect(() => {
     nodesSnapshotRef.current = nodesSnapshot
   }, [nodesSnapshot])
+
+  const getTemplateContentRef = useRef(getTemplateContent)
+  getTemplateContentRef.current = getTemplateContent
+
+  const onFocusEditorRef = useRef(onFocusEditor)
+  onFocusEditorRef.current = onFocusEditor
 
   // Auto-init empty outline: only seed for outlines created in this session.
   // Read nodesMap.size directly (not the React snapshot) so StrictMode's double-fire
@@ -260,7 +267,7 @@ export function useOutline(
           if (currentActiveId) {
             const parentNode = nodesSnapshotRef.current.get(currentActiveId)
             const templateId = parentNode?.data?.defaultChildTemplateId as string | undefined
-            const templateContent = templateId ? getTemplateContent?.(templateId) : undefined
+            const templateContent = templateId ? getTemplateContentRef.current?.(templateId) : undefined
             const newId = addChild(outlineDoc, currentActiveId, templateContent)
             handleSetActive(newId)
             handleSetMode("insert")
@@ -344,6 +351,11 @@ export function useOutline(
               }
             }
           }
+          return
+        }
+        if (m("nav.focus-editor")) {
+          e.preventDefault()
+          onFocusEditorRef.current?.()
           return
         }
         if (m("node.edit")) {

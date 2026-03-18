@@ -258,6 +258,7 @@ interface EditorViewProps {
   updateStyle: (id: string, style: Partial<import("../types").NodeStyle>) => void
   onNavigate: (id: string) => void
   getTemplates?: () => TemplateRow[]
+  onFocusOutline?: () => void
 }
 
 export const EditorView = ({
@@ -268,6 +269,7 @@ export const EditorView = ({
   updateStyle,
   onNavigate,
   getTemplates,
+  onFocusOutline,
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
   const [chars, setChars] = useState(0)
@@ -296,7 +298,7 @@ export const EditorView = ({
     )
   }
   return (
-    <div className="editor-outer">
+    <div className="editor-outer" onKeyDown={(e) => { if (e.key === "Escape") onFocusOutline?.() }}>
       <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />
       <NoteHeader node={activeNode} onUpdateTitle={updateTitle} onUpdateStyle={updateStyle} syncStyle={options.syncTitleStyle} />
       <div className="editor-container">

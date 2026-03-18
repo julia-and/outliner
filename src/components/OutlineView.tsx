@@ -30,6 +30,7 @@ interface OutlineViewProps {
   handleKeyDown: (e: React.KeyboardEvent | KeyboardEvent) => void
   handlePasteEvent: (e: React.ClipboardEvent) => void
   templates?: TemplateRow[]
+  containerRef?: React.RefObject<HTMLDivElement | null>
 }
 
 type DropTarget = {
@@ -95,6 +96,7 @@ export const OutlineView = ({
   handleKeyDown,
   handlePasteEvent,
   templates,
+  containerRef,
 }: OutlineViewProps) => {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -405,7 +407,10 @@ export const OutlineView = ({
         )}
       </div>
       <div
-        ref={parentRef}
+        ref={(el) => {
+          parentRef.current = el
+          if (containerRef) (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = el
+        }}
         className={styles.container}
         onKeyDown={(e) => {
           if (filterText) {

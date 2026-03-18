@@ -24,10 +24,11 @@ export interface ShortcutDef {
 
 export const SHORTCUT_DEFS: ShortcutDef[] = [
   // Navigation
-  { id: "nav.up",       label: "Move up",           group: "Navigation", defaultBinding: { key: "ArrowUp" } },
-  { id: "nav.down",     label: "Move down",          group: "Navigation", defaultBinding: { key: "ArrowDown" } },
-  { id: "nav.expand",   label: "Expand / enter",     group: "Navigation", defaultBinding: { key: "ArrowRight" } },
-  { id: "nav.collapse", label: "Collapse / parent",  group: "Navigation", defaultBinding: { key: "ArrowLeft" } },
+  { id: "nav.up",           label: "Move up",           group: "Navigation", defaultBinding: { key: "ArrowUp" } },
+  { id: "nav.down",         label: "Move down",          group: "Navigation", defaultBinding: { key: "ArrowDown" } },
+  { id: "nav.expand",       label: "Expand / enter",     group: "Navigation", defaultBinding: { key: "ArrowRight" } },
+  { id: "nav.collapse",     label: "Collapse / parent",  group: "Navigation", defaultBinding: { key: "ArrowLeft" } },
+  { id: "nav.focus-editor", label: "Focus editor",        group: "Navigation", defaultBinding: { key: "e" } },
   // Structure
   {
     id: "node.indent",
@@ -62,7 +63,7 @@ export const SHORTCUT_DEFS: ShortcutDef[] = [
 
 // Shortcuts that only apply in nav mode (for conflict detection)
 const NAV_IDS = new Set([
-  "nav.up", "nav.down", "nav.expand", "nav.collapse",
+  "nav.up", "nav.down", "nav.expand", "nav.collapse", "nav.focus-editor",
   "node.indent", "node.outdent", "node.move-up", "node.move-down",
   "node.add-sibling", "node.add-child", "node.add-root",
   "node.edit", "node.delete",

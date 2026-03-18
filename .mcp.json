@@ -5,7 +5,7 @@
       "args": [
         "chrome-devtools-mcp@latest",
         "--executablePath",
-        "/Applications/Chromium.app/Contents/MacOS/Chromium"
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       ]
     }
   }

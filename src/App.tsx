@@ -172,7 +172,11 @@ const OutlineWorkspace = ({
   const getTemplateContent = useCallback((id: string) => templatesById.get(id)?.content, [templatesById])
   const getTemplates = useCallback(() => templates, [templates])
 
-  const outline = useOutline(outlineDoc, isNewRef.current, getTemplateContent)
+  const outlineContainerRef = useRef<HTMLDivElement>(null)
+  const focusOutline = useCallback(() => outlineContainerRef.current?.focus(), [])
+  const focusEditor = useCallback(() => document.querySelector<HTMLElement>(".ProseMirror")?.focus(), [])
+
+  const outline = useOutline(outlineDoc, isNewRef.current, getTemplateContent, focusEditor)
   const activeNode = outline.nodes.find((n) => n.id === outline.activeId) ?? null
   const nodesMap = useMemo(() => getNodesMap(outlineDoc) as Y.Map<NodeYRecord>, [outlineDoc])
   const ancestors = useMemo(
@@ -198,6 +202,7 @@ const OutlineWorkspace = ({
           handleKeyDown={outline.handleKeyDown}
           handlePasteEvent={outline.handlePasteEvent}
           templates={templates}
+          containerRef={outlineContainerRef}
         />
       }
       right={
@@ -209,6 +214,7 @@ const OutlineWorkspace = ({
           updateStyle={(id, style) => updateStyle(outlineDoc, id, style)}
           onNavigate={outline.setActiveId}
           getTemplates={getTemplates}
+          onFocusOutline={focusOutline}
         />
       }
     />
