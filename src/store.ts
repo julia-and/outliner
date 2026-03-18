@@ -8,8 +8,6 @@ import type { ClipboardPayload, ClipboardNode } from "./utils/clipboard"
 if (import.meta.env.VITE_DEXIE_DEBUG) Dexie.debug = true
 
 // --- Schema ---
-// NOTE: This is a clean-slate schema (version 1).
-// If you have an existing OutlineDB at version 3, clear it via browser DevTools → Application → IndexedDB.
 
 interface UiStateRow {
   id: string
@@ -25,10 +23,19 @@ interface NodeContentsRow {
   content: Y.Doc
 }
 
+interface ImageRow {
+  id: string
+  blob: Blob
+  mimeType: string
+  size: number
+  createdAt: number
+}
+
 class OutlineDB extends Dexie {
   outlines!: EntityTable<OutlineRow, "id">
   nodeContents!: Table<NodeContentsRow, string>
   uiState!: Table<UiStateRow, string>
+  images!: Table<ImageRow, string>
 
   constructor() {
     super("OutlineDB", { addons: [yDexie, dexieCloud] })
@@ -36,6 +43,12 @@ class OutlineDB extends Dexie {
       outlines: "id, name, createdAt, content: Y.Doc",
       nodeContents: "nodeId, content: Y.Doc",
       uiState: "id",
+    })
+    this.version(2).stores({
+      outlines: "id, name, createdAt, content: Y.Doc",
+      nodeContents: "nodeId, content: Y.Doc",
+      uiState: "id",
+      images: "id, mimeType, size, createdAt",
     })
     this.cloud.configure({
       databaseUrl: "https://z06g52g1s.dexie.cloud",

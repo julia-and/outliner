@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import * as Y from "yjs"
-import { Crepe } from "@milkdown/crepe"
+import { Crepe, CrepeFeature } from "@milkdown/crepe"
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
 import { db } from "../store"
+import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
+
+const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 import { OutletNode } from "../types"
 import { NoteHeader } from "./NoteHeader"
 import { Breadcrumbs } from "./Breadcrumbs"
@@ -111,6 +114,23 @@ const LoadedEditor = ({
     const crepe = new Crepe({
       root,
       defaultValue: yText.toString(),
+      featureConfigs: {
+        [CrepeFeature.ImageBlock]: {
+          onUpload: async (file: File) => {
+            const id = await saveImage(file)
+            return `ol-image://${id}`
+          },
+          proxyDomURL: (url: string) => {
+            if (!url.startsWith("ol-image://")) return url
+            const id = url.slice("ol-image://".length)
+            // Return synchronously from cache (pre-populated before mount)
+            const cached = getCachedImageURL(id)
+            if (cached) return cached
+            // Async fallback for images arriving after initial load
+            return getImageURL(id).then((blobURL) => blobURL ?? IMAGE_UNAVAILABLE_PLACEHOLDER)
+          },
+        },
+      },
     })
 
     crepe.on((api) => {
@@ -154,11 +174,16 @@ const Editor = ({
     if (!doc) { setLoaded(false); return }
     const provider = DexieYProvider.load(doc, { gracePeriod: 1000 })
     let active = true
-    provider.whenLoaded.then(() => { if (active) setLoaded(true) })
+    provider.whenLoaded.then(async () => {
+      if (!active) return
+      await preCacheImagesFromText(doc.getText().toString())
+      if (active) setLoaded(true)
+    })
     return () => {
       active = false
       setLoaded(false)
       DexieYProvider.release(doc)
+      revokeAll()
     }
   }, [doc])
 
