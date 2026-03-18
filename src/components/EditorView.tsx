@@ -8,7 +8,7 @@ import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
-import { db, TemplateRow } from "../store"
+import { db, TemplateRow, consumePendingNodeContent } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
@@ -70,12 +70,14 @@ const LoadedEditor = ({
   spellcheck,
   autocorrect,
   getTemplates,
+  initialContent,
 }: {
   doc: Y.Doc
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
+  initialContent?: string
 }) => {
   const getTemplatesRef = useRef(getTemplates)
   getTemplatesRef.current = getTemplates
@@ -121,7 +123,7 @@ const LoadedEditor = ({
     const yText = doc.getText()
     const crepe = new Crepe({
       root,
-      defaultValue: yText.toString(),
+      defaultValue: yText.toString() || initialContent || "",
       featureConfigs: {
         [CrepeFeature.ImageBlock]: {
           onUpload: async (file: File) => {
@@ -195,6 +197,8 @@ const Editor = ({
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
 }) => {
+  // Consume pending template content exactly once at mount for this nodeId.
+  const initialContentRef = useRef(consumePendingNodeContent(nodeId))
   const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
   const doc = row?.content
   const [loaded, setLoaded] = useState(false)
@@ -240,6 +244,7 @@ const Editor = ({
         spellcheck={spellcheck}
         autocorrect={autocorrect}
         getTemplates={getTemplates}
+        initialContent={initialContentRef.current}
       />
     </MilkdownProvider>
   )

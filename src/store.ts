@@ -1,7 +1,6 @@
 import * as Y from "yjs"
 import Dexie, { EntityTable, Table } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
-import { DexieYProvider } from "y-dexie"
 import yDexie from "y-dexie"
 import { NodeYRecord, NodeStyle, OutlineRow } from "./types"
 import type { ClipboardPayload, ClipboardNode } from "./utils/clipboard"
@@ -271,24 +270,20 @@ export function createNode(
     style: {},
     data: {},
   })
-  if (templateContent) {
-    seedNodeContent(newId, templateContent).catch(console.error)
-  } else {
-    // Ensure nodeContents entry exists for the editor (fire-and-forget)
-    db.nodeContents.put({ nodeId: newId } as any).catch(console.error)
-  }
+  // Ensure nodeContents entry exists for the editor (fire-and-forget)
+  db.nodeContents.put({ nodeId: newId } as any).catch(console.error)
+  if (templateContent) pendingNodeContent.set(newId, templateContent)
   return newId
 }
 
-async function seedNodeContent(nodeId: string, markdown: string): Promise<void> {
-  await db.nodeContents.put({ nodeId } as any)
-  const row = await db.nodeContents.get(nodeId)
-  if (!row?.content) return
-  const provider = DexieYProvider.load(row.content, { gracePeriod: 500 })
-  await provider.whenLoaded
-  const yText = row.content.getText()
-  if (yText.length === 0) yText.insert(0, markdown)
-  DexieYProvider.release(row.content)
+// Pending template content for newly created nodes.
+// Consumed exactly once by the Editor component when it mounts for that nodeId.
+const pendingNodeContent = new Map<string, string>()
+
+export function consumePendingNodeContent(nodeId: string): string | undefined {
+  const content = pendingNodeContent.get(nodeId)
+  pendingNodeContent.delete(nodeId)
+  return content
 }
 
 export function deleteNode(doc: Y.Doc, id: string): void {
