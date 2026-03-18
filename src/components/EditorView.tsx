@@ -3,10 +3,12 @@ import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
+import { editorViewCtx, parserCtx, commandsCtx } from "@milkdown/kit/core"
+import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
-import { db } from "../store"
+import { db, TemplateRow } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
@@ -60,17 +62,23 @@ function countWords(text: string): number {
   return stripped === "" ? 0 : stripped.split(/\s+/).length
 }
 
+const TEMPLATE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`
+
 const LoadedEditor = ({
   doc,
   onCountsChange,
   spellcheck,
   autocorrect,
+  getTemplates,
 }: {
   doc: Y.Doc
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
+  getTemplates?: () => TemplateRow[]
 }) => {
+  const getTemplatesRef = useRef(getTemplates)
+  getTemplatesRef.current = getTemplates
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -130,6 +138,30 @@ const LoadedEditor = ({
             return getImageURL(id).then((blobURL) => blobURL ?? IMAGE_UNAVAILABLE_PLACEHOLDER)
           },
         },
+        [CrepeFeature.BlockEdit]: {
+          buildMenu: (builder) => {
+            const templates = getTemplatesRef.current?.() ?? []
+            if (templates.length === 0) return
+            const group = builder.addGroup("templates", "Templates")
+            for (const t of templates) {
+              group.addItem(`tpl-${t.id}`, {
+                label: t.name,
+                icon: TEMPLATE_ICON_SVG,
+                onRun: (ctx) => {
+                  const commands = ctx.get(commandsCtx)
+                  commands.call(clearTextInCurrentBlockCommand.key)
+                  const view = ctx.get(editorViewCtx)
+                  const parser = ctx.get(parserCtx)
+                  const parsed = parser(t.content)
+                  if (parsed) {
+                    const { state, dispatch } = view
+                    dispatch(state.tr.replaceWith(state.selection.from, state.selection.to, parsed.content))
+                  }
+                },
+              })
+            }
+          },
+        },
       },
     })
 
@@ -155,11 +187,13 @@ const Editor = ({
   onCountsChange,
   spellcheck,
   autocorrect,
+  getTemplates,
 }: {
   nodeId: string
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
+  getTemplates?: () => TemplateRow[]
 }) => {
   const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
   const doc = row?.content
@@ -205,6 +239,7 @@ const Editor = ({
         onCountsChange={onCountsChange}
         spellcheck={spellcheck}
         autocorrect={autocorrect}
+        getTemplates={getTemplates}
       />
     </MilkdownProvider>
   )
@@ -217,6 +252,7 @@ interface EditorViewProps {
   updateTitle: (id: string, title: string) => void
   updateStyle: (id: string, style: Partial<import("../types").NodeStyle>) => void
   onNavigate: (id: string) => void
+  getTemplates?: () => TemplateRow[]
 }
 
 export const EditorView = ({
@@ -226,6 +262,7 @@ export const EditorView = ({
   updateTitle,
   updateStyle,
   onNavigate,
+  getTemplates,
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
   const [chars, setChars] = useState(0)
@@ -264,6 +301,7 @@ export const EditorView = ({
           onCountsChange={handleCountsChange}
           spellcheck={options.spellcheck}
           autocorrect={options.autocorrect}
+          getTemplates={getTemplates}
         />
       </div>
       <div className="editor-footer">

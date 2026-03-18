@@ -48,6 +48,7 @@ function flattenVisibleNodes(nodesSnapshot: Map<string, NodeYRecord>): OutletNod
       style: node.style || {},
       collapsed: node.collapsed,
       hasChildren: children.length > 0,
+      data: node.data || {},
     })
     if (!node.collapsed) {
       for (const [childId, childNode] of children) visit(childId, childNode, depth + 1)
@@ -89,7 +90,11 @@ function useNodesSnapshot(nodesMap: Y.Map<NodeYRecord>): Map<string, NodeYRecord
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
-export function useOutline(outlineDoc: Y.Doc, isNew = false) {
+export function useOutline(
+  outlineDoc: Y.Doc,
+  isNew = false,
+  getTemplateContent?: (templateId: string) => string | undefined,
+) {
   const [activeId, setActiveId] = useState<string | null>(getActiveNodeId)
   const [mode, setMode] = useState<"nav" | "insert">("nav")
 
@@ -253,7 +258,10 @@ export function useOutline(outlineDoc: Y.Doc, isNew = false) {
         if (m("node.add-child")) {
           e.preventDefault()
           if (currentActiveId) {
-            const newId = addChild(outlineDoc, currentActiveId)
+            const parentNode = nodesSnapshotRef.current.get(currentActiveId)
+            const templateId = parentNode?.data?.defaultChildTemplateId as string | undefined
+            const templateContent = templateId ? getTemplateContent?.(templateId) : undefined
+            const newId = addChild(outlineDoc, currentActiveId, templateContent)
             handleSetActive(newId)
             handleSetMode("insert")
           }

@@ -28,9 +28,10 @@ interface SplitLayoutProps {
   left: React.ReactNode
   right: React.ReactNode
   outlineSwitcher?: React.ReactNode
+  templateManager?: React.ReactNode
 }
 
-export const SplitLayout = ({ left, right, outlineSwitcher }: SplitLayoutProps) => {
+export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: SplitLayoutProps) => {
   const [direction, setDirection] = useState<"horizontal" | "vertical">(
     getLayoutDirection,
   )
@@ -94,6 +95,12 @@ export const SplitLayout = ({ left, right, outlineSwitcher }: SplitLayoutProps) 
         {outlineSwitcher && (
           <>
             {outlineSwitcher}
+            <div className={styles.divider} />
+          </>
+        )}
+        {templateManager && (
+          <>
+            {templateManager}
             <div className={styles.divider} />
           </>
         )}

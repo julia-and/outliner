@@ -9,6 +9,8 @@ import {
   moveNodeBefore,
   moveNodeAfter,
   moveNodeAsLastChild,
+  setDefaultChildTemplate,
+  TemplateRow,
 } from "../store"
 import { VirtualElement } from "@floating-ui/react"
 import styles from "./OutlineView.module.css"
@@ -27,6 +29,7 @@ interface OutlineViewProps {
   updateTitle: (id: string, title: string) => void
   handleKeyDown: (e: React.KeyboardEvent | KeyboardEvent) => void
   handlePasteEvent: (e: React.ClipboardEvent) => void
+  templates?: TemplateRow[]
 }
 
 type DropTarget = {
@@ -91,6 +94,7 @@ export const OutlineView = ({
   updateTitle,
   handleKeyDown,
   handlePasteEvent,
+  templates,
 }: OutlineViewProps) => {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -494,6 +498,12 @@ export const OutlineView = ({
             onSetColor={handleSetColor}
             onSetBackground={handleSetBackground}
             onApplyPreset={handleApplyPreset}
+            templates={templates}
+            defaultChildTemplateId={contextMenuNode.data?.defaultChildTemplateId as string | undefined}
+            onSetDefaultChildTemplate={(id) => {
+              if (contextMenu.nodeId)
+                setDefaultChildTemplate(outlineDoc, contextMenu.nodeId, id)
+            }}
           />
         )}
       </Popover>

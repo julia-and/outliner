@@ -29,6 +29,7 @@ export interface OutletNode {
   style: NodeStyle
   collapsed: boolean
   hasChildren: boolean
+  data: Record<string, any>
 }
 
 export interface OutlineRow {

@@ -1,9 +1,17 @@
 import * as Y from "yjs"
 import Dexie, { EntityTable, Table } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
+import { DexieYProvider } from "y-dexie"
 import yDexie from "y-dexie"
 import { NodeYRecord, NodeStyle, OutlineRow } from "./types"
 import type { ClipboardPayload, ClipboardNode } from "./utils/clipboard"
+
+export interface TemplateRow {
+  id: string
+  name: string
+  content: string
+  createdAt: number
+}
 
 if (import.meta.env.VITE_DEXIE_DEBUG) Dexie.debug = true
 
@@ -36,6 +44,7 @@ class OutlineDB extends Dexie {
   nodeContents!: Table<NodeContentsRow, string>
   uiState!: Table<UiStateRow, string>
   images!: Table<ImageRow, string>
+  templates!: EntityTable<TemplateRow, "id">
 
   constructor() {
     super("OutlineDB", { addons: [yDexie, dexieCloud] })
@@ -49,6 +58,13 @@ class OutlineDB extends Dexie {
       nodeContents: "nodeId, content: Y.Doc",
       uiState: "id",
       images: "id, mimeType, size, createdAt",
+    })
+    this.version(3).stores({
+      outlines: "id, name, createdAt, content: Y.Doc",
+      nodeContents: "nodeId, content: Y.Doc",
+      uiState: "id",
+      images: "id, mimeType, size, createdAt",
+      templates: "id, name, createdAt",
     })
     this.cloud.configure({
       databaseUrl: "https://z06g52g1s.dexie.cloud",
@@ -138,6 +154,57 @@ export async function initStore() {
     const first = await db.outlines.orderBy("createdAt").first()
     if (first) setActiveOutlineId(first.id)
   }
+
+  await seedStarterTemplates()
+}
+
+// --- Template seeding ---
+
+const STARTER_TEMPLATES: TemplateRow[] = [
+  {
+    id: "starter:meeting-notes",
+    name: "Meeting Notes",
+    content: "## Meeting Notes\n\n**Date:** \n**Attendees:** \n\n### Agenda\n\n- \n\n### Discussion\n\n\n\n### Action Items\n\n- [ ] \n",
+    createdAt: 0,
+  },
+  {
+    id: "starter:daily-journal",
+    name: "Daily Journal",
+    content: "## Daily Journal\n\n**Date:** \n\n### What I accomplished today\n\n\n\n### What I'm grateful for\n\n\n\n### Goals for tomorrow\n\n- \n",
+    createdAt: 0,
+  },
+  {
+    id: "starter:project-spec",
+    name: "Project Spec",
+    content: "## Project Spec\n\n### Overview\n\n\n\n### Goals\n\n- \n\n### Non-goals\n\n- \n\n### Implementation Plan\n\n\n\n### Open Questions\n\n- \n",
+    createdAt: 0,
+  },
+  {
+    id: "starter:weekly-review",
+    name: "Weekly Review",
+    content: "## Weekly Review\n\n**Week of:** \n\n### Wins\n\n- \n\n### Challenges\n\n- \n\n### Learnings\n\n\n\n### Focus for next week\n\n- \n",
+    createdAt: 0,
+  },
+]
+
+async function seedStarterTemplates(): Promise<void> {
+  await db.templates.bulkPut(STARTER_TEMPLATES)
+}
+
+// --- Template CRUD ---
+
+export async function createTemplate(name: string, content: string): Promise<string> {
+  const id = crypto.randomUUID()
+  await db.templates.add({ id, name, content, createdAt: Date.now() })
+  return id
+}
+
+export async function updateTemplate(id: string, patch: Partial<TemplateRow>): Promise<void> {
+  await db.templates.update(id, patch)
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  await db.templates.delete(id)
 }
 
 // --- Outline CRUD ---
@@ -188,6 +255,7 @@ export function createNode(
   title = "",
   id?: string,
   order?: number,
+  templateContent?: string,
 ): string {
   const nodesMap = getNodesMap(doc)
   const newId = id ?? crypto.randomUUID()
@@ -203,9 +271,24 @@ export function createNode(
     style: {},
     data: {},
   })
-  // Ensure nodeContents entry exists for the editor (fire-and-forget)
-  db.nodeContents.put({ nodeId: newId } as any).catch(console.error)
+  if (templateContent) {
+    seedNodeContent(newId, templateContent).catch(console.error)
+  } else {
+    // Ensure nodeContents entry exists for the editor (fire-and-forget)
+    db.nodeContents.put({ nodeId: newId } as any).catch(console.error)
+  }
   return newId
+}
+
+async function seedNodeContent(nodeId: string, markdown: string): Promise<void> {
+  await db.nodeContents.put({ nodeId } as any)
+  const row = await db.nodeContents.get(nodeId)
+  if (!row?.content) return
+  const provider = DexieYProvider.load(row.content, { gracePeriod: 500 })
+  await provider.whenLoaded
+  const yText = row.content.getText()
+  if (yText.length === 0) yText.insert(0, markdown)
+  DexieYProvider.release(row.content)
 }
 
 export function deleteNode(doc: Y.Doc, id: string): void {
@@ -231,11 +314,24 @@ export function addSibling(doc: Y.Doc, refId: string): string {
   return createNode(doc, node.parentId, "", undefined, order)
 }
 
-export function addChild(doc: Y.Doc, parentId: string): string {
+export function addChild(doc: Y.Doc, parentId: string, templateContent?: string): string {
   const nodesMap = getNodesMap(doc)
   const parent = nodesMap.get(parentId)
   if (parent) nodesMap.set(parentId, { ...parent, collapsed: false })
-  return createNode(doc, parentId)
+  return createNode(doc, parentId, "", undefined, undefined, templateContent)
+}
+
+export function setDefaultChildTemplate(doc: Y.Doc, nodeId: string, templateId: string | null): void {
+  const nodesMap = getNodesMap(doc)
+  const node = nodesMap.get(nodeId)
+  if (!node) return
+  const data = { ...(node.data ?? {}) }
+  if (templateId === null) {
+    delete data.defaultChildTemplateId
+  } else {
+    data.defaultChildTemplateId = templateId
+  }
+  nodesMap.set(nodeId, { ...node, data })
 }
 
 export function addRootSibling(doc: Y.Doc, refId: string): string {

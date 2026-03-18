@@ -1,5 +1,6 @@
 import classNames from "classnames"
 import { NodeStyle } from "../types"
+import { TemplateRow } from "../store"
 import { COLOR_PALETTE, PRESETS } from "../utils/palette"
 import styles from "./FormatPanel.module.css"
 
@@ -10,6 +11,9 @@ interface FormatPanelProps {
   onSetColor: (color: string | undefined) => void
   onSetBackground: (color: string | undefined) => void
   onApplyPreset: (preset: { color: string; backgroundColor: string }) => void
+  templates?: TemplateRow[]
+  defaultChildTemplateId?: string
+  onSetDefaultChildTemplate?: (id: string | null) => void
 }
 
 export const FormatPanel = ({
@@ -19,6 +23,9 @@ export const FormatPanel = ({
   onSetColor,
   onSetBackground,
   onApplyPreset,
+  templates,
+  defaultChildTemplateId,
+  onSetDefaultChildTemplate,
 }: FormatPanelProps) => {
   return (
     <div className={styles.panel}>
@@ -119,6 +126,29 @@ export const FormatPanel = ({
           ))}
         </div>
       </div>
+
+      {onSetDefaultChildTemplate && (
+        <>
+          <div className={styles.divider} />
+          <div className={styles.section}>
+            <div className={styles.sectionLabel}>Default child template</div>
+            <select
+              className={styles.templateSelect}
+              value={defaultChildTemplateId ?? ""}
+              onChange={(e) =>
+                onSetDefaultChildTemplate(e.target.value || null)
+              }
+            >
+              <option value="">None</option>
+              {(templates ?? []).map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
     </div>
   )
 }

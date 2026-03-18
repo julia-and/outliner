@@ -119,3 +119,20 @@
 .presetChip:hover {
   opacity: 0.85;
 }
+
+.templateSelect {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.templateSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px var(--resizer-active);
+}

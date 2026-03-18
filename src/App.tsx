@@ -7,12 +7,14 @@ import { SplitLayout } from "./components/SplitLayout"
 import { OutlineView } from "./components/OutlineView"
 import { EditorView } from "./components/EditorView"
 import { OutlineSwitcher } from "./components/OutlineSwitcher"
+import { TemplateManager } from "./components/TemplateManager"
 import { db, getActiveOutlineId, setActiveOutlineId, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { NodeYRecord } from "./types"
 
 export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
   const [ready, setReady] = useState(false)
   const [activeOutlineId, setActiveOutlineIdState] = useState<string | null>(null)
+  const [updateAvailable, setUpdateAvailable] = useState(false)
 
   useEffect(() => {
     initPromise.then(() => {
@@ -20,6 +22,18 @@ export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
       setReady(true)
     })
   }, [initPromise])
+
+  useEffect(() => {
+    const handler = () => setUpdateAvailable(true)
+    window.addEventListener("sw-update-available", handler)
+    return () => window.removeEventListener("sw-update-available", handler)
+  }, [])
+
+  const handleUpdate = useCallback(async () => {
+    const registration = await navigator.serviceWorker.getRegistration()
+    registration?.waiting?.postMessage({ type: "SKIP_WAITING" })
+    window.location.reload()
+  }, [])
 
   // When cloud sync delivers outlines but we have no active outline yet, auto-select the first one
   useLiveQuery(async () => {
@@ -46,12 +60,53 @@ export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
   }
 
   return (
-    <OutlineLoader
-      outlineId={activeOutlineId}
-      onSelectOutline={handleSelectOutline}
-    />
+    <>
+      <OutlineLoader
+        outlineId={activeOutlineId}
+        onSelectOutline={handleSelectOutline}
+      />
+      {updateAvailable && <UpdateBanner onUpdate={handleUpdate} />}
+    </>
   )
 }
+
+const UpdateBanner = ({ onUpdate }: { onUpdate: () => void }) => (
+  <div style={{
+    position: "fixed",
+    bottom: "16px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "var(--bg-primary)",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    padding: "10px 16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    boxShadow: "0 4px 12px var(--popover-shadow)",
+    fontSize: "13px",
+    color: "var(--text-primary)",
+    zIndex: 9999,
+    whiteSpace: "nowrap",
+  }}>
+    A new version is available.
+    <button
+      onClick={onUpdate}
+      style={{
+        background: "var(--resizer-active)",
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        padding: "4px 12px",
+        fontSize: "13px",
+        cursor: "pointer",
+        fontFamily: "inherit",
+      }}
+    >
+      Refresh
+    </button>
+  </div>
+)
 
 const OutlineLoader = ({
   outlineId,
@@ -112,7 +167,12 @@ const OutlineWorkspace = ({
   onSelectOutline: (id: string) => void
 }) => {
   const isNewRef = useRef(consumeIsJustCreated(outlineId))
-  const outline = useOutline(outlineDoc, isNewRef.current)
+  const templates = useLiveQuery(() => db.templates.orderBy("createdAt").toArray(), []) ?? []
+  const templatesById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates])
+  const getTemplateContent = useCallback((id: string) => templatesById.get(id)?.content, [templatesById])
+  const getTemplates = useCallback(() => templates, [templates])
+
+  const outline = useOutline(outlineDoc, isNewRef.current, getTemplateContent)
   const activeNode = outline.nodes.find((n) => n.id === outline.activeId) ?? null
   const nodesMap = useMemo(() => getNodesMap(outlineDoc) as Y.Map<NodeYRecord>, [outlineDoc])
   const ancestors = useMemo(
@@ -125,6 +185,7 @@ const OutlineWorkspace = ({
       outlineSwitcher={
         <OutlineSwitcher activeOutlineId={outlineId} onSelect={onSelectOutline} />
       }
+      templateManager={<TemplateManager />}
       left={
         <OutlineView
           outlineDoc={outlineDoc}
@@ -136,6 +197,7 @@ const OutlineWorkspace = ({
           updateTitle={outline.updateTitle}
           handleKeyDown={outline.handleKeyDown}
           handlePasteEvent={outline.handlePasteEvent}
+          templates={templates}
         />
       }
       right={
@@ -146,6 +208,7 @@ const OutlineWorkspace = ({
           updateTitle={outline.updateTitle}
           updateStyle={(id, style) => updateStyle(outlineDoc, id, style)}
           onNavigate={outline.setActiveId}
+          getTemplates={getTemplates}
         />
       }
     />
