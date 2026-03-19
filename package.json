@@ -22,6 +22,7 @@
     "dexie-cloud-addon": "^4.3.9",
     "dexie-react-hooks": "^4.2.0",
     "lucide-react": "^0.563.0",
+    "mammoth": "^1.12.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-resizable-panels": "^4.4.1",

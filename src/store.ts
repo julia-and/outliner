@@ -1,9 +1,10 @@
 import * as Y from "yjs"
 import Dexie, { EntityTable, Table } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
-import yDexie from "y-dexie"
+import yDexie, { DexieYProvider } from "y-dexie"
 import { NodeYRecord, NodeStyle, OutlineRow } from "./types"
 import type { ClipboardPayload, ClipboardNode } from "./utils/clipboard"
+import { parseDocx, DocxSection } from "./utils/importDocx"
 
 export interface TemplateRow {
   id: string
@@ -552,4 +553,48 @@ export function getAncestors(
     currentId = node.parentId
   }
   return result
+}
+
+export function clearPendingContent(doc: Y.Doc, nodeId: string): void {
+  const nodesMap = getNodesMap(doc)
+  const node = nodesMap.get(nodeId)
+  if (!node || !node.data?.pendingContent) return
+  const { pendingContent: _, ...restData } = node.data
+  nodesMap.set(nodeId, { ...node, data: restData })
+}
+
+export async function importDocxAsOutline(file: File): Promise<string> {
+  const parsed = await parseDocx(file)
+  const id = await createOutline(parsed.title)
+  const outline = await db.outlines.get(id)
+  if (!outline) throw new Error("Failed to get outline after creation")
+  const doc = outline.content
+  const provider = DexieYProvider.load(doc)
+  await provider.whenLoaded
+
+  const insertSection = (section: DocxSection, parentId: string | null) => {
+    const nodeId = createNode(doc, parentId, section.title)
+    if (section.content.trim()) {
+      const nodesMap = getNodesMap(doc)
+      const node = nodesMap.get(nodeId)
+      if (node) {
+        nodesMap.set(nodeId, {
+          ...node,
+          data: { ...node.data, pendingContent: section.content.trim() },
+        })
+      }
+    }
+    for (const child of section.children) {
+      insertSection(child, nodeId)
+    }
+  }
+
+  doc.transact(() => {
+    for (const section of parsed.sections) {
+      insertSection(section, null)
+    }
+  })
+
+  DexieYProvider.release(doc)
+  return id
 }

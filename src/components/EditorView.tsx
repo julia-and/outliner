@@ -12,7 +12,7 @@ import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
 import type { NodeType } from "@milkdown/prose/model"
 import type { EditorView as ProseMirrorEditorView } from "@milkdown/prose/view"
-import { db, TemplateRow, consumePendingNodeContent } from "../store"
+import { db, TemplateRow, consumePendingNodeContent, clearPendingContent } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
 import { NodeLinkSearch } from "./NodeLinkSearch"
@@ -297,6 +297,8 @@ const Editor = ({
   getTemplates,
   getNodes,
   onNavigate,
+  outlineDoc,
+  dataPendingContent,
 }: {
   nodeId: string
   onCountsChange: (words: number, chars: number) => void
@@ -305,9 +307,19 @@ const Editor = ({
   getTemplates?: () => TemplateRow[]
   getNodes: () => import("../types").OutletNode[]
   onNavigate: (id: string) => void
+  outlineDoc?: Y.Doc
+  dataPendingContent?: string
 }) => {
   // Consume pending template content exactly once at mount for this nodeId.
-  const initialContentRef = useRef(consumePendingNodeContent(nodeId))
+  const initialContentRef = useRef(consumePendingNodeContent(nodeId) ?? dataPendingContent)
+
+  // Clear persisted pendingContent from the outline Y.Doc after consuming it.
+  useEffect(() => {
+    if (dataPendingContent && outlineDoc) {
+      clearPendingContent(outlineDoc, nodeId)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
   const doc = row?.content
   const [loaded, setLoaded] = useState(false)
@@ -360,6 +372,7 @@ interface EditorViewProps {
   getTemplates?: () => TemplateRow[]
   getNodes: () => OutletNode[]
   onFocusOutline?: () => void
+  outlineDoc?: Y.Doc
 }
 
 export const EditorView = ({
@@ -372,6 +385,7 @@ export const EditorView = ({
   getTemplates,
   getNodes,
   onFocusOutline,
+  outlineDoc,
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
   const [chars, setChars] = useState(0)
@@ -413,6 +427,8 @@ export const EditorView = ({
           getTemplates={getTemplates}
           getNodes={getNodes}
           onNavigate={onNavigate}
+          outlineDoc={outlineDoc}
+          dataPendingContent={activeNode?.data?.pendingContent as string | undefined}
         />
       </div>
       <div className="editor-footer">

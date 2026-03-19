@@ -230,6 +230,7 @@ const OutlineWorkspace = ({
           getTemplates={getTemplates}
           getNodes={getNodes}
           onFocusOutline={focusOutline}
+          outlineDoc={outlineDoc}
         />
       }
     />

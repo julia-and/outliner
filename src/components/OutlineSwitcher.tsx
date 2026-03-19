@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Plus, Check, Pencil, Trash2 } from "lucide-react"
+import { ChevronDown, Plus, Check, Pencil, Trash2, Upload } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
   useFloating,
@@ -13,7 +13,7 @@ import {
   FloatingPortal,
 } from "@floating-ui/react"
 import classNames from "classnames"
-import { db, createOutline, renameOutline, deleteOutline } from "../store"
+import { db, createOutline, renameOutline, deleteOutline, importDocxAsOutline } from "../store"
 import styles from "./OutlineSwitcher.module.css"
 
 interface OutlineSwitcherProps {
@@ -26,7 +26,9 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState("")
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [importing, setImporting] = useState(false)
   const renameInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const outlines = useLiveQuery(() => db.outlines.orderBy("createdAt").toArray(), []) ?? []
   const active = outlines.find((o) => o.id === activeOutlineId)
@@ -56,6 +58,24 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
     setEditingId(id)
     setEditingName("Untitled")
     setConfirmDeleteId(null)
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ""
+    setImporting(true)
+    try {
+      const id = await importDocxAsOutline(file)
+      onSelect(id)
+      setOpen(false)
+    } finally {
+      setImporting(false)
+    }
   }
 
   const handleSelect = (id: string) => {
@@ -107,6 +127,13 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
 
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".docx"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
       <button
         ref={refs.setReference}
         className={styles.trigger}
@@ -189,6 +216,10 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
             <button className={styles.item} onClick={handleCreate}>
               <Plus size={12} className={styles.plusIcon} />
               <span className={styles.itemName}>New outline</span>
+            </button>
+            <button className={styles.item} onClick={handleImportClick} disabled={importing}>
+              <Upload size={12} className={styles.plusIcon} />
+              <span className={styles.itemName}>{importing ? "Importing…" : "Import from Word"}</span>
             </button>
           </div>
         </FloatingPortal>
