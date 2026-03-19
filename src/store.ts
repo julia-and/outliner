@@ -1,5 +1,5 @@
 import * as Y from "yjs"
-import Dexie, { EntityTable, Table } from "dexie"
+import Dexie, { EntityTable, Table, liveQuery } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
 import yDexie from "y-dexie"
 import { NodeYRecord, NodeStyle, OutlineRow } from "./types"
@@ -66,7 +66,7 @@ class OutlineDB extends Dexie {
       templates: "id, name, createdAt",
     })
     this.cloud.configure({
-      databaseUrl: "https://z06g52g1s.dexie.cloud",
+      databaseUrl: "https://zw3md6zf8.dexie.cloud",
       unsyncedTables: ["uiState"],
       tryUseServiceWorker: true,
     })
@@ -142,12 +142,33 @@ export function setActiveNodeId(id: string | null) {
 
 // --- Initialization ---
 
+const SEED_OUTLINE_KEY = "ol-seed-outline-id"
+
+async function discardSeedIfStale() {
+  const seededId = localStorage.getItem(SEED_OUTLINE_KEY)
+  if (!seededId) return
+  if ((await db.outlines.count()) <= 1) return
+
+  const row = await db.outlines.get(seededId)
+  if (!row) { localStorage.removeItem(SEED_OUTLINE_KEY); return }
+  if (row.name !== "My Outline") { localStorage.removeItem(SEED_OUTLINE_KEY); return }
+
+  const nodesMap = getNodesMap(row.content)
+  const hasContent = Array.from(nodesMap.values()).some(n => n.title.trim() !== "")
+  localStorage.removeItem(SEED_OUTLINE_KEY)
+  if (!hasContent) {
+    await deleteOutline(seededId)
+    if (getActiveOutlineId() === seededId) setActiveOutlineId(null)
+  }
+}
+
 export async function initStore() {
   const ui = await db.uiState.get(DEVICE_ID)
   if (ui) uiCache = ui
 
   if ((await db.outlines.count()) === 0) {
     const outlineId = await createOutline("My Outline")
+    localStorage.setItem(SEED_OUTLINE_KEY, outlineId)
     setActiveOutlineId(outlineId)
   } else if (!uiCache.activeOutlineId) {
     const first = await db.outlines.orderBy("createdAt").first()
@@ -155,6 +176,8 @@ export async function initStore() {
   }
 
   await seedStarterTemplates()
+
+  liveQuery(() => db.outlines.count()).subscribe(discardSeedIfStale)
 }
 
 // --- Template seeding ---
@@ -163,25 +186,29 @@ const STARTER_TEMPLATES: TemplateRow[] = [
   {
     id: "starter:meeting-notes",
     name: "Meeting Notes",
-    content: "## Meeting Notes\n\n**Date:** \n**Attendees:** \n\n### Agenda\n\n- \n\n### Discussion\n\n\n\n### Action Items\n\n- [ ] \n",
+    content:
+      "## Meeting Notes\n\n**Date:** \n**Attendees:** \n\n### Agenda\n\n- \n\n### Discussion\n\n\n\n### Action Items\n\n- [ ] \n",
     createdAt: 0,
   },
   {
     id: "starter:daily-journal",
     name: "Daily Journal",
-    content: "## Daily Journal\n\n**Date:** \n\n### What I accomplished today\n\n\n\n### What I'm grateful for\n\n\n\n### Goals for tomorrow\n\n- \n",
+    content:
+      "## Daily Journal\n\n**Date:** \n\n### What I accomplished today\n\n\n\n### What I'm grateful for\n\n\n\n### Goals for tomorrow\n\n- \n",
     createdAt: 0,
   },
   {
     id: "starter:project-spec",
     name: "Project Spec",
-    content: "## Project Spec\n\n### Overview\n\n\n\n### Goals\n\n- \n\n### Non-goals\n\n- \n\n### Implementation Plan\n\n\n\n### Open Questions\n\n- \n",
+    content:
+      "## Project Spec\n\n### Overview\n\n\n\n### Goals\n\n- \n\n### Non-goals\n\n- \n\n### Implementation Plan\n\n\n\n### Open Questions\n\n- \n",
     createdAt: 0,
   },
   {
     id: "starter:weekly-review",
     name: "Weekly Review",
-    content: "## Weekly Review\n\n**Week of:** \n\n### Wins\n\n- \n\n### Challenges\n\n- \n\n### Learnings\n\n\n\n### Focus for next week\n\n- \n",
+    content:
+      "## Weekly Review\n\n**Week of:** \n\n### Wins\n\n- \n\n### Challenges\n\n- \n\n### Learnings\n\n\n\n### Focus for next week\n\n- \n",
     createdAt: 0,
   },
 ]
@@ -192,13 +219,19 @@ async function seedStarterTemplates(): Promise<void> {
 
 // --- Template CRUD ---
 
-export async function createTemplate(name: string, content: string): Promise<string> {
+export async function createTemplate(
+  name: string,
+  content: string,
+): Promise<string> {
   const id = crypto.randomUUID()
   await db.templates.add({ id, name, content, createdAt: Date.now() })
   return id
 }
 
-export async function updateTemplate(id: string, patch: Partial<TemplateRow>): Promise<void> {
+export async function updateTemplate(
+  id: string,
+  patch: Partial<TemplateRow>,
+): Promise<void> {
   await db.templates.update(id, patch)
 }
 
@@ -309,14 +342,22 @@ export function addSibling(doc: Y.Doc, refId: string): string {
   return createNode(doc, node.parentId, "", undefined, order)
 }
 
-export function addChild(doc: Y.Doc, parentId: string, templateContent?: string): string {
+export function addChild(
+  doc: Y.Doc,
+  parentId: string,
+  templateContent?: string,
+): string {
   const nodesMap = getNodesMap(doc)
   const parent = nodesMap.get(parentId)
   if (parent) nodesMap.set(parentId, { ...parent, collapsed: false })
   return createNode(doc, parentId, "", undefined, undefined, templateContent)
 }
 
-export function setDefaultChildTemplate(doc: Y.Doc, nodeId: string, templateId: string | null): void {
+export function setDefaultChildTemplate(
+  doc: Y.Doc,
+  nodeId: string,
+  templateId: string | null,
+): void {
   const nodesMap = getNodesMap(doc)
   const node = nodesMap.get(nodeId)
   if (!node) return

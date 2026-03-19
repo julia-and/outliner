@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
-import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react"
+import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
 import { editorViewCtx, parserCtx, commandsCtx } from "@milkdown/kit/core"
 import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark"
+import { collab, collabServiceCtx } from "@milkdown/plugin-collab"
+import { liveQuery } from "dexie"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
@@ -83,17 +85,51 @@ const LoadedEditor = ({
   getTemplatesRef.current = getTemplates
   const containerRef = useRef<HTMLDivElement>(null)
 
+  const [loading, get] = useInstance()
+
   useEffect(() => {
-    const yText = doc.getText()
-    const update = () => {
-      const text = yText.toString()
-      const clean = stripMarkdownSyntax(text)
-      onCountsChange(countWords(text), clean.match(/\S/g)?.length ?? 0)
+    if (loading) return
+    get().action((ctx) => {
+      const collabService = ctx.get(collabServiceCtx)
+      const service = collabService.bindDoc(doc)
+      if (initialContent) {
+        service.applyTemplate(initialContent, (yDocNode) => yDocNode.textContent.length === 0)
+      }
+      service.connect()
+    })
+    return () => {
+      if (loading) return
+      get().action((ctx) => {
+        ctx.get(collabServiceCtx).disconnect()
+      })
     }
-    update()
-    yText.observe(update)
-    return () => yText.unobserve(update)
-  }, [doc, onCountsChange])
+  }, [loading, doc])
+
+  // When a synced image arrives in the local DB, cache it and update any
+  // image node views still showing the placeholder. Milkdown's image block
+  // is a Vue component whose `src` prop is a reactive ref held in the node
+  // view closure — ProseMirror transactions don't reach it reliably once the
+  // promise in bindAttrs has already resolved, so we update the ref directly.
+  useEffect(() => {
+    if (loading) return
+    const sub = liveQuery(() => db.images.toArray()).subscribe(async (rows) => {
+      const uncached = rows.filter(r => !getCachedImageURL(r.id))
+      if (uncached.length === 0) return
+      await Promise.all(uncached.map(r => getImageURL(r.id)))
+      get().action((ctx) => {
+        const view = ctx.get(editorViewCtx)
+        view.state.doc.descendants((node, pos) => {
+          if (typeof node.attrs?.src !== "string" || !node.attrs.src.startsWith("ol-image://")) return
+          const blobUrl = getCachedImageURL(node.attrs.src.slice("ol-image://".length))
+          if (!blobUrl) return
+          const dom = view.nodeDOM(pos)
+          const srcRef = (dom as any)?.__vue_app__?._instance?.props?.src
+          if (srcRef && "value" in srcRef) srcRef.value = blobUrl
+        })
+      })
+    })
+    return () => sub.unsubscribe()
+  }, [loading])
 
   useEffect(() => {
     const container = containerRef.current
@@ -120,10 +156,8 @@ const LoadedEditor = ({
   }, [spellcheck, autocorrect])
 
   useEditor((root) => {
-    const yText = doc.getText()
     const crepe = new Crepe({
       root,
-      defaultValue: yText.toString() || initialContent || "",
       featureConfigs: {
         [CrepeFeature.ImageBlock]: {
           onUpload: async (file: File) => {
@@ -167,10 +201,12 @@ const LoadedEditor = ({
       },
     })
 
+    crepe.editor.use(collab)
+
     crepe.on((api) => {
       api.markdownUpdated((_ctx, markdown) => {
-        yText.delete(0, yText.length)
-        yText.insert(0, markdown)
+        const clean = stripMarkdownSyntax(markdown)
+        onCountsChange(countWords(markdown), clean.match(/\S/g)?.length ?? 0)
       })
     })
 
@@ -202,7 +238,6 @@ const Editor = ({
   const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
   const doc = row?.content
   const [loaded, setLoaded] = useState(false)
-  const [remountKey, setRemountKey] = useState(0)
 
   useEffect(() => {
     if (nodeId) db.nodeContents.add({ nodeId } as any).catch(() => {})
@@ -214,7 +249,7 @@ const Editor = ({
     let active = true
     provider.whenLoaded.then(async () => {
       if (!active) return
-      await preCacheImagesFromText(doc.getText().toString())
+      await preCacheImagesFromText(doc.getXmlFragment('prosemirror').toString())
       if (active) setLoaded(true)
     })
     return () => {
@@ -225,19 +260,9 @@ const Editor = ({
     }
   }, [doc])
 
-  useEffect(() => {
-    if (!loaded || !doc) return
-    const yText = doc.getText()
-    const handler = (_event: Y.YTextEvent, tr: Y.Transaction) => {
-      if (!tr.local) setRemountKey(k => k + 1)
-    }
-    yText.observe(handler)
-    return () => yText.unobserve(handler)
-  }, [loaded, doc])
-
   if (!loaded || !row) return null
   return (
-    <MilkdownProvider key={remountKey}>
+    <MilkdownProvider>
       <LoadedEditor
         doc={doc!}
         onCountsChange={onCountsChange}

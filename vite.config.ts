@@ -23,6 +23,9 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.ts",
       manifest: false,
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
     }),
   ],
   build: {
