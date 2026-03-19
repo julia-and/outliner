@@ -611,6 +611,29 @@ describe("pasteSubtree", () => {
     const ids = pasteSubtree(doc, payload, null, "anchor")
     expect(ids.length).toBe(1) // only the root, not the child
   })
+
+  it("assigns unique orders to multiple pasted children so they can be reordered", () => {
+    const doc = makeDoc([{ id: "anchor", order: 0 }])
+    const payload: ClipboardPayload = {
+      nodes: [
+        {
+          title: "Parent",
+          style: {},
+          children: [
+            { title: "Child A", style: {}, children: [] },
+            { title: "Child B", style: {}, children: [] },
+            { title: "Child C", style: {}, children: [] },
+          ],
+        },
+      ],
+    }
+    const ids = pasteSubtree(doc, payload, null, "anchor")
+    const parentId = ids[0]
+    const children = sortedChildren(doc, parentId)
+    expect(children.length).toBe(3)
+    const orders = children.map((id) => getNode(doc, id)!.order)
+    expect(new Set(orders).size).toBe(3) // all unique
+  })
 })
 
 // ---------------------------------------------------------------------------

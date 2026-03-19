@@ -187,7 +187,13 @@ function SyncButton({
     <button
       className={styles.button}
       title={title}
-      onClick={() => (isLoggedIn ? db.cloud.logout() : db.cloud.login())}
+      onClick={() => {
+        if (isLoggedIn) {
+          if (confirm("Sign out and stop syncing?")) db.cloud.logout()
+        } else {
+          db.cloud.login()
+        }
+      }}
       style={
         isLoggedIn && !offline && !syncing
           ? { color: "var(--sync-ok)" }

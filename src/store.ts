@@ -1,5 +1,5 @@
 import * as Y from "yjs"
-import Dexie, { EntityTable, Table, liveQuery } from "dexie"
+import Dexie, { EntityTable, Table } from "dexie"
 import dexieCloud from "dexie-cloud-addon"
 import yDexie from "y-dexie"
 import { NodeYRecord, NodeStyle, OutlineRow } from "./types"
@@ -142,42 +142,22 @@ export function setActiveNodeId(id: string | null) {
 
 // --- Initialization ---
 
-const SEED_OUTLINE_KEY = "ol-seed-outline-id"
-
-async function discardSeedIfStale() {
-  const seededId = localStorage.getItem(SEED_OUTLINE_KEY)
-  if (!seededId) return
-  if ((await db.outlines.count()) <= 1) return
-
-  const row = await db.outlines.get(seededId)
-  if (!row) { localStorage.removeItem(SEED_OUTLINE_KEY); return }
-  if (row.name !== "My Outline") { localStorage.removeItem(SEED_OUTLINE_KEY); return }
-
-  const nodesMap = getNodesMap(row.content)
-  const hasContent = Array.from(nodesMap.values()).some(n => n.title.trim() !== "")
-  localStorage.removeItem(SEED_OUTLINE_KEY)
-  if (!hasContent) {
-    await deleteOutline(seededId)
-    if (getActiveOutlineId() === seededId) setActiveOutlineId(null)
-  }
-}
-
-export async function initStore() {
+export async function initStore(): Promise<boolean> {
   const ui = await db.uiState.get(DEVICE_ID)
   if (ui) uiCache = ui
 
   if ((await db.outlines.count()) === 0) {
-    const outlineId = await createOutline("My Outline")
-    localStorage.setItem(SEED_OUTLINE_KEY, outlineId)
-    setActiveOutlineId(outlineId)
-  } else if (!uiCache.activeOutlineId) {
+    await seedStarterTemplates()
+    return true  // first run — caller shows welcome screen
+  }
+
+  if (!uiCache.activeOutlineId) {
     const first = await db.outlines.orderBy("createdAt").first()
     if (first) setActiveOutlineId(first.id)
   }
 
   await seedStarterTemplates()
-
-  liveQuery(() => db.outlines.count()).subscribe(discardSeedIfStale)
+  return false
 }
 
 // --- Template seeding ---
@@ -527,7 +507,7 @@ export function pasteSubtree(
   const insertNode = (
     node: ClipboardNode,
     nodeParentId: string | null,
-    order: number,
+    order: number | undefined,
   ): void => {
     const newId = createNode(doc, nodeParentId, node.title, undefined, order)
     if (Object.keys(node.style).length > 0) {
@@ -536,7 +516,7 @@ export function pasteSubtree(
     }
     if (nodeParentId === parentId) rootIds.push(newId)
     for (const child of node.children) {
-      insertNode(child, newId, 0)
+      insertNode(child, newId, undefined)
     }
   }
 

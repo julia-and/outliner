@@ -8,17 +8,20 @@ import { OutlineView } from "./components/OutlineView"
 import { EditorView } from "./components/EditorView"
 import { OutlineSwitcher } from "./components/OutlineSwitcher"
 import { TemplateManager } from "./components/TemplateManager"
-import { db, getActiveOutlineId, setActiveOutlineId, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
+import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
+import { WelcomeScreen } from "./components/WelcomeScreen"
 import { NodeYRecord } from "./types"
 
-export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
+export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
   const [ready, setReady] = useState(false)
+  const [needsSetup, setNeedsSetup] = useState(false)
   const [activeOutlineId, setActiveOutlineIdState] = useState<string | null>(null)
   const [updateAvailable, setUpdateAvailable] = useState(false)
 
   useEffect(() => {
-    initPromise.then(() => {
+    initPromise.then((isFirstRun) => {
       setActiveOutlineIdState(getActiveOutlineId())
+      setNeedsSetup(isFirstRun)
       setReady(true)
     })
   }, [initPromise])
@@ -50,6 +53,12 @@ export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
     setActiveOutlineId(id)
   }, [])
 
+  const handleCreateLocal = useCallback(async (name: string) => {
+    const id = await createOutline(name)
+    setActiveOutlineId(id)
+    setActiveOutlineIdState(id)
+  }, [])
+
   if (!ready) {
     return (
       <SplitLayout
@@ -57,6 +66,10 @@ export const App = ({ initPromise }: { initPromise: Promise<void> }) => {
         right={null}
       />
     )
+  }
+
+  if (needsSetup && !activeOutlineId) {
+    return <WelcomeScreen onCreateLocal={handleCreateLocal} />
   }
 
   return (
