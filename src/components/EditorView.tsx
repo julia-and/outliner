@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react"
@@ -10,8 +10,12 @@ import { liveQuery } from "dexie"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
+import type { NodeType } from "@milkdown/prose/model"
+import type { EditorView as ProseMirrorEditorView } from "@milkdown/prose/view"
 import { db, TemplateRow, consumePendingNodeContent } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
+import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
+import { NodeLinkSearch } from "./NodeLinkSearch"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 import { OutletNode } from "../types"
@@ -73,6 +77,8 @@ const LoadedEditor = ({
   autocorrect,
   getTemplates,
   initialContent,
+  getNodes,
+  onNavigate,
 }: {
   doc: Y.Doc
   onCountsChange: (words: number, chars: number) => void
@@ -80,10 +86,62 @@ const LoadedEditor = ({
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
   initialContent?: string
+  getNodes: () => import("../types").OutletNode[]
+  onNavigate: (id: string) => void
 }) => {
   const getTemplatesRef = useRef(getTemplates)
   getTemplatesRef.current = getTemplates
+  const getNodesRef = useRef(getNodes)
+  getNodesRef.current = getNodes
+  const onNavigateRef = useRef(onNavigate)
+  onNavigateRef.current = onNavigate
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const [triggerInfo, setTriggerInfo] = useState<TriggerInfo | null>(null)
+  const [selectedIdx, setSelectedIdx] = useState(0)
+  const editorViewRef = useRef<ProseMirrorEditorView | null>(null)
+  const nodeLinkTypeRef = useRef<NodeType | null>(null)
+
+  const onTriggerRef = useRef<(info: TriggerInfo | null, view: ProseMirrorEditorView) => void>(() => {})
+  const onKeyRef = useRef<(key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void>(() => {})
+
+  const filteredNodes = useMemo(() => {
+    if (!triggerInfo) return []
+    const q = triggerInfo.query.toLowerCase()
+    return getNodesRef.current()
+      .filter((n) => n.title.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [triggerInfo])
+  const filteredNodesRef = useRef(filteredNodes)
+  filteredNodesRef.current = filteredNodes
+
+  const handleSelect = useCallback(
+    (node: import("../types").OutletNode) => {
+      const view = editorViewRef.current
+      const info = triggerInfo
+      const linkType = nodeLinkTypeRef.current
+      if (!view || !info || !linkType) return
+      const chip = linkType.create({ nodeId: node.id, label: node.title || node.id })
+      view.dispatch(view.state.tr.replaceWith(info.from, info.to, chip))
+      view.focus()
+      setTriggerInfo(null)
+    },
+    [triggerInfo],
+  )
+
+  onTriggerRef.current = (info, prosView) => {
+    editorViewRef.current = prosView
+    setTriggerInfo(info)
+    if (info) setSelectedIdx(0)
+  }
+
+  onKeyRef.current = (key) => {
+    const nodes = filteredNodesRef.current
+    if (key === "ArrowDown") setSelectedIdx((i) => Math.min(i + 1, nodes.length - 1))
+    else if (key === "ArrowUp") setSelectedIdx((i) => Math.max(i - 1, 0))
+    else if (key === "Enter" && nodes[selectedIdx]) handleSelect(nodes[selectedIdx])
+    // Escape: plugin dispatches suppress meta → plugin state clears → onTriggerRef(null) → setTriggerInfo(null)
+  }
 
   const [loading, get] = useInstance()
 
@@ -158,6 +216,7 @@ const LoadedEditor = ({
   useEditor((root) => {
     const crepe = new Crepe({
       root,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       featureConfigs: {
         [CrepeFeature.ImageBlock]: {
           onUpload: async (file: File) => {
@@ -201,6 +260,8 @@ const LoadedEditor = ({
       },
     })
 
+    const nodeLinkPlugins = createNodeLinkPlugins({ onNavigateRef, onTriggerRef, onKeyRef, nodeLinkTypeRef })
+    crepe.editor.use([...nodeLinkPlugins])
     crepe.editor.use(collab)
 
     crepe.on((api) => {
@@ -216,6 +277,14 @@ const LoadedEditor = ({
   return (
     <div ref={containerRef} className="editor-inner">
       <Milkdown />
+      {triggerInfo && (
+        <NodeLinkSearch
+          coords={triggerInfo.coords}
+          nodes={filteredNodes}
+          selectedIdx={selectedIdx}
+          onSelect={handleSelect}
+        />
+      )}
     </div>
   )
 }
@@ -226,12 +295,16 @@ const Editor = ({
   spellcheck,
   autocorrect,
   getTemplates,
+  getNodes,
+  onNavigate,
 }: {
   nodeId: string
   onCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
+  getNodes: () => import("../types").OutletNode[]
+  onNavigate: (id: string) => void
 }) => {
   // Consume pending template content exactly once at mount for this nodeId.
   const initialContentRef = useRef(consumePendingNodeContent(nodeId))
@@ -270,6 +343,8 @@ const Editor = ({
         autocorrect={autocorrect}
         getTemplates={getTemplates}
         initialContent={initialContentRef.current}
+        getNodes={getNodes}
+        onNavigate={onNavigate}
       />
     </MilkdownProvider>
   )
@@ -283,6 +358,7 @@ interface EditorViewProps {
   updateStyle: (id: string, style: Partial<import("../types").NodeStyle>) => void
   onNavigate: (id: string) => void
   getTemplates?: () => TemplateRow[]
+  getNodes: () => OutletNode[]
   onFocusOutline?: () => void
 }
 
@@ -294,6 +370,7 @@ export const EditorView = ({
   updateStyle,
   onNavigate,
   getTemplates,
+  getNodes,
   onFocusOutline,
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
@@ -334,6 +411,8 @@ export const EditorView = ({
           spellcheck={options.spellcheck}
           autocorrect={options.autocorrect}
           getTemplates={getTemplates}
+          getNodes={getNodes}
+          onNavigate={onNavigate}
         />
       </div>
       <div className="editor-footer">

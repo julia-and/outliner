@@ -152,6 +152,24 @@
   margin: 4px 8px;
 }
 
+.node-link-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--resizer-active);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.node-link-chip:hover {
+  background: var(--bg-hover);
+  text-decoration: underline;
+}
+
 /*
  * Block handle sizing — adjust --handle-icon-size to resize everything at once.
  *

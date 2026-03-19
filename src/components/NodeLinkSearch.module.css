@@ -1,0 +1,37 @@
+.dropdown {
+  position: fixed;
+  z-index: 2000;
+  min-width: 220px;
+  max-width: 360px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px var(--popover-shadow);
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.item {
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item:hover,
+.active {
+  background: var(--bg-hover);
+}
+
+.empty {
+  padding: 6px 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.untitled {
+  color: var(--text-secondary);
+  font-style: italic;
+}
