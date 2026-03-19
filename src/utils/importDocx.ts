@@ -69,6 +69,12 @@ async function elementToMarkdown(el: Element): Promise<string> {
   return el.textContent?.trim() ? el.textContent.trim() + "\n\n" : ""
 }
 
+function wrapDelim(inner: string, delim: string): string {
+  const start = inner.length - inner.trimStart().length
+  const end = inner.trimEnd().length
+  return inner.slice(0, start) + delim + inner.slice(start, end) + delim + inner.slice(end)
+}
+
 async function nodeToInlineMarkdown(el: Element): Promise<string> {
   let result = ""
   for (const child of Array.from(el.childNodes)) {
@@ -78,8 +84,8 @@ async function nodeToInlineMarkdown(el: Element): Promise<string> {
       const c = child as Element
       const tag = c.tagName.toLowerCase()
       const inner = await nodeToInlineMarkdown(c)
-      if (tag === "strong" || tag === "b") result += `**${inner}**`
-      else if (tag === "em" || tag === "i") result += `_${inner}_`
+      if (tag === "strong" || tag === "b") result += wrapDelim(inner, "**")
+      else if (tag === "em" || tag === "i") result += wrapDelim(inner, "_")
       else if (tag === "code") result += `\`${inner}\``
       else if (tag === "br") result += "\\\n"
       else if (tag === "img") {
