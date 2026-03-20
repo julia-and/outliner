@@ -16,8 +16,11 @@ import { db, TemplateRow, consumePendingNodeContent, clearPendingContent } from 
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
 import { createHighlightPlugins, HighlightSelectionInfo } from "../editor/highlightPlugin"
+import { createCalloutPlugins, calloutNode, CalloutPickerInfo } from "../editor/calloutPlugin"
+import { findWrapping } from "@milkdown/prose/transform"
 import { NodeLinkSearch } from "./NodeLinkSearch"
 import { HighlightToolbar } from "./HighlightToolbar"
+import { CalloutColorPicker } from "./CalloutColorPicker"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 import { OutletNode } from "../types"
@@ -71,6 +74,7 @@ function countWords(text: string): number {
 }
 
 const TEMPLATE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`
+const CALLOUT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="3"/><line x1="6" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="12" y2="16"/></svg>`
 
 const LoadedEditor = ({
   doc,
@@ -111,6 +115,10 @@ const LoadedEditor = ({
   const highlightMarkTypeRef = useRef<MarkType | null>(null)
   const [highlightInfo, setHighlightInfo] = useState<HighlightSelectionInfo | null>(null)
   onSelectionRef.current = (info) => setHighlightInfo(info)
+
+  const onCalloutPickerRef = useRef<(info: CalloutPickerInfo | null) => void>(() => {})
+  const [calloutPickerInfo, setCalloutPickerInfo] = useState<CalloutPickerInfo | null>(null)
+  onCalloutPickerRef.current = (info) => setCalloutPickerInfo(info)
 
   const filteredNodes = useMemo(() => {
     if (!triggerInfo) return []
@@ -242,6 +250,22 @@ const LoadedEditor = ({
         },
         [CrepeFeature.BlockEdit]: {
           buildMenu: (builder) => {
+            const calloutGroup = builder.addGroup("callout", "Callout")
+            calloutGroup.addItem("callout", {
+              label: "Callout",
+              icon: CALLOUT_ICON_SVG,
+              onRun: (ctx) => {
+                const view = ctx.get(editorViewCtx)
+                const calloutType = calloutNode.type(ctx)
+                const { state, dispatch } = view
+                const { $from, $to } = state.selection
+                const range = $from.blockRange($to)
+                if (!range) return
+                const wrapping = findWrapping(range, calloutType, { color: "yellow" })
+                if (wrapping) dispatch(state.tr.wrap(range, wrapping))
+              },
+            })
+
             const templates = getTemplatesRef.current?.() ?? []
             if (templates.length === 0) return
             const group = builder.addGroup("templates", "Templates")
@@ -269,7 +293,8 @@ const LoadedEditor = ({
 
     const nodeLinkPlugins = createNodeLinkPlugins({ onNavigateRef, onTriggerRef, onKeyRef, nodeLinkTypeRef })
     const highlightPlugins = createHighlightPlugins({ onSelectionRef, highlightMarkTypeRef })
-    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins])
+    const calloutPlugins = createCalloutPlugins({ onPickerRef: onCalloutPickerRef })
+    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins, ...calloutPlugins])
     crepe.editor.use(collab)
 
     crepe.on((api) => {
@@ -295,6 +320,9 @@ const LoadedEditor = ({
       )}
       {highlightInfo && !triggerInfo && (
         <HighlightToolbar info={highlightInfo} highlightMarkTypeRef={highlightMarkTypeRef} />
+      )}
+      {calloutPickerInfo && (
+        <CalloutColorPicker info={calloutPickerInfo} onClose={() => setCalloutPickerInfo(null)} />
       )}
     </div>
   )

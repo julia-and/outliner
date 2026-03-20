@@ -27,7 +27,9 @@
       "Read(//private/tmp/package/**)",
       "Bash(grep -rn remarkPluginsCtx /Users/julia/Code/personal/ol/node_modules/@milkdown --include=*.ts)",
       "Bash(grep:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "mcp__chrome-devtools__type_text",
+      "mcp__chrome-devtools__list_console_messages"
     ]
   },
   "enableAllProjectMcpServers": true,

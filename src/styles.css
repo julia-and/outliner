@@ -50,6 +50,24 @@
   --highlight-orange: rgba(251, 146,  60, 0.35);
   --highlight-purple: rgba(167, 139, 250, 0.35);
 
+  /* Callout block background colors */
+  --callout-yellow: rgba(255, 212,   0, 0.15);
+  --callout-green:  rgba( 74, 222, 128, 0.12);
+  --callout-blue:   rgba( 96, 165, 250, 0.12);
+  --callout-rose:   rgba(251, 113, 133, 0.12);
+  --callout-orange: rgba(251, 146,  60, 0.12);
+  --callout-purple: rgba(167, 139, 250, 0.12);
+  --callout-gray:   rgba(156, 163, 175, 0.12);
+
+  /* Callout accent colors — left strip */
+  --callout-yellow-accent: rgba(255, 212,   0, 0.60);
+  --callout-green-accent:  rgba( 74, 222, 128, 0.55);
+  --callout-blue-accent:   rgba( 96, 165, 250, 0.55);
+  --callout-rose-accent:   rgba(251, 113, 133, 0.55);
+  --callout-orange-accent: rgba(251, 146,  60, 0.55);
+  --callout-purple-accent: rgba(167, 139, 250, 0.55);
+  --callout-gray-accent:   rgba(156, 163, 175, 0.55);
+
   /* Preset-specific colors (not in the main palette) */
   --preset-green-light-fg: #1a5c2a;
   --preset-green-light-bg: #d4edda;
@@ -91,6 +109,24 @@
   --highlight-rose:   rgba(251, 113, 133, 0.20);
   --highlight-orange: rgba(251, 146,  60, 0.20);
   --highlight-purple: rgba(167, 139, 250, 0.20);
+
+  /* Callout block background colors — dark mode (lower opacity) */
+  --callout-yellow: rgba(255, 212,   0, 0.08);
+  --callout-green:  rgba( 74, 222, 128, 0.07);
+  --callout-blue:   rgba( 96, 165, 250, 0.07);
+  --callout-rose:   rgba(251, 113, 133, 0.07);
+  --callout-orange: rgba(251, 146,  60, 0.07);
+  --callout-purple: rgba(167, 139, 250, 0.07);
+  --callout-gray:   rgba(156, 163, 175, 0.07);
+
+  /* Callout accent colors — dark mode */
+  --callout-yellow-accent: rgba(255, 212,   0, 0.40);
+  --callout-green-accent:  rgba( 74, 222, 128, 0.35);
+  --callout-blue-accent:   rgba( 96, 165, 250, 0.35);
+  --callout-rose-accent:   rgba(251, 113, 133, 0.35);
+  --callout-orange-accent: rgba(251, 146,  60, 0.35);
+  --callout-purple-accent: rgba(167, 139, 250, 0.35);
+  --callout-gray-accent:   rgba(156, 163, 175, 0.35);
 }
 
 body {
