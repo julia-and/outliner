@@ -10,16 +10,17 @@ import { liveQuery } from "dexie"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
-import type { NodeType, MarkType } from "@milkdown/prose/model"
+import type { NodeType } from "@milkdown/prose/model"
+import { NodeSelection } from "@milkdown/prose/state"
 import type { EditorView as ProseMirrorEditorView } from "@milkdown/prose/view"
 import { db, TemplateRow, consumePendingNodeContent, clearPendingContent } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
-import { createHighlightPlugins, HighlightSelectionInfo } from "../editor/highlightPlugin"
+import { createHighlightPlugins, highlightMark, HIGHLIGHT_COLORS } from "../editor/highlightPlugin"
 import { createCalloutPlugins, calloutNode, CalloutPickerInfo } from "../editor/calloutPlugin"
+import { createPlaceholderPlugins, placeholderNode, schedulePlaceholderEditMode } from "../editor/placeholderPlugin"
 import { findWrapping } from "@milkdown/prose/transform"
 import { NodeLinkSearch } from "./NodeLinkSearch"
-import { HighlightToolbar } from "./HighlightToolbar"
 import { CalloutColorPicker } from "./CalloutColorPicker"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
@@ -75,6 +76,7 @@ function countWords(text: string): number {
 
 const TEMPLATE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`
 const CALLOUT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="3"/><line x1="6" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="12" y2="16"/></svg>`
+const PLACEHOLDER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>`
 
 const LoadedEditor = ({
   doc,
@@ -110,11 +112,6 @@ const LoadedEditor = ({
 
   const onTriggerRef = useRef<(info: TriggerInfo | null, view: ProseMirrorEditorView) => void>(() => {})
   const onKeyRef = useRef<(key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void>(() => {})
-
-  const onSelectionRef = useRef<(info: HighlightSelectionInfo | null) => void>(() => {})
-  const highlightMarkTypeRef = useRef<MarkType | null>(null)
-  const [highlightInfo, setHighlightInfo] = useState<HighlightSelectionInfo | null>(null)
-  onSelectionRef.current = (info) => setHighlightInfo(info)
 
   const onCalloutPickerRef = useRef<(info: CalloutPickerInfo | null) => void>(() => {})
   const [calloutPickerInfo, setCalloutPickerInfo] = useState<CalloutPickerInfo | null>(null)
@@ -255,6 +252,8 @@ const LoadedEditor = ({
               label: "Callout",
               icon: CALLOUT_ICON_SVG,
               onRun: (ctx) => {
+                const commands = ctx.get(commandsCtx)
+                commands.call(clearTextInCurrentBlockCommand.key)
                 const view = ctx.get(editorViewCtx)
                 const calloutType = calloutNode.type(ctx)
                 const { state, dispatch } = view
@@ -263,6 +262,24 @@ const LoadedEditor = ({
                 if (!range) return
                 const wrapping = findWrapping(range, calloutType, { color: "yellow" })
                 if (wrapping) dispatch(state.tr.wrap(range, wrapping))
+              },
+            })
+
+            const placeholderGroup = builder.addGroup("placeholders", "Placeholders")
+            placeholderGroup.addItem("placeholder", {
+              label: "Placeholder",
+              icon: PLACEHOLDER_ICON_SVG,
+              onRun: (ctx) => {
+                const commands = ctx.get(commandsCtx)
+                commands.call(clearTextInCurrentBlockCommand.key)
+                const view = ctx.get(editorViewCtx)
+                const node = placeholderNode.type(ctx).create({ label: "Placeholder" })
+                const { state } = view
+                const insertPos = state.selection.from
+                const tr = state.tr.replaceSelectionWith(node)
+                tr.setSelection(NodeSelection.create(tr.doc, insertPos))
+                schedulePlaceholderEditMode()
+                view.dispatch(tr)
               },
             })
 
@@ -288,13 +305,64 @@ const LoadedEditor = ({
             }
           },
         },
+        [CrepeFeature.Toolbar]: {
+          buildToolbar: (builder) => {
+            const group = builder.addGroup("highlight", "Highlight")
+            for (const { key, label } of HIGHLIGHT_COLORS) {
+              group.addItem(`highlight-${key}`, {
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--highlight-${key})"/></svg>`,
+                active: (ctx) => {
+                  const view = ctx.get(editorViewCtx)
+                  const { from, to } = view.state.selection
+                  const markType = highlightMark.type(ctx)
+                  let found = false
+                  view.state.doc.nodesBetween(from, to, (node) => {
+                    if (found) return false
+                    if (node.marks.some((m) => m.type === markType && m.attrs.color === key)) found = true
+                    return true
+                  })
+                  return found
+                },
+                onRun: (ctx) => {
+                  const view = ctx.get(editorViewCtx)
+                  const { from, to } = view.state.selection
+                  const markType = highlightMark.type(ctx)
+                  const alreadyActive = (() => {
+                    let found = false
+                    view.state.doc.nodesBetween(from, to, (node) => {
+                      if (found) return false
+                      if (node.marks.some((m) => m.type === markType && m.attrs.color === key)) found = true
+                      return true
+                    })
+                    return found
+                  })()
+                  if (alreadyActive) {
+                    view.dispatch(view.state.tr.removeMark(from, to, markType))
+                  } else {
+                    view.dispatch(view.state.tr.addMark(from, to, markType.create({ color: key })))
+                  }
+                },
+              })
+            }
+            group.addItem("highlight-clear", {
+              icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>`,
+              active: () => false,
+              onRun: (ctx) => {
+                const view = ctx.get(editorViewCtx)
+                const { from, to } = view.state.selection
+                view.dispatch(view.state.tr.removeMark(from, to, highlightMark.type(ctx)))
+              },
+            })
+          },
+        },
       },
     })
 
     const nodeLinkPlugins = createNodeLinkPlugins({ onNavigateRef, onTriggerRef, onKeyRef, nodeLinkTypeRef })
-    const highlightPlugins = createHighlightPlugins({ onSelectionRef, highlightMarkTypeRef })
+    const highlightPlugins = createHighlightPlugins()
     const calloutPlugins = createCalloutPlugins({ onPickerRef: onCalloutPickerRef })
-    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins, ...calloutPlugins])
+    const placeholderPlugins = createPlaceholderPlugins()
+    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins, ...calloutPlugins, ...placeholderPlugins])
     crepe.editor.use(collab)
 
     crepe.on((api) => {
@@ -318,10 +386,7 @@ const LoadedEditor = ({
           onSelect={handleSelect}
         />
       )}
-      {highlightInfo && !triggerInfo && (
-        <HighlightToolbar info={highlightInfo} highlightMarkTypeRef={highlightMarkTypeRef} />
-      )}
-      {calloutPickerInfo && (
+{calloutPickerInfo && (
         <CalloutColorPicker info={calloutPickerInfo} onClose={() => setCalloutPickerInfo(null)} />
       )}
     </div>

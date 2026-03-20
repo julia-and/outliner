@@ -46,7 +46,7 @@ function remarkCalloutPlugin(this: any) {
             ...(node.children ?? []),
           ],
         }
-        return state.one(blockquote, parent, info)
+        return state.handle(blockquote, parent, state, info)
       },
     },
   })

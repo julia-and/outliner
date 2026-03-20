@@ -1,9 +1,5 @@
-import React from "react"
-import { $mark, $inputRule, $prose, $remark } from "@milkdown/utils"
-import { Plugin, PluginKey } from "@milkdown/prose/state"
+import { $mark, $inputRule, $remark } from "@milkdown/utils"
 import { markRule } from "@milkdown/prose"
-import type { EditorView } from "@milkdown/prose/view"
-import type { MarkType } from "@milkdown/prose/model"
 
 export const HIGHLIGHT_COLORS = [
   { key: "yellow", label: "Yellow" },
@@ -13,14 +9,6 @@ export const HIGHLIGHT_COLORS = [
   { key: "orange", label: "Orange" },
   { key: "purple", label: "Purple" },
 ]
-
-export interface HighlightSelectionInfo {
-  coords: { left: number; top: number }
-  from: number
-  to: number
-  activeColor: string | null
-  view: EditorView
-}
 
 // Walk MDAST tree in reverse order so splices don't break indices
 function walk(node: any, fn: (node: any, idx: number, parent: any) => void) {
@@ -82,49 +70,42 @@ function remarkHighlightPlugin(this: any) {
   }
 }
 
-const SELECTION_KEY = new PluginKey("highlightSelection")
+export const highlightMark = $mark("highlight", () => ({
+  attrs: { color: { default: "yellow" } },
+  parseDOM: [
+    {
+      tag: "mark[data-highlight-color]",
+      getAttrs: (dom: HTMLElement | string) => {
+        if (typeof dom === "string") return false
+        return { color: (dom as HTMLElement).getAttribute("data-highlight-color") ?? "yellow" }
+      },
+    },
+  ],
+  toDOM: (mark: import("@milkdown/prose/model").Mark) => [
+    "mark",
+    {
+      "data-highlight-color": mark.attrs.color,
+      style: `background-color: var(--highlight-${mark.attrs.color})`,
+    },
+  ],
+  parseMarkdown: {
+    match: (node: any) => node.type === "highlight",
+    runner: (state: any, node: any, markType: import("@milkdown/prose/model").MarkType) => {
+      state.openMark(markType, { color: node.data?.color ?? "yellow" })
+      state.next(node.children)
+      state.closeMark(markType)
+    },
+  },
+  toMarkdown: {
+    match: (mark: import("@milkdown/prose/model").Mark) => mark.type.name === "highlight",
+    runner: (state: any, mark: import("@milkdown/prose/model").Mark) => {
+      state.withMark(mark, "highlight", undefined, { color: mark.attrs.color })
+    },
+  },
+}))
 
-export function createHighlightPlugins(opts: {
-  onSelectionRef: React.MutableRefObject<(info: HighlightSelectionInfo | null) => void>
-  highlightMarkTypeRef: React.MutableRefObject<MarkType | null>
-}) {
-  const { onSelectionRef, highlightMarkTypeRef } = opts
-
+export function createHighlightPlugins() {
   const remarkHighlightPlugins = $remark("highlight", () => remarkHighlightPlugin)
-
-  const highlightMark = $mark("highlight", () => ({
-    attrs: { color: { default: "yellow" } },
-    parseDOM: [
-      {
-        tag: "mark[data-highlight-color]",
-        getAttrs: (dom: HTMLElement | string) => {
-          if (typeof dom === "string") return false
-          return { color: (dom as HTMLElement).getAttribute("data-highlight-color") ?? "yellow" }
-        },
-      },
-    ],
-    toDOM: (mark: import("@milkdown/prose/model").Mark) => [
-      "mark",
-      {
-        "data-highlight-color": mark.attrs.color,
-        style: `background-color: var(--highlight-${mark.attrs.color})`,
-      },
-    ],
-    parseMarkdown: {
-      match: (node: any) => node.type === "highlight",
-      runner: (state: any, node: any, markType: MarkType) => {
-        state.openMark(markType, { color: node.data?.color ?? "yellow" })
-        state.next(node.children)
-        state.closeMark(markType)
-      },
-    },
-    toMarkdown: {
-      match: (mark: import("@milkdown/prose/model").Mark) => mark.type.name === "highlight",
-      runner: (state: any, mark: import("@milkdown/prose/model").Mark) => {
-        state.withMark(mark, "highlight", undefined, { color: mark.attrs.color })
-      },
-    },
-  }))
 
   const highlightInputRule = $inputRule((ctx) =>
     markRule(/==(?:\{([^}]+)\})?([^=\n]+)==$/, highlightMark.type(ctx), {
@@ -132,38 +113,5 @@ export function createHighlightPlugins(opts: {
     }),
   )
 
-  const selectionWatcher = $prose((ctx) => {
-    highlightMarkTypeRef.current = highlightMark.type(ctx)
-    return new Plugin({
-      key: SELECTION_KEY,
-      view: () => ({
-        update(view: EditorView) {
-          const { selection } = view.state
-          if (selection.empty) {
-            onSelectionRef.current(null)
-            return
-          }
-          const { from, to } = selection
-          const fromCoords = view.coordsAtPos(from)
-          const toCoords = view.coordsAtPos(to)
-          const left = (fromCoords.left + toCoords.right) / 2
-          const top = Math.min(fromCoords.top, toCoords.top)
-
-          // Find the active highlight color in the selection (first one wins)
-          let activeColor: string | null = null
-          const markType = highlightMark.type(ctx)
-          view.state.doc.nodesBetween(from, to, (node) => {
-            if (activeColor !== null) return false
-            const m = node.marks.find((mk) => mk.type === markType)
-            if (m) activeColor = m.attrs.color
-            return true
-          })
-
-          onSelectionRef.current({ coords: { left, top }, from, to, activeColor, view })
-        },
-      }),
-    })
-  })
-
-  return [...remarkHighlightPlugins, highlightMark, highlightInputRule, selectionWatcher] as const
+  return [...remarkHighlightPlugins, highlightMark, highlightInputRule] as const
 }

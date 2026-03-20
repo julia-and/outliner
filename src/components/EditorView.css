@@ -238,3 +238,33 @@
   height: var(--handle-icon-size);
   flex-shrink: 0;
 }
+
+/* ── Placeholder chip ── */
+.placeholder-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--active-bg);
+  border: 1.5px solid var(--resizer-active);
+  border-radius: 3px;
+  font-size: 0.88em;
+  font-family: var(--crepe-font-code);
+  color: var(--resizer-active);
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.milkdown .placeholder-chip.placeholder-editing {
+  cursor: text;
+  border-style: dashed;
+}
+
+.milkdown .placeholder-chip.ProseMirror-selectednode {
+  outline: 2px solid var(--resizer-active);
+  outline-offset: 1px;
+  background: var(--resizer-glow, rgba(74, 144, 226, 0.15));
+}
+
+[data-theme="dark"] .milkdown .placeholder-chip {
+  background: rgba(74, 144, 226, 0.12);
+}
