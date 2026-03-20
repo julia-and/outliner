@@ -24,7 +24,10 @@
       "mcp__chrome-devtools__fill",
       "mcp__chrome-devtools__press_key",
       "Read(//private/tmp/package/lib/**)",
-      "Read(//private/tmp/package/**)"
+      "Read(//private/tmp/package/**)",
+      "Bash(grep -rn remarkPluginsCtx /Users/julia/Code/personal/ol/node_modules/@milkdown --include=*.ts)",
+      "Bash(grep:*)",
+      "Bash(npx vite:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

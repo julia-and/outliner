@@ -1,0 +1,63 @@
+.toolbar {
+  position: fixed;
+  z-index: 2000;
+  transform: translate(-50%, calc(-100% - 6px));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--popover-shadow);
+}
+
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: outline 0.1s, border-color 0.1s;
+  outline: none;
+}
+
+.swatch:hover {
+  border-color: var(--text-secondary);
+}
+
+.swatchActive {
+  border-color: var(--resizer-active);
+  outline: 2px solid var(--resizer-active);
+  outline-offset: 1px;
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.eraseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.eraseBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}

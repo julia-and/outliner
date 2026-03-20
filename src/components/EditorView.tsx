@@ -10,12 +10,14 @@ import { liveQuery } from "dexie"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import { Settings } from "lucide-react"
-import type { NodeType } from "@milkdown/prose/model"
+import type { NodeType, MarkType } from "@milkdown/prose/model"
 import type { EditorView as ProseMirrorEditorView } from "@milkdown/prose/view"
 import { db, TemplateRow, consumePendingNodeContent, clearPendingContent } from "../store"
 import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
 import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
+import { createHighlightPlugins, HighlightSelectionInfo } from "../editor/highlightPlugin"
 import { NodeLinkSearch } from "./NodeLinkSearch"
+import { HighlightToolbar } from "./HighlightToolbar"
 
 const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 import { OutletNode } from "../types"
@@ -104,6 +106,11 @@ const LoadedEditor = ({
 
   const onTriggerRef = useRef<(info: TriggerInfo | null, view: ProseMirrorEditorView) => void>(() => {})
   const onKeyRef = useRef<(key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void>(() => {})
+
+  const onSelectionRef = useRef<(info: HighlightSelectionInfo | null) => void>(() => {})
+  const highlightMarkTypeRef = useRef<MarkType | null>(null)
+  const [highlightInfo, setHighlightInfo] = useState<HighlightSelectionInfo | null>(null)
+  onSelectionRef.current = (info) => setHighlightInfo(info)
 
   const filteredNodes = useMemo(() => {
     if (!triggerInfo) return []
@@ -261,7 +268,8 @@ const LoadedEditor = ({
     })
 
     const nodeLinkPlugins = createNodeLinkPlugins({ onNavigateRef, onTriggerRef, onKeyRef, nodeLinkTypeRef })
-    crepe.editor.use([...nodeLinkPlugins])
+    const highlightPlugins = createHighlightPlugins({ onSelectionRef, highlightMarkTypeRef })
+    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins])
     crepe.editor.use(collab)
 
     crepe.on((api) => {
@@ -284,6 +292,9 @@ const LoadedEditor = ({
           selectedIdx={selectedIdx}
           onSelect={handleSelect}
         />
+      )}
+      {highlightInfo && !triggerInfo && (
+        <HighlightToolbar info={highlightInfo} highlightMarkTypeRef={highlightMarkTypeRef} />
       )}
     </div>
   )

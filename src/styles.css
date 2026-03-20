@@ -42,6 +42,14 @@
   --color-blue: #2563eb;
   --color-purple: #7c3aed;
 
+  /* Highlight colors — used by the inline highlight mark */
+  --highlight-yellow: rgba(255, 235, 0, 0.40);
+  --highlight-green:  rgba(74, 222, 128, 0.35);
+  --highlight-blue:   rgba(96, 165, 250, 0.35);
+  --highlight-rose:   rgba(251, 113, 133, 0.35);
+  --highlight-orange: rgba(251, 146,  60, 0.35);
+  --highlight-purple: rgba(167, 139, 250, 0.35);
+
   /* Preset-specific colors (not in the main palette) */
   --preset-green-light-fg: #1a5c2a;
   --preset-green-light-bg: #d4edda;
@@ -75,6 +83,14 @@
   --resizer-glow: rgba(74, 144, 226, 0.3);
   --sync-ok: #5ab56a;
   --popover-shadow: rgba(0, 0, 0, 0.5);
+
+  /* Highlight colors — dark mode (lower opacity) */
+  --highlight-yellow: rgba(255, 235, 0, 0.22);
+  --highlight-green:  rgba(74, 222, 128, 0.20);
+  --highlight-blue:   rgba(96, 165, 250, 0.20);
+  --highlight-rose:   rgba(251, 113, 133, 0.20);
+  --highlight-orange: rgba(251, 146,  60, 0.20);
+  --highlight-purple: rgba(167, 139, 250, 0.20);
 }
 
 body {

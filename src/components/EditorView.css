@@ -152,6 +152,11 @@
   margin: 4px 8px;
 }
 
+.milkdown mark[data-highlight-color] {
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 .node-link-chip {
   display: inline-block;
   padding: 1px 7px;
