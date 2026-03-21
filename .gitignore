@@ -16,6 +16,9 @@ dist
 dist-ssr
 *.local
 
+# Secrets
+dexie-cloud.key
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
