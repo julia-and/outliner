@@ -21,6 +21,7 @@
     "dexie": "^4.2.1",
     "dexie-cloud-addon": "^4.3.9",
     "dexie-react-hooks": "^4.2.0",
+    "fflate": "^0.8.2",
     "lucide-react": "^0.563.0",
     "mammoth": "^1.12.0",
     "react": "^19.2.3",

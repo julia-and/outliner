@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Plus, Check, Pencil, Trash2, Upload } from "lucide-react"
+import { ChevronDown, Plus, Check, Pencil, Trash2, Upload, Download } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
   useFloating,
@@ -13,7 +13,7 @@ import {
   FloatingPortal,
 } from "@floating-ui/react"
 import classNames from "classnames"
-import { db, createOutline, renameOutline, deleteOutline, importDocxAsOutline } from "../store"
+import { db, createOutline, renameOutline, deleteOutline, importDocxAsOutline, exportOutlineToFile, importOutlineFromFile } from "../store"
 import styles from "./OutlineSwitcher.module.css"
 
 interface OutlineSwitcherProps {
@@ -27,8 +27,11 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
   const [editingName, setEditingName] = useState("")
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [importingOlz, setImportingOlz] = useState(false)
   const renameInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const olzFileInputRef = useRef<HTMLInputElement>(null)
 
   const outlines = useLiveQuery(() => db.outlines.orderBy("createdAt").toArray(), []) ?? []
   const active = outlines.find((o) => o.id === activeOutlineId)
@@ -75,6 +78,33 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
       setOpen(false)
     } finally {
       setImporting(false)
+    }
+  }
+
+  const handleExport = async (id: string) => {
+    setExporting(true)
+    try {
+      await exportOutlineToFile(id)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleOlzImportClick = () => {
+    olzFileInputRef.current?.click()
+  }
+
+  const handleOlzFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ""
+    setImportingOlz(true)
+    try {
+      const id = await importOutlineFromFile(file)
+      onSelect(id)
+      setOpen(false)
+    } finally {
+      setImportingOlz(false)
     }
   }
 
@@ -133,6 +163,13 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
         accept=".docx"
         style={{ display: "none" }}
         onChange={handleFileChange}
+      />
+      <input
+        ref={olzFileInputRef}
+        type="file"
+        accept=".olz"
+        style={{ display: "none" }}
+        onChange={handleOlzFileChange}
       />
       <button
         ref={refs.setReference}
@@ -201,6 +238,15 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
                       <Pencil size={12} />
                     </button>
                     <button
+                      className={styles.iconBtn}
+                      onClick={e => { e.stopPropagation(); void handleExport(o.id) }}
+                      title="Export to file"
+                      disabled={exporting}
+                      tabIndex={-1}
+                    >
+                      <Download size={12} />
+                    </button>
+                    <button
                       className={classNames(styles.iconBtn, styles.iconBtnDanger)}
                       onClick={e => { e.stopPropagation(); handleStartDelete(o.id) }}
                       title="Delete"
@@ -220,6 +266,10 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
             <button className={styles.item} onClick={handleImportClick} disabled={importing}>
               <Upload size={12} className={styles.plusIcon} />
               <span className={styles.itemName}>{importing ? "Importing…" : "Import from Word"}</span>
+            </button>
+            <button className={styles.item} onClick={handleOlzImportClick} disabled={importingOlz}>
+              <Upload size={12} className={styles.plusIcon} />
+              <span className={styles.itemName}>{importingOlz ? "Importing…" : "Import from file (.olz)"}</span>
             </button>
           </div>
         </FloatingPortal>
