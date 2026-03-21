@@ -5,7 +5,7 @@ export const STARTER_TEMPLATES: TemplateRow[] = [
     id: "starter:meeting-notes",
     name: "Meeting Notes",
     content:
-      "## Meeting Notes\n\n**Date:** \n**Attendees:** \n\n### Agenda\n\n- \n\n### Discussion\n\n\n\n### Action Items\n\n- [ ] \n",
+      "## Meeting Notes\n\n**Date:** {{auto:date}} {{auto:time}} \n\n**Attendees:**\n\n- {{Wolfgang Amadeus Mozart}}\n### Agenda\n\n- {{World peace}} \n### Discussion\n\n- {{Salieri...}}\n### Action Items\n\n- [ ] {{Requiem in D Minor}} \n",
     createdAt: 0,
   },
   {
