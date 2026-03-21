@@ -17,6 +17,7 @@ import {
   getNodesMap,
 } from "../store"
 import { getBindings, matchesBinding } from "../utils/shortcuts"
+import { currentDateString, currentTimeString } from "../utils/dateTime"
 import { NodeYRecord, OutletNode } from "../types"
 import {
   buildClipboardPayload,
@@ -195,6 +196,21 @@ export function useOutline(
       const idx = currentNodes.findIndex((n) => n.id === currentActiveId)
 
       if (currentMode === "insert") {
+        const dateText = m("insert.date") ? currentDateString()
+          : m("insert.time") ? currentTimeString()
+          : m("insert.datetime") ? `${currentDateString()} ${currentTimeString()}`
+          : null
+        if (dateText && currentActiveId) {
+          e.preventDefault()
+          const input = document.activeElement as HTMLInputElement
+          const start = input.selectionStart ?? input.value.length
+          const end = input.selectionEnd ?? input.value.length
+          const newValue = input.value.slice(0, start) + dateText + input.value.slice(end)
+          storeUpdateTitle(outlineDoc, currentActiveId, newValue)
+          requestAnimationFrame(() => input.setSelectionRange(start + dateText.length, start + dateText.length))
+          return
+        }
+
         if (m("insert.cancel")) {
           e.preventDefault()
           if (currentActiveId && originalTitleRef.current !== null) {

@@ -14,6 +14,9 @@ import {
 } from "@floating-ui/react"
 import { Crepe } from "@milkdown/crepe"
 import "@milkdown/crepe/theme/common/style.css"
+import { createHighlightPlugins } from "../editor/highlightPlugin"
+import { createCalloutPlugins } from "../editor/calloutPlugin"
+import { createPlaceholderPlugins } from "../editor/placeholderPlugin"
 import classNames from "classnames"
 import { db, createTemplate, updateTemplate, deleteTemplate } from "../store"
 import styles from "./TemplateManager.module.css"
@@ -31,11 +34,17 @@ const TemplateContentEditor = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const crepeRef = useRef<Crepe | null>(null)
+  const noopPickerRef = useRef(() => {})
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
     const crepe = new Crepe({ root: container, defaultValue })
+    crepe.editor.use([
+      ...createHighlightPlugins(),
+      ...createCalloutPlugins({ onPickerRef: noopPickerRef }),
+      ...createPlaceholderPlugins(),
+    ])
     crepeRef.current = crepe
     crepe.create()
     return () => {

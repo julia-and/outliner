@@ -55,8 +55,11 @@ export const SHORTCUT_DEFS: ShortcutDef[] = [
   { id: "node.copy",      label: "Copy node",    group: "Editing", defaultBinding: { key: "c", cmd: true } },
   { id: "node.cut",       label: "Cut node",     group: "Editing", defaultBinding: { key: "x", cmd: true } },
   { id: "node.paste",     label: "Paste",        group: "Editing", defaultBinding: { key: "v", cmd: true } },
-  { id: "insert.confirm", label: "Confirm edit", group: "Editing", defaultBinding: { key: "Enter" }, remappable: false },
-  { id: "insert.cancel",  label: "Cancel edit",  group: "Editing", defaultBinding: { key: "Escape" }, remappable: false },
+  { id: "insert.confirm",  label: "Confirm edit",   group: "Editing", defaultBinding: { key: "Enter" }, remappable: false },
+  { id: "insert.cancel",   label: "Cancel edit",    group: "Editing", defaultBinding: { key: "Escape" }, remappable: false },
+  { id: "insert.date",     label: "Insert date",    group: "Editing", defaultBinding: { key: "d", cmd: true, shift: true } },
+  { id: "insert.time",     label: "Insert time",    group: "Editing", defaultBinding: { key: "t", cmd: true, shift: true } },
+  { id: "insert.datetime", label: "Insert date+time", group: "Editing", defaultBinding: { key: ";", cmd: true, shift: true } },
   { id: "node.undo", label: "Undo", group: "Editing", defaultBinding: { key: "z", cmd: true } },
   { id: "node.redo", label: "Redo", group: "Editing", defaultBinding: { key: "z", cmd: true, shift: true } },
 ]
@@ -70,7 +73,7 @@ const NAV_IDS = new Set([
   "node.copy", "node.cut", "node.paste",
   "node.undo", "node.redo",
 ])
-const INSERT_IDS = new Set(["insert.confirm", "insert.cancel"])
+const INSERT_IDS = new Set(["insert.confirm", "insert.cancel", "insert.date", "insert.time", "insert.datetime"])
 
 function modeOf(id: string): "nav" | "insert" | null {
   if (NAV_IDS.has(id)) return "nav"

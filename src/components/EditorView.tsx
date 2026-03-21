@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
-import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react"
+import {
+  Milkdown,
+  MilkdownProvider,
+  useEditor,
+  useInstance,
+} from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
 import { editorViewCtx, parserCtx, commandsCtx } from "@milkdown/kit/core"
 import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark"
@@ -13,22 +18,49 @@ import { Settings } from "lucide-react"
 import type { NodeType } from "@milkdown/prose/model"
 import { NodeSelection } from "@milkdown/prose/state"
 import type { EditorView as ProseMirrorEditorView } from "@milkdown/prose/view"
-import { db, TemplateRow, consumePendingNodeContent, clearPendingContent } from "../store"
-import { saveImage, getImageURL, getCachedImageURL, revokeAll, preCacheImagesFromText } from "../utils/imageStore"
+import {
+  db,
+  TemplateRow,
+  consumePendingNodeContent,
+  clearPendingContent,
+} from "../store"
+import {
+  saveImage,
+  getImageURL,
+  getCachedImageURL,
+  revokeAll,
+  preCacheImagesFromText,
+} from "../utils/imageStore"
 import { createNodeLinkPlugins, TriggerInfo } from "../editor/nodeLinkPlugin"
-import { createHighlightPlugins, highlightMark, HIGHLIGHT_COLORS } from "../editor/highlightPlugin"
-import { createCalloutPlugins, calloutNode, CalloutPickerInfo } from "../editor/calloutPlugin"
-import { createPlaceholderPlugins, placeholderNode, schedulePlaceholderEditMode } from "../editor/placeholderPlugin"
+import {
+  createHighlightPlugins,
+  highlightMark,
+  HIGHLIGHT_COLORS,
+} from "../editor/highlightPlugin"
+import {
+  createCalloutPlugins,
+  calloutNode,
+  CalloutPickerInfo,
+} from "../editor/calloutPlugin"
+import {
+  createPlaceholderPlugins,
+  placeholderNode,
+  schedulePlaceholderEditMode,
+} from "../editor/placeholderPlugin"
+import { $prose } from "@milkdown/utils"
+import { Plugin } from "@milkdown/prose/state"
 import { findWrapping } from "@milkdown/prose/transform"
+import { resolveAutoPlaceholders, currentDateString, currentTimeString } from "../utils/dateTime"
+import { getBindings, matchesBinding } from "../utils/shortcuts"
 import { NodeLinkSearch } from "./NodeLinkSearch"
 import { CalloutColorPicker } from "./CalloutColorPicker"
-
-const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 import { OutletNode } from "../types"
 import { NoteHeader } from "./NoteHeader"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { Popover } from "./Popover"
 import "./EditorView.css"
+
+const IMAGE_UNAVAILABLE_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc" stroke-dasharray="4" stroke-width="1" rx="4"/><text x="50%" y="50%" font-size="13" font-family="sans-serif" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not available on this device yet</text></svg>')}`
 
 interface EditorOptions {
   showWords: boolean
@@ -62,9 +94,9 @@ function saveOptions(opts: EditorOptions) {
 
 function stripMarkdownSyntax(text: string): string {
   return text
-    .replace(/<[^>]*>/g, " ")       // HTML tags (e.g. <br/>)
+    .replace(/<[^>]*>/g, " ") // HTML tags (e.g. <br/>)
     .replace(/&[a-z0-9#]+;/gi, " ") // HTML entities (e.g. &nbsp;)
-    .replace(/^#{1,6}\s/gm, "")     // headings
+    .replace(/^#{1,6}\s/gm, "") // headings
     .replace(/(\*\*|__|\\*|_|~~)/g, "") // bold / italic / strikethrough markers
     .replace(/`[^`]*`/g, (m) => m.slice(1, -1)) // inline code (keep content)
 }
@@ -110,17 +142,25 @@ const LoadedEditor = ({
   const editorViewRef = useRef<ProseMirrorEditorView | null>(null)
   const nodeLinkTypeRef = useRef<NodeType | null>(null)
 
-  const onTriggerRef = useRef<(info: TriggerInfo | null, view: ProseMirrorEditorView) => void>(() => {})
-  const onKeyRef = useRef<(key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void>(() => {})
+  const onTriggerRef = useRef<
+    (info: TriggerInfo | null, view: ProseMirrorEditorView) => void
+  >(() => {})
+  const onKeyRef = useRef<
+    (key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void
+  >(() => {})
 
-  const onCalloutPickerRef = useRef<(info: CalloutPickerInfo | null) => void>(() => {})
-  const [calloutPickerInfo, setCalloutPickerInfo] = useState<CalloutPickerInfo | null>(null)
+  const onCalloutPickerRef = useRef<(info: CalloutPickerInfo | null) => void>(
+    () => {},
+  )
+  const [calloutPickerInfo, setCalloutPickerInfo] =
+    useState<CalloutPickerInfo | null>(null)
   onCalloutPickerRef.current = (info) => setCalloutPickerInfo(info)
 
   const filteredNodes = useMemo(() => {
     if (!triggerInfo) return []
     const q = triggerInfo.query.toLowerCase()
-    return getNodesRef.current()
+    return getNodesRef
+      .current()
       .filter((n) => n.title.toLowerCase().includes(q))
       .slice(0, 8)
   }, [triggerInfo])
@@ -133,7 +173,10 @@ const LoadedEditor = ({
       const info = triggerInfo
       const linkType = nodeLinkTypeRef.current
       if (!view || !info || !linkType) return
-      const chip = linkType.create({ nodeId: node.id, label: node.title || node.id })
+      const chip = linkType.create({
+        nodeId: node.id,
+        label: node.title || node.id,
+      })
       view.dispatch(view.state.tr.replaceWith(info.from, info.to, chip))
       view.focus()
       setTriggerInfo(null)
@@ -149,9 +192,11 @@ const LoadedEditor = ({
 
   onKeyRef.current = (key) => {
     const nodes = filteredNodesRef.current
-    if (key === "ArrowDown") setSelectedIdx((i) => Math.min(i + 1, nodes.length - 1))
+    if (key === "ArrowDown")
+      setSelectedIdx((i) => Math.min(i + 1, nodes.length - 1))
     else if (key === "ArrowUp") setSelectedIdx((i) => Math.max(i - 1, 0))
-    else if (key === "Enter" && nodes[selectedIdx]) handleSelect(nodes[selectedIdx])
+    else if (key === "Enter" && nodes[selectedIdx])
+      handleSelect(nodes[selectedIdx])
     // Escape: plugin dispatches suppress meta → plugin state clears → onTriggerRef(null) → setTriggerInfo(null)
   }
 
@@ -163,7 +208,10 @@ const LoadedEditor = ({
       const collabService = ctx.get(collabServiceCtx)
       const service = collabService.bindDoc(doc)
       if (initialContent) {
-        service.applyTemplate(initialContent, (yDocNode) => yDocNode.textContent.length === 0)
+        service.applyTemplate(
+          resolveAutoPlaceholders(initialContent),
+          (yDocNode) => yDocNode.textContent.length === 0,
+        )
       }
       service.connect()
     })
@@ -183,14 +231,20 @@ const LoadedEditor = ({
   useEffect(() => {
     if (loading) return
     const sub = liveQuery(() => db.images.toArray()).subscribe(async (rows) => {
-      const uncached = rows.filter(r => !getCachedImageURL(r.id))
+      const uncached = rows.filter((r) => !getCachedImageURL(r.id))
       if (uncached.length === 0) return
-      await Promise.all(uncached.map(r => getImageURL(r.id)))
+      await Promise.all(uncached.map((r) => getImageURL(r.id)))
       get().action((ctx) => {
         const view = ctx.get(editorViewCtx)
         view.state.doc.descendants((node, pos) => {
-          if (typeof node.attrs?.src !== "string" || !node.attrs.src.startsWith("ol-image://")) return
-          const blobUrl = getCachedImageURL(node.attrs.src.slice("ol-image://".length))
+          if (
+            typeof node.attrs?.src !== "string" ||
+            !node.attrs.src.startsWith("ol-image://")
+          )
+            return
+          const blobUrl = getCachedImageURL(
+            node.attrs.src.slice("ol-image://".length),
+          )
           if (!blobUrl) return
           const dom = view.nodeDOM(pos)
           const srcRef = (dom as any)?.__vue_app__?._instance?.props?.src
@@ -242,7 +296,9 @@ const LoadedEditor = ({
             const cached = getCachedImageURL(id)
             if (cached) return cached
             // Async fallback for images arriving after initial load
-            return getImageURL(id).then((blobURL) => blobURL ?? IMAGE_UNAVAILABLE_PLACEHOLDER)
+            return getImageURL(id).then(
+              (blobURL) => blobURL ?? IMAGE_UNAVAILABLE_PLACEHOLDER,
+            )
           },
         },
         [CrepeFeature.BlockEdit]: {
@@ -260,12 +316,17 @@ const LoadedEditor = ({
                 const { $from, $to } = state.selection
                 const range = $from.blockRange($to)
                 if (!range) return
-                const wrapping = findWrapping(range, calloutType, { color: "yellow" })
+                const wrapping = findWrapping(range, calloutType, {
+                  color: "yellow",
+                })
                 if (wrapping) dispatch(state.tr.wrap(range, wrapping))
               },
             })
 
-            const placeholderGroup = builder.addGroup("placeholders", "Placeholders")
+            const placeholderGroup = builder.addGroup(
+              "placeholders",
+              "Placeholders",
+            )
             placeholderGroup.addItem("placeholder", {
               label: "Placeholder",
               icon: PLACEHOLDER_ICON_SVG,
@@ -273,7 +334,9 @@ const LoadedEditor = ({
                 const commands = ctx.get(commandsCtx)
                 commands.call(clearTextInCurrentBlockCommand.key)
                 const view = ctx.get(editorViewCtx)
-                const node = placeholderNode.type(ctx).create({ label: "Placeholder" })
+                const node = placeholderNode
+                  .type(ctx)
+                  .create({ label: "Placeholder" })
                 const { state } = view
                 const insertPos = state.selection.from
                 const tr = state.tr.replaceSelectionWith(node)
@@ -295,10 +358,16 @@ const LoadedEditor = ({
                   commands.call(clearTextInCurrentBlockCommand.key)
                   const view = ctx.get(editorViewCtx)
                   const parser = ctx.get(parserCtx)
-                  const parsed = parser(t.content)
+                  const parsed = parser(resolveAutoPlaceholders(t.content))
                   if (parsed) {
                     const { state, dispatch } = view
-                    dispatch(state.tr.replaceWith(state.selection.from, state.selection.to, parsed.content))
+                    dispatch(
+                      state.tr.replaceWith(
+                        state.selection.from,
+                        state.selection.to,
+                        parsed.content,
+                      ),
+                    )
                   }
                 },
               })
@@ -308,7 +377,7 @@ const LoadedEditor = ({
         [CrepeFeature.Toolbar]: {
           buildToolbar: (builder) => {
             const group = builder.addGroup("highlight", "Highlight")
-            for (const { key, label } of HIGHLIGHT_COLORS) {
+            for (const { key } of HIGHLIGHT_COLORS) {
               group.addItem(`highlight-${key}`, {
                 icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--highlight-${key})"/></svg>`,
                 active: (ctx) => {
@@ -318,7 +387,12 @@ const LoadedEditor = ({
                   let found = false
                   view.state.doc.nodesBetween(from, to, (node) => {
                     if (found) return false
-                    if (node.marks.some((m) => m.type === markType && m.attrs.color === key)) found = true
+                    if (
+                      node.marks.some(
+                        (m) => m.type === markType && m.attrs.color === key,
+                      )
+                    )
+                      found = true
                     return true
                   })
                   return found
@@ -331,7 +405,12 @@ const LoadedEditor = ({
                     let found = false
                     view.state.doc.nodesBetween(from, to, (node) => {
                       if (found) return false
-                      if (node.marks.some((m) => m.type === markType && m.attrs.color === key)) found = true
+                      if (
+                        node.marks.some(
+                          (m) => m.type === markType && m.attrs.color === key,
+                        )
+                      )
+                        found = true
                       return true
                     })
                     return found
@@ -339,7 +418,13 @@ const LoadedEditor = ({
                   if (alreadyActive) {
                     view.dispatch(view.state.tr.removeMark(from, to, markType))
                   } else {
-                    view.dispatch(view.state.tr.addMark(from, to, markType.create({ color: key })))
+                    view.dispatch(
+                      view.state.tr.addMark(
+                        from,
+                        to,
+                        markType.create({ color: key }),
+                      ),
+                    )
                   }
                 },
               })
@@ -350,7 +435,9 @@ const LoadedEditor = ({
               onRun: (ctx) => {
                 const view = ctx.get(editorViewCtx)
                 const { from, to } = view.state.selection
-                view.dispatch(view.state.tr.removeMark(from, to, highlightMark.type(ctx)))
+                view.dispatch(
+                  view.state.tr.removeMark(from, to, highlightMark.type(ctx)),
+                )
               },
             })
           },
@@ -358,11 +445,38 @@ const LoadedEditor = ({
       },
     })
 
-    const nodeLinkPlugins = createNodeLinkPlugins({ onNavigateRef, onTriggerRef, onKeyRef, nodeLinkTypeRef })
+    const nodeLinkPlugins = createNodeLinkPlugins({
+      onNavigateRef,
+      onTriggerRef,
+      onKeyRef,
+      nodeLinkTypeRef,
+    })
     const highlightPlugins = createHighlightPlugins()
-    const calloutPlugins = createCalloutPlugins({ onPickerRef: onCalloutPickerRef })
+    const calloutPlugins = createCalloutPlugins({
+      onPickerRef: onCalloutPickerRef,
+    })
     const placeholderPlugins = createPlaceholderPlugins()
-    crepe.editor.use([...nodeLinkPlugins, ...highlightPlugins, ...calloutPlugins, ...placeholderPlugins])
+    const dateTimePlugin = $prose(() => new Plugin({
+      props: {
+        handleKeyDown(view, event) {
+          const bindings = getBindings()
+          let text: string | null = null
+          if (matchesBinding(event, bindings["insert.date"])) text = currentDateString()
+          else if (matchesBinding(event, bindings["insert.time"])) text = currentTimeString()
+          else if (matchesBinding(event, bindings["insert.datetime"])) text = `${currentDateString()} ${currentTimeString()}`
+          if (!text) return false
+          view.dispatch(view.state.tr.insertText(text))
+          return true
+        },
+      },
+    }))
+    crepe.editor.use([
+      ...nodeLinkPlugins,
+      ...highlightPlugins,
+      ...calloutPlugins,
+      ...placeholderPlugins,
+      dateTimePlugin,
+    ])
     crepe.editor.use(collab)
 
     crepe.on((api) => {
@@ -386,8 +500,11 @@ const LoadedEditor = ({
           onSelect={handleSelect}
         />
       )}
-{calloutPickerInfo && (
-        <CalloutColorPicker info={calloutPickerInfo} onClose={() => setCalloutPickerInfo(null)} />
+      {calloutPickerInfo && (
+        <CalloutColorPicker
+          info={calloutPickerInfo}
+          onClose={() => setCalloutPickerInfo(null)}
+        />
       )}
     </div>
   )
@@ -415,14 +532,16 @@ const Editor = ({
   dataPendingContent?: string
 }) => {
   // Consume pending template content exactly once at mount for this nodeId.
-  const initialContentRef = useRef(consumePendingNodeContent(nodeId) ?? dataPendingContent)
+  const initialContentRef = useRef(
+    consumePendingNodeContent(nodeId) ?? dataPendingContent,
+  )
 
   // Clear persisted pendingContent from the outline Y.Doc after consuming it.
   useEffect(() => {
     if (dataPendingContent && outlineDoc) {
       clearPendingContent(outlineDoc, nodeId)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const row = useLiveQuery(() => db.nodeContents.get(nodeId), [nodeId])
   const doc = row?.content
@@ -433,12 +552,15 @@ const Editor = ({
   }, [nodeId])
 
   useEffect(() => {
-    if (!doc) { setLoaded(false); return }
+    if (!doc) {
+      setLoaded(false)
+      return
+    }
     const provider = DexieYProvider.load(doc, { gracePeriod: 1000 })
     let active = true
     provider.whenLoaded.then(async () => {
       if (!active) return
-      await preCacheImagesFromText(doc.getXmlFragment('prosemirror').toString())
+      await preCacheImagesFromText(doc.getXmlFragment("prosemirror").toString())
       if (active) setLoaded(true)
     })
     return () => {
@@ -471,7 +593,10 @@ interface EditorViewProps {
   activeNode: OutletNode | null
   ancestors: { id: string; title: string }[]
   updateTitle: (id: string, title: string) => void
-  updateStyle: (id: string, style: Partial<import("../types").NodeStyle>) => void
+  updateStyle: (
+    id: string,
+    style: Partial<import("../types").NodeStyle>,
+  ) => void
   onNavigate: (id: string) => void
   getTemplates?: () => TemplateRow[]
   getNodes: () => OutletNode[]
@@ -502,7 +627,10 @@ export const EditorView = ({
     setChars(c)
   }, [])
 
-  const setOption = <K extends keyof EditorOptions>(key: K, value: EditorOptions[K]) => {
+  const setOption = <K extends keyof EditorOptions>(
+    key: K,
+    value: EditorOptions[K],
+  ) => {
     setOptions((prev) => {
       const next = { ...prev, [key]: value }
       saveOptions(next)
@@ -518,9 +646,19 @@ export const EditorView = ({
     )
   }
   return (
-    <div className="editor-outer" onKeyDown={(e) => { if (e.key === "Escape") onFocusOutline?.() }}>
+    <div
+      className="editor-outer"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onFocusOutline?.()
+      }}
+    >
       <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />
-      <NoteHeader node={activeNode} onUpdateTitle={updateTitle} onUpdateStyle={updateStyle} syncStyle={options.syncTitleStyle} />
+      <NoteHeader
+        node={activeNode}
+        onUpdateTitle={updateTitle}
+        onUpdateStyle={updateStyle}
+        syncStyle={options.syncTitleStyle}
+      />
       <div className="editor-container">
         <Editor
           key={activeId}
@@ -532,16 +670,23 @@ export const EditorView = ({
           getNodes={getNodes}
           onNavigate={onNavigate}
           outlineDoc={outlineDoc}
-          dataPendingContent={activeNode?.data?.pendingContent as string | undefined}
+          dataPendingContent={
+            activeNode?.data?.pendingContent as string | undefined
+          }
         />
       </div>
       <div className="editor-footer">
         <div className="editor-footer-counts">
           {options.showWords && (
-            <span>{words.toLocaleString()} {words === 1 ? "word" : "words"}</span>
+            <span>
+              {words.toLocaleString()} {words === 1 ? "word" : "words"}
+            </span>
           )}
           {options.showChars && (
-            <span>{chars.toLocaleString()} {chars === 1 ? "character" : "characters"}</span>
+            <span>
+              {chars.toLocaleString()}{" "}
+              {chars === 1 ? "character" : "characters"}
+            </span>
           )}
         </div>
         <Popover

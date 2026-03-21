@@ -12,7 +12,7 @@ export const STARTER_TEMPLATES: TemplateRow[] = [
     id: "starter:daily-journal",
     name: "Daily Journal",
     content:
-      "## Daily Journal\n\n**Date:** \n\n### What I accomplished today\n\n\n\n### What I'm grateful for\n\n\n\n### Goals for tomorrow\n\n- \n",
+      "## Daily Journal\n\n**Date:** {{auto:date}} \n\n### What I accomplished today\n\n- {{Solved gravity}} \n### What I'm grateful for\n\n- {{Tacos and Beer}} \n### Goals for tomorrow\n\n- {{Relax}} \n",
     createdAt: 0,
   },
   {
