@@ -1,0 +1,51 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Upload hashed assets (immutable, 1 year)
+        run: |
+          aws s3 sync dist/assets/ "s3://$SCW_BUCKET/assets/" \
+            --delete \
+            --acl public-read \
+            --cache-control "public, max-age=31536000, immutable" \
+            --metadata-directive REPLACE \
+            --endpoint-url "https://s3.${SCW_REGION}.scw.cloud"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.SCW_REGION }}
+          SCW_BUCKET: ${{ secrets.SCW_BUCKET }}
+          SCW_REGION: ${{ secrets.SCW_REGION }}
+
+      - name: Upload remaining files (no-cache)
+        run: |
+          aws s3 sync dist/ "s3://$SCW_BUCKET/" \
+            --delete \
+            --exclude "assets/*" \
+            --acl public-read \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --metadata-directive REPLACE \
+            --endpoint-url "https://s3.${SCW_REGION}.scw.cloud"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.SCW_REGION }}
+          SCW_BUCKET: ${{ secrets.SCW_BUCKET }}
+          SCW_REGION: ${{ secrets.SCW_REGION }}
