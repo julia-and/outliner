@@ -68,7 +68,7 @@ class OutlineDB extends Dexie {
       templates: "id, name, createdAt",
     })
     this.cloud.configure({
-      databaseUrl: "https://zw3md6zf8.dexie.cloud",
+      databaseUrl: "https://zgpzaaasb.dexie.cloud",
       unsyncedTables: ["uiState"],
       tryUseServiceWorker: true,
     })
@@ -150,7 +150,7 @@ export async function initStore(): Promise<boolean> {
 
   if ((await db.outlines.count()) === 0) {
     await seedStarterTemplates()
-    return true  // first run — caller shows welcome screen
+    return true // first run — caller shows welcome screen
   }
 
   if (!uiCache.activeOutlineId) {
@@ -531,6 +531,29 @@ export function clearPendingContent(doc: Y.Doc, nodeId: string): void {
   if (!node || !node.data?.pendingContent) return
   const { pendingContent: _, ...restData } = node.data
   nodesMap.set(nodeId, { ...node, data: restData })
+}
+
+export async function exportOutlineToFile(outlineId: string): Promise<void> {
+  const { exportOutline } = await import("./utils/outlineIO")
+  const zipBytes = await exportOutline(outlineId)
+  const outline = await db.outlines.get(outlineId)
+  const safeName = (outline?.name ?? "outline").replace(/[^a-z0-9_\-. ]/gi, "_")
+  const blob = new Blob([zipBytes.buffer as ArrayBuffer], { type: "application/octet-stream" })
+  const url = URL.createObjectURL(blob)
+  const a = Object.assign(document.createElement("a"), {
+    href: url,
+    download: `${safeName}.olz`,
+  })
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+export async function importOutlineFromFile(file: File): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const { importOutlineFromZip } = await import("./utils/outlineIO")
+  return importOutlineFromZip(bytes)
 }
 
 export async function importDocxAsOutline(file: File): Promise<string> {
