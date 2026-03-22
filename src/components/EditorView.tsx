@@ -223,11 +223,10 @@ const LoadedEditor = ({
     }
   }, [loading, doc])
 
-  // When a synced image arrives in the local DB, cache it and update any
-  // image node views still showing the placeholder. Milkdown's image block
-  // is a Vue component whose `src` prop is a reactive ref held in the node
-  // view closure — ProseMirror transactions don't reach it reliably once the
-  // promise in bindAttrs has already resolved, so we update the ref directly.
+  // When a synced image arrives in the local DB, cache it and re-trigger
+  // proxyDomURL on any image nodes still showing the placeholder by dispatching
+  // a setNodeMarkup transaction (same attrs), which causes Milkdown to call
+  // proxyDomURL again — at which point the blob URL is in cache.
   useEffect(() => {
     if (loading) return
     const sub = liveQuery(() => db.images.toArray()).subscribe(async (rows) => {
@@ -236,20 +235,18 @@ const LoadedEditor = ({
       await Promise.all(uncached.map((r) => getImageURL(r.id)))
       get().action((ctx) => {
         const view = ctx.get(editorViewCtx)
+        let tr = view.state.tr
         view.state.doc.descendants((node, pos) => {
           if (
             typeof node.attrs?.src !== "string" ||
             !node.attrs.src.startsWith("ol-image://")
           )
             return
-          const blobUrl = getCachedImageURL(
-            node.attrs.src.slice("ol-image://".length),
-          )
-          if (!blobUrl) return
-          const dom = view.nodeDOM(pos)
-          const srcRef = (dom as any)?.__vue_app__?._instance?.props?.src
-          if (srcRef && "value" in srcRef) srcRef.value = blobUrl
+          if (!getCachedImageURL(node.attrs.src.slice("ol-image://".length)))
+            return
+          tr = tr.setNodeMarkup(pos, undefined, { ...node.attrs })
         })
+        view.dispatch(tr)
       })
     })
     return () => sub.unsubscribe()
