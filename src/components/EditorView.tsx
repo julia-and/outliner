@@ -5,6 +5,7 @@ import { useLingui } from "@lingui/react"
 import { plural } from "@lingui/core/macro"
 import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
+import { appCodeMirrorTheme } from "../editor/codeMirrorTheme"
 import {
   Milkdown,
   MilkdownProvider,
@@ -285,6 +286,9 @@ const LoadedEditor = ({
       root,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       featureConfigs: {
+        [CrepeFeature.CodeMirror]: {
+          theme: appCodeMirrorTheme,
+        },
         [CrepeFeature.Placeholder]: {
           text: t`Type / to use the slash menu`,
         },

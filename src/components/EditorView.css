@@ -49,6 +49,7 @@
     "Fira Code", Menlo, Monaco, "Courier New", Courier, monospace;
 }
 
+
 /* Tighter prose padding to fit app layout */
 .milkdown .ProseMirror {
   padding: 24px 80px;
