@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import { TemplateRow } from "../store"
@@ -30,7 +32,7 @@ export const FormatPanel = ({
   return (
     <div className={styles.panel}>
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Text Format</div>
+        <div className={styles.sectionLabel}><Trans>Text Format</Trans></div>
         <div className={styles.formatRow}>
           <button
             className={classNames(styles.formatBtn, {
@@ -57,7 +59,7 @@ export const FormatPanel = ({
             <span style={{ textDecoration: "line-through" }}>S</span>
           </button>
           <button className={styles.clearBtn} onClick={onClearFormat}>
-            Clear all
+            <Trans>Clear all</Trans>
           </button>
         </div>
       </div>
@@ -65,7 +67,7 @@ export const FormatPanel = ({
       <div className={styles.divider} />
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Text Color</div>
+        <div className={styles.sectionLabel}><Trans>Text Color</Trans></div>
         <div className={styles.swatchRow}>
           {COLOR_PALETTE.map((color) => (
             <button
@@ -86,7 +88,7 @@ export const FormatPanel = ({
       <div className={styles.divider} />
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Background Color</div>
+        <div className={styles.sectionLabel}><Trans>Background Color</Trans></div>
         <div className={styles.swatchRow}>
           {COLOR_PALETTE.map((color) => (
             <button
@@ -109,7 +111,7 @@ export const FormatPanel = ({
       <div className={styles.divider} />
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Presets</div>
+        <div className={styles.sectionLabel}><Trans>Presets</Trans></div>
         <div className={styles.presetGrid}>
           {PRESETS.map((preset) => (
             <button
@@ -131,7 +133,7 @@ export const FormatPanel = ({
         <>
           <div className={styles.divider} />
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Default child template</div>
+            <div className={styles.sectionLabel}><Trans>Default child template</Trans></div>
             <select
               className={styles.templateSelect}
               value={defaultChildTemplateId ?? ""}
@@ -139,7 +141,7 @@ export const FormatPanel = ({
                 onSetDefaultChildTemplate(e.target.value || null)
               }
             >
-              <option value="">None</option>
+              <option value="">{t`None`}</option>
               {(templates ?? []).map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}

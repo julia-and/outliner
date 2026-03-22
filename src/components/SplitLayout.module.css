@@ -54,6 +54,22 @@
   margin-left: 4px;
 }
 
+.localeSelect {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.localeSelect:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
 .commitHash {
   font-size: 11px;
   font-family: monospace;

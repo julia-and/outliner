@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom"
 import { useEffect, useRef } from "react"
+import { useLingui } from "@lingui/react"
 import { CALLOUT_COLORS, CalloutPickerInfo } from "../editor/calloutPlugin"
 import styles from "./CalloutColorPicker.module.css"
 
@@ -9,6 +10,7 @@ interface CalloutColorPickerProps {
 }
 
 export function CalloutColorPicker({ info, onClose }: CalloutColorPickerProps) {
+  const { i18n } = useLingui()
   const { anchorRect, activeColor, nodePos, view } = info
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
@@ -48,9 +50,9 @@ export function CalloutColorPicker({ info, onClose }: CalloutColorPickerProps) {
           key={key}
           className={`${styles.swatch} ${activeColor === key ? styles.swatchActive : ""}`}
           style={{ backgroundColor: `var(--callout-${key}-accent)` }}
-          title={label}
+          title={i18n._(label)}
           onClick={() => applyColor(key)}
-          aria-label={`${label} callout`}
+          aria-label={`${i18n._(label)} callout`}
         />
       ))}
     </div>,

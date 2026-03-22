@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom"
+import { Trans } from "@lingui/react/macro"
 import type { OutletNode } from "../types"
 import styles from "./NodeLinkSearch.module.css"
 
@@ -16,7 +17,7 @@ export const NodeLinkSearch = ({
   createPortal(
     <div className={styles.dropdown} style={{ left: coords.left, top: coords.top }}>
       {nodes.length === 0 ? (
-        <div className={styles.empty}>No matches</div>
+        <div className={styles.empty}><Trans>No matches</Trans></div>
       ) : (
         nodes.map((node, i) => (
           <div
@@ -27,7 +28,7 @@ export const NodeLinkSearch = ({
               onSelect(node)
             }}
           >
-            {node.title || <span className={styles.untitled}>Untitled</span>}
+            {node.title || <span className={styles.untitled}><Trans>Untitled</Trans></span>}
           </div>
         ))
       )}

@@ -1,15 +1,17 @@
 import React from "react"
+import { msg } from "@lingui/core/macro"
+import type { MessageDescriptor } from "@lingui/core"
 import { $node, $view, $remark } from "@milkdown/utils"
 import type { EditorView } from "@milkdown/prose/view"
 
-export const CALLOUT_COLORS = [
-  { key: "yellow", label: "Yellow" },
-  { key: "green", label: "Green" },
-  { key: "blue", label: "Blue" },
-  { key: "rose", label: "Rose" },
-  { key: "orange", label: "Orange" },
-  { key: "purple", label: "Purple" },
-  { key: "gray", label: "Gray" },
+export const CALLOUT_COLORS: { key: string; label: MessageDescriptor }[] = [
+  { key: "yellow", label: msg`Yellow` },
+  { key: "green", label: msg`Green` },
+  { key: "blue", label: msg`Blue` },
+  { key: "rose", label: msg`Rose` },
+  { key: "orange", label: msg`Orange` },
+  { key: "purple", label: msg`Purple` },
+  { key: "gray", label: msg`Gray` },
 ]
 
 export interface CalloutPickerInfo {

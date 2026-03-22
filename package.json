@@ -9,10 +9,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "i18n:extract": "lingui extract",
+    "i18n:compile": "lingui compile"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
+    "@lingui/core": "^5.9.3",
+    "@lingui/react": "^5.9.3",
     "@milkdown/crepe": "^7.7.0",
     "@milkdown/plugin-collab": "^7.19.0",
     "@milkdown/react": "^7.19.0",
@@ -34,6 +38,9 @@
     "yjs": "^13.6.29"
   },
   "devDependencies": {
+    "@lingui/babel-plugin-lingui-macro": "^5.9.3",
+    "@lingui/cli": "^5.9.3",
+    "@lingui/vite-plugin": "^5.9.3",
     "@types/classnames": "^2.3.0",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",

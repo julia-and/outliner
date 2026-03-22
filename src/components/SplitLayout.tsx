@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import { Panel, Group, Separator } from "react-resizable-panels"
 import {
   Columns,
@@ -20,6 +22,7 @@ import {
   db,
 } from "../store"
 import type { SyncState } from "dexie-cloud-addon"
+import { LOCALES, getLocale, loadLocale, type Locale } from "../i18n"
 import styles from "./SplitLayout.module.css"
 import { KeyboardShortcuts } from "./KeyboardShortcuts"
 type SyncStatePhase = SyncState["phase"]
@@ -39,6 +42,13 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
   const [syncPhase, setSyncPhase] = useState<SyncStatePhase>("initial")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [locale, setLocaleState] = useState<Locale>(getLocale)
+
+  const handleLocaleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const next = e.target.value as Locale
+    setLocaleState(next)
+    loadLocale(next)
+  }, [])
 
   useEffect(() => {
     const s1 = db.cloud.syncState.subscribe((s) => setSyncPhase(s.phase))
@@ -107,7 +117,7 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
         <button
           onClick={toggleDirection}
           className={styles.button}
-          title="Toggle Layout"
+          title={t`Toggle Layout`}
         >
           {direction === "horizontal" ? (
             <Columns size={20} />
@@ -118,18 +128,28 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
         <button
           onClick={toggleDarkMode}
           className={styles.button}
-          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          title={darkMode ? t`Switch to Light Mode` : t`Switch to Dark Mode`}
         >
           {darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
         <div className={styles.divider} />
         <SyncButton phase={syncPhase} isLoggedIn={isLoggedIn} />
+        <div className={styles.divider} />
+        <select
+          className={styles.localeSelect}
+          value={locale}
+          onChange={handleLocaleChange}
+        >
+          {Object.entries(LOCALES).map(([code, name]) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
+        </select>
         <div className={styles.spacer} />
         <span className={styles.commitHash}>{__COMMIT_HASH__}</span>
         <button
           onClick={() => setShowShortcuts(true)}
           className={styles.button}
-          title="Keyboard Shortcuts (?)"
+          title={t`Keyboard Shortcuts (?)`}
         >
           <Keyboard size={18} />
         </button>
@@ -176,12 +196,12 @@ function SyncButton({
   )
 
   const title = syncing
-    ? "Syncing…"
+    ? t`Syncing…`
     : offline
-      ? "Offline"
+      ? t`Offline`
       : isLoggedIn
-        ? "Synced"
-        : "Sign in to sync"
+        ? t`Synced`
+        : t`Sign in to sync`
 
   return (
     <button
@@ -189,7 +209,7 @@ function SyncButton({
       title={title}
       onClick={() => {
         if (isLoggedIn) {
-          if (confirm("Sign out and stop syncing?")) db.cloud.logout()
+          if (confirm(t`Sign out and stop syncing?`)) db.cloud.logout()
         } else {
           db.cloud.login()
         }
@@ -201,7 +221,7 @@ function SyncButton({
       }
     >
       {icon}
-      {!isLoggedIn && <span className={styles.syncLabel}>Sign in</span>}
+      {!isLoggedIn && <span className={styles.syncLabel}><Trans>Sign in</Trans></span>}
     </button>
   )
 }

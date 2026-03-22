@@ -1,4 +1,6 @@
 import React from "react"
+import { msg } from "@lingui/core/macro"
+import type { MessageDescriptor } from "@lingui/core"
 
 const isMac =
   typeof navigator !== "undefined" &&
@@ -13,7 +15,7 @@ export interface KeyBinding {
 
 export interface ShortcutDef {
   id: string
-  label: string
+  label: MessageDescriptor
   group: "Navigation" | "Structure" | "Editing"
   defaultBinding: KeyBinding
   /** Hardcoded alias shown in the popup but not remappable */
@@ -24,44 +26,44 @@ export interface ShortcutDef {
 
 export const SHORTCUT_DEFS: ShortcutDef[] = [
   // Navigation
-  { id: "nav.up",           label: "Move up",           group: "Navigation", defaultBinding: { key: "ArrowUp" } },
-  { id: "nav.down",         label: "Move down",          group: "Navigation", defaultBinding: { key: "ArrowDown" } },
-  { id: "nav.expand",       label: "Expand / enter",     group: "Navigation", defaultBinding: { key: "ArrowRight" } },
-  { id: "nav.collapse",     label: "Collapse / parent",  group: "Navigation", defaultBinding: { key: "ArrowLeft" } },
-  { id: "nav.focus-editor", label: "Focus editor",        group: "Navigation", defaultBinding: { key: "e" } },
+  { id: "nav.up",           label: msg`Move up`,           group: "Navigation", defaultBinding: { key: "ArrowUp" } },
+  { id: "nav.down",         label: msg`Move down`,          group: "Navigation", defaultBinding: { key: "ArrowDown" } },
+  { id: "nav.expand",       label: msg`Expand / enter`,     group: "Navigation", defaultBinding: { key: "ArrowRight" } },
+  { id: "nav.collapse",     label: msg`Collapse / parent`,  group: "Navigation", defaultBinding: { key: "ArrowLeft" } },
+  { id: "nav.focus-editor", label: msg`Focus editor`,        group: "Navigation", defaultBinding: { key: "e" } },
   // Structure
   {
     id: "node.indent",
-    label: "Indent",
+    label: msg`Indent`,
     group: "Structure",
     defaultBinding: { key: "ArrowRight", cmd: true },
     alias: { key: "Tab" },
   },
   {
     id: "node.outdent",
-    label: "Outdent",
+    label: msg`Outdent`,
     group: "Structure",
     defaultBinding: { key: "ArrowLeft", cmd: true },
     alias: { key: "Tab", shift: true },
   },
-  { id: "node.move-up",   label: "Move node up",   group: "Structure", defaultBinding: { key: "ArrowUp",   cmd: true } },
-  { id: "node.move-down", label: "Move node down",  group: "Structure", defaultBinding: { key: "ArrowDown", cmd: true } },
-  { id: "node.add-sibling", label: "Add sibling",   group: "Structure", defaultBinding: { key: "Enter" } },
-  { id: "node.add-child",   label: "Add child",     group: "Structure", defaultBinding: { key: "Enter", cmd: true } },
-  { id: "node.add-root",    label: "Add root node", group: "Structure", defaultBinding: { key: "Enter", cmd: true, shift: true } },
+  { id: "node.move-up",   label: msg`Move node up`,   group: "Structure", defaultBinding: { key: "ArrowUp",   cmd: true } },
+  { id: "node.move-down", label: msg`Move node down`,  group: "Structure", defaultBinding: { key: "ArrowDown", cmd: true } },
+  { id: "node.add-sibling", label: msg`Add sibling`,   group: "Structure", defaultBinding: { key: "Enter" } },
+  { id: "node.add-child",   label: msg`Add child`,     group: "Structure", defaultBinding: { key: "Enter", cmd: true } },
+  { id: "node.add-root",    label: msg`Add root node`, group: "Structure", defaultBinding: { key: "Enter", cmd: true, shift: true } },
   // Editing
-  { id: "node.edit",      label: "Edit title",   group: "Editing", defaultBinding: { key: "i" } },
-  { id: "node.delete",    label: "Delete node",  group: "Editing", defaultBinding: { key: "Backspace" } },
-  { id: "node.copy",      label: "Copy node",    group: "Editing", defaultBinding: { key: "c", cmd: true } },
-  { id: "node.cut",       label: "Cut node",     group: "Editing", defaultBinding: { key: "x", cmd: true } },
-  { id: "node.paste",     label: "Paste",        group: "Editing", defaultBinding: { key: "v", cmd: true } },
-  { id: "insert.confirm",  label: "Confirm edit",   group: "Editing", defaultBinding: { key: "Enter" }, remappable: false },
-  { id: "insert.cancel",   label: "Cancel edit",    group: "Editing", defaultBinding: { key: "Escape" }, remappable: false },
-  { id: "insert.date",     label: "Insert date",    group: "Editing", defaultBinding: { key: "d", cmd: true, shift: true } },
-  { id: "insert.time",     label: "Insert time",    group: "Editing", defaultBinding: { key: "t", cmd: true, shift: true } },
-  { id: "insert.datetime", label: "Insert date+time", group: "Editing", defaultBinding: { key: ";", cmd: true, shift: true } },
-  { id: "node.undo", label: "Undo", group: "Editing", defaultBinding: { key: "z", cmd: true } },
-  { id: "node.redo", label: "Redo", group: "Editing", defaultBinding: { key: "z", cmd: true, shift: true } },
+  { id: "node.edit",      label: msg`Edit title`,   group: "Editing", defaultBinding: { key: "i" } },
+  { id: "node.delete",    label: msg`Delete node`,  group: "Editing", defaultBinding: { key: "Backspace" } },
+  { id: "node.copy",      label: msg`Copy node`,    group: "Editing", defaultBinding: { key: "c", cmd: true } },
+  { id: "node.cut",       label: msg`Cut node`,     group: "Editing", defaultBinding: { key: "x", cmd: true } },
+  { id: "node.paste",     label: msg`Paste`,        group: "Editing", defaultBinding: { key: "v", cmd: true } },
+  { id: "insert.confirm",  label: msg`Confirm edit`,   group: "Editing", defaultBinding: { key: "Enter" }, remappable: false },
+  { id: "insert.cancel",   label: msg`Cancel edit`,    group: "Editing", defaultBinding: { key: "Escape" }, remappable: false },
+  { id: "insert.date",     label: msg`Insert date`,    group: "Editing", defaultBinding: { key: "d", cmd: true, shift: true } },
+  { id: "insert.time",     label: msg`Insert time`,    group: "Editing", defaultBinding: { key: "t", cmd: true, shift: true } },
+  { id: "insert.datetime", label: msg`Insert date+time`, group: "Editing", defaultBinding: { key: ";", cmd: true, shift: true } },
+  { id: "node.undo", label: msg`Undo`, group: "Editing", defaultBinding: { key: "z", cmd: true } },
+  { id: "node.redo", label: msg`Redo`, group: "Editing", defaultBinding: { key: "z", cmd: true, shift: true } },
 ]
 
 // Shortcuts that only apply in nav mode (for conflict detection)
