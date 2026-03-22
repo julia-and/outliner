@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import { LayoutTemplate, Plus, Pencil, Trash2, FileEdit } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
@@ -61,7 +63,7 @@ const TemplateContentEditor = ({
       </div>
       <div className={styles.editorFooter}>
         <button className={styles.cancelBtn} onClick={onCancel}>
-          Cancel
+          <Trans>Cancel</Trans>
         </button>
         <button
           className={styles.saveBtn}
@@ -69,7 +71,7 @@ const TemplateContentEditor = ({
             if (crepeRef.current) onSave(crepeRef.current.getMarkdown())
           }}
         >
-          Save
+          <Trans>Save</Trans>
         </button>
       </div>
     </>
@@ -108,9 +110,10 @@ export const TemplateManager = () => {
   }, [editingId])
 
   const handleCreate = async () => {
-    const id = await createTemplate("Untitled Template", "")
+    const name = t`Untitled Template`
+    const id = await createTemplate(name, "")
     setEditingId(id)
-    setEditingName("Untitled Template")
+    setEditingName(name)
     setConfirmDeleteId(null)
   }
 
@@ -155,7 +158,7 @@ export const TemplateManager = () => {
   }
 
   const contentEditorTemplate = contentEditorId
-    ? templates.find((t) => t.id === contentEditorId)
+    ? templates.find((tp) => tp.id === contentEditorId)
     : null
 
   const isBusy = editingId !== null || confirmDeleteId !== null
@@ -165,7 +168,7 @@ export const TemplateManager = () => {
       <button
         ref={refs.setReference}
         className={styles.trigger}
-        title="Manage templates"
+        title={t`Manage templates`}
         {...getReferenceProps()}
       >
         <LayoutTemplate size={18} />
@@ -179,10 +182,10 @@ export const TemplateManager = () => {
             style={floatingStyles}
             {...getFloatingProps()}
           >
-            {templates.map((t) => {
-              if (editingId === t.id) {
+            {templates.map((tmpl) => {
+              if (editingId === tmpl.id) {
                 return (
-                  <div key={t.id} className={styles.itemRow}>
+                  <div key={tmpl.id} className={styles.itemRow}>
                     <input
                       ref={renameInputRef}
                       className={styles.renameInput}
@@ -195,44 +198,44 @@ export const TemplateManager = () => {
                 )
               }
 
-              if (confirmDeleteId === t.id) {
+              if (confirmDeleteId === tmpl.id) {
                 return (
-                  <div key={t.id} className={classNames(styles.itemRow, styles.itemRowConfirm)}>
-                    <span className={styles.confirmLabel}>Delete "{t.name}"?</span>
+                  <div key={tmpl.id} className={classNames(styles.itemRow, styles.itemRowConfirm)}>
+                    <span className={styles.confirmLabel}>{t`Delete "${tmpl.name}"?`}</span>
                     <div className={styles.confirmActions}>
-                      <button className={styles.confirmCancel} onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-                      <button className={styles.confirmDelete} onClick={() => handleConfirmDelete(t.id)}>Delete</button>
+                      <button className={styles.confirmCancel} onClick={() => setConfirmDeleteId(null)}><Trans>Cancel</Trans></button>
+                      <button className={styles.confirmDelete} onClick={() => handleConfirmDelete(tmpl.id)}><Trans>Delete</Trans></button>
                     </div>
                   </div>
                 )
               }
 
               return (
-                <div key={t.id} className={styles.itemRow}>
-                  <button className={styles.itemInner} onClick={() => handleEditContent(t.id)}>
-                    <span className={styles.itemName}>{t.name}</span>
+                <div key={tmpl.id} className={styles.itemRow}>
+                  <button className={styles.itemInner} onClick={() => handleEditContent(tmpl.id)}>
+                    <span className={styles.itemName}>{tmpl.name}</span>
                   </button>
                   <div className={styles.rowActions}>
                     <button
                       className={styles.iconBtn}
-                      onClick={(e) => { e.stopPropagation(); handleStartRename(t.id, t.name) }}
-                      title="Rename"
+                      onClick={(e) => { e.stopPropagation(); handleStartRename(tmpl.id, tmpl.name) }}
+                      title={t`Rename`}
                       tabIndex={-1}
                     >
                       <Pencil size={12} />
                     </button>
                     <button
                       className={styles.iconBtn}
-                      onClick={(e) => { e.stopPropagation(); handleEditContent(t.id) }}
-                      title="Edit content"
+                      onClick={(e) => { e.stopPropagation(); handleEditContent(tmpl.id) }}
+                      title={t`Edit content`}
                       tabIndex={-1}
                     >
                       <FileEdit size={12} />
                     </button>
                     <button
                       className={classNames(styles.iconBtn, styles.iconBtnDanger)}
-                      onClick={(e) => { e.stopPropagation(); handleStartDelete(t.id) }}
-                      title="Delete"
+                      onClick={(e) => { e.stopPropagation(); handleStartDelete(tmpl.id) }}
+                      title={t`Delete`}
                       tabIndex={-1}
                     >
                       <Trash2 size={12} />
@@ -244,7 +247,7 @@ export const TemplateManager = () => {
             {templates.length > 0 && <div className={styles.divider} />}
             <button className={styles.item} onClick={handleCreate}>
               <Plus size={12} className={styles.plusIcon} />
-              <span className={styles.itemName}>New template</span>
+              <span className={styles.itemName}><Trans>New template</Trans></span>
             </button>
           </div>
         </FloatingPortal>
@@ -256,7 +259,7 @@ export const TemplateManager = () => {
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.modalHeader}>
                 <span className={styles.modalTitle}>
-                  {contentEditorTemplate?.name ?? "Edit Template"}
+                  {contentEditorTemplate?.name ?? t`Edit Template`}
                 </span>
                 <button className={styles.closeBtn} onClick={() => setContentEditorId(null)}>✕</button>
               </div>

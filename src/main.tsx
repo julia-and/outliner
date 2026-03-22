@@ -1,5 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
+import { I18nProvider } from "@lingui/react"
+import { i18n } from "./i18n"
 import { App } from "./App"
 import { initStore } from "./store"
 import "./styles.css"
@@ -28,6 +30,8 @@ const initPromise = initStore()
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App initPromise={initPromise} />
+    <I18nProvider i18n={i18n}>
+      <App initPromise={initPromise} />
+    </I18nProvider>
   </React.StrictMode>,
 )

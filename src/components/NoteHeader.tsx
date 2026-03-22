@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { t } from "@lingui/core/macro"
 import { OutletNode, NodeStyle } from "../types"
 import { NodeIcon } from "./NodeIcon"
 import { IconPickerPanel } from "./IconPickerPanel"
@@ -41,7 +42,7 @@ export const NoteHeader = ({
         trigger={
           <button
             className={styles.iconBtn}
-            title="Change icon"
+            title={t`Change icon`}
             style={s.icon ? { color: s.iconColor ?? "var(--text-secondary)" } : undefined}
           >
             {s.icon ? (
@@ -72,7 +73,7 @@ export const NoteHeader = ({
         style={titleStyle}
         value={node.title}
         onChange={(e) => onUpdateTitle(node.id, e.target.value)}
-        placeholder="Untitled"
+        placeholder={t`Untitled`}
       />
     </div>
   )

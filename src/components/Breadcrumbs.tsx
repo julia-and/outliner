@@ -1,4 +1,5 @@
 import React from "react"
+import { t } from "@lingui/core/macro"
 import { ChevronRight } from "lucide-react"
 import styles from "./Breadcrumbs.module.css"
 
@@ -22,7 +23,7 @@ export const Breadcrumbs = ({
             onClick={() => onNavigate(crumb.id)}
             title={crumb.title}
           >
-            {crumb.title || "Untitled"}
+            {crumb.title || t`Untitled`}
           </button>
           <ChevronRight size={12} className={styles.sep} />
         </React.Fragment>

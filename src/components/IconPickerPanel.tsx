@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import { ICON_NAMES } from "../utils/iconMap"
@@ -56,7 +57,7 @@ export const IconPickerPanel = ({
       </div>
       <div className={styles.divider} />
       <button className={styles.removeBtn} onClick={onRemoveIcon}>
-        REMOVE ICON
+        <Trans>REMOVE ICON</Trans>
       </button>
     </div>
   )

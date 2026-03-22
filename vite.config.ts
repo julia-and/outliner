@@ -1,6 +1,7 @@
 import { execSync } from "child_process"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import { lingui } from "@lingui/vite-plugin"
 import { VitePWA } from "vite-plugin-pwa"
 
 const commitHash = (() => {
@@ -16,7 +17,12 @@ export default defineConfig({
     __COMMIT_HASH__: JSON.stringify(commitHash),
   },
   plugins: [
-    react(),
+    lingui(),
+    react({
+      babel: {
+        plugins: ["@lingui/babel-plugin-lingui-macro"],
+      },
+    }),
     VitePWA({
       injectRegister: false,
       strategies: "injectManifest",

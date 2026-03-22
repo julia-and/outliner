@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import * as Y from "yjs"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { OutlineRow } from "./OutlineRow"
@@ -353,7 +355,7 @@ export const OutlineView = ({
             }}
             className={styles.startButton}
           >
-            Start outlining
+            <Trans>Start outlining</Trans>
           </button>
         </div>
       </div>
@@ -386,7 +388,7 @@ export const OutlineView = ({
       <div className={styles.searchBar}>
         <input
           className={styles.searchInput}
-          placeholder="Filter..."
+          placeholder={t`Filter...`}
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
           onKeyDown={(e) => {
@@ -426,7 +428,7 @@ export const OutlineView = ({
         tabIndex={0}
       >
         {displayNodes.length === 0 && filterText ? (
-          <div className={styles.noResults}>No results for "{filterText}"</div>
+          <div className={styles.noResults}>{t`No results for "${filterText}"`}</div>
         ) : (
           <div
             className={styles.virtualList}
@@ -485,7 +487,7 @@ export const OutlineView = ({
             width: containerRect.width,
           }}
         >
-          <span>{draggingNode.title || "Untitled"}</span>
+          <span>{draggingNode.title || t`Untitled`}</span>
         </div>
       )}
 

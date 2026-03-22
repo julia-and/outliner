@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import { ChevronDown, Plus, Check, Pencil, Trash2, Upload, Download } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
@@ -56,10 +58,11 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
   }, [editingId])
 
   const handleCreate = async () => {
-    const id = await createOutline("Untitled")
+    const name = t`Untitled`
+    const id = await createOutline(name)
     onSelect(id)
     setEditingId(id)
-    setEditingName("Untitled")
+    setEditingName(name)
     setConfirmDeleteId(null)
   }
 
@@ -147,10 +150,11 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
       if (remaining.length > 0) {
         onSelect(remaining[0].id)
       } else {
-        const newId = await createOutline("Untitled")
+        const fallbackName = t`Untitled`
+        const newId = await createOutline(fallbackName)
         onSelect(newId)
         setEditingId(newId)
-        setEditingName("Untitled")
+        setEditingName(fallbackName)
       }
     }
   }
@@ -174,7 +178,7 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
       <button
         ref={refs.setReference}
         className={styles.trigger}
-        title="Switch outline"
+        title={t`Switch outline`}
         {...getReferenceProps()}
       >
         <span className={styles.name}>
@@ -213,10 +217,10 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
               if (confirmDeleteId === o.id) {
                 return (
                   <div key={o.id} className={classNames(styles.itemRow, styles.itemRowConfirm)}>
-                    <span className={styles.confirmLabel}>Delete "{o.name}"?</span>
+                    <span className={styles.confirmLabel}>{t`Delete "${o.name}"?`}</span>
                     <div className={styles.confirmActions}>
-                      <button className={styles.confirmCancel} onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-                      <button className={styles.confirmDelete} onClick={() => handleConfirmDelete(o.id)}>Delete</button>
+                      <button className={styles.confirmCancel} onClick={() => setConfirmDeleteId(null)}><Trans>Cancel</Trans></button>
+                      <button className={styles.confirmDelete} onClick={() => handleConfirmDelete(o.id)}><Trans>Delete</Trans></button>
                     </div>
                   </div>
                 )
@@ -232,7 +236,7 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
                     <button
                       className={styles.iconBtn}
                       onClick={e => { e.stopPropagation(); handleStartRename(o.id, o.name) }}
-                      title="Rename"
+                      title={t`Rename`}
                       tabIndex={-1}
                     >
                       <Pencil size={12} />
@@ -240,7 +244,7 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
                     <button
                       className={styles.iconBtn}
                       onClick={e => { e.stopPropagation(); void handleExport(o.id) }}
-                      title="Export to file"
+                      title={t`Export to file`}
                       disabled={exporting}
                       tabIndex={-1}
                     >
@@ -249,7 +253,7 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
                     <button
                       className={classNames(styles.iconBtn, styles.iconBtnDanger)}
                       onClick={e => { e.stopPropagation(); handleStartDelete(o.id) }}
-                      title="Delete"
+                      title={t`Delete`}
                       tabIndex={-1}
                     >
                       <Trash2 size={12} />
@@ -261,15 +265,15 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
             {outlines.length > 0 && <div className={styles.divider} />}
             <button className={styles.item} onClick={handleCreate}>
               <Plus size={12} className={styles.plusIcon} />
-              <span className={styles.itemName}>New outline</span>
+              <span className={styles.itemName}><Trans>New outline</Trans></span>
             </button>
             <button className={styles.item} onClick={handleImportClick} disabled={importing}>
               <Upload size={12} className={styles.plusIcon} />
-              <span className={styles.itemName}>{importing ? "Importing…" : "Import from Word"}</span>
+              <span className={styles.itemName}>{importing ? t`Importing…` : t`Import from Word`}</span>
             </button>
             <button className={styles.item} onClick={handleOlzImportClick} disabled={importingOlz}>
               <Upload size={12} className={styles.plusIcon} />
-              <span className={styles.itemName}>{importingOlz ? "Importing…" : "Import from file (.olz)"}</span>
+              <span className={styles.itemName}>{importingOlz ? t`Importing…` : t`Import from file (.olz)`}</span>
             </button>
           </div>
         </FloatingPortal>

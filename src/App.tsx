@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { Trans } from "@lingui/react/macro"
 import * as Y from "yjs"
 import { DexieYProvider } from "y-dexie"
 import { useLiveQuery } from "dexie-react-hooks"
@@ -62,7 +63,7 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
   if (!ready) {
     return (
       <SplitLayout
-        left={<div style={{ padding: "20px", color: "var(--text-secondary)" }}>Loading…</div>}
+        left={<div style={{ padding: "20px", color: "var(--text-secondary)" }}><Trans>Loading…</Trans></div>}
         right={null}
       />
     )
@@ -102,7 +103,7 @@ const UpdateBanner = ({ onUpdate }: { onUpdate: () => void }) => (
     zIndex: 9999,
     whiteSpace: "nowrap",
   }}>
-    A new version is available.
+    <Trans>A new version is available.</Trans>
     <button
       onClick={onUpdate}
       style={{
@@ -116,7 +117,7 @@ const UpdateBanner = ({ onUpdate }: { onUpdate: () => void }) => (
         fontFamily: "inherit",
       }}
     >
-      Refresh
+      <Trans>Refresh</Trans>
     </button>
   </div>
 )
@@ -155,7 +156,7 @@ const OutlineLoader = ({
     return (
       <SplitLayout
         outlineSwitcher={switcher}
-        left={<div style={{ padding: "20px", color: "var(--text-secondary)" }}>Loading…</div>}
+        left={<div style={{ padding: "20px", color: "var(--text-secondary)" }}><Trans>Loading…</Trans></div>}
         right={null}
       />
     )

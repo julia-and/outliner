@@ -1,0 +1,524 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-03-22 18:58+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: nb\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+
+#: src/components/EditorView.tsx:714
+msgid "{chars, plural, one {# character} other {# characters}}"
+msgstr "{chars, plural, one {# tegn} other {# tegn}}"
+
+#: src/components/EditorView.tsx:709
+msgid "{words, plural, one {# word} other {# words}}"
+msgstr "{words, plural, one {# ord} other {# ord}}"
+
+#: src/components/WelcomeScreen.tsx:105
+msgid "← Back"
+msgstr "← Tilbake"
+
+#: src/components/WelcomeScreen.tsx:62
+msgid "A fast, local-first outliner"
+msgstr "En rask, lokal disposisjonsverktøy"
+
+#: src/App.tsx:106
+msgid "A new version is available."
+msgstr "En ny versjon er tilgjengelig."
+
+#: src/utils/shortcuts.ts:52
+msgid "Add child"
+msgstr "Legg til underpunkt"
+
+#: src/utils/shortcuts.ts:53
+msgid "Add root node"
+msgstr "Legg til rotpunkt"
+
+#: src/utils/shortcuts.ts:51
+msgid "Add sibling"
+msgstr "Legg til sidepunkt"
+
+#: src/components/EditorView.tsx:327
+msgid "Advanced"
+msgstr "Avansert"
+
+#: src/components/FormatPanel.tsx:91
+msgid "Background Color"
+msgstr "Bakgrunnsfarge"
+
+#: src/editor/calloutPlugin.ts:10
+msgid "Blue"
+msgstr "Blå"
+
+#: src/components/EditorView.tsx:775
+msgid "Browser autocorrect"
+msgstr "Autokorrektur i nettleser"
+
+#: src/components/EditorView.tsx:767
+msgid "Browser spellcheck"
+msgstr "Stavekontroll i nettleser"
+
+#: src/components/EditorView.tsx:322
+msgid "Bullet List"
+msgstr "Punktliste"
+
+#: src/components/EditorView.tsx:333
+#: src/components/EditorView.tsx:335
+msgid "Callout"
+msgstr "Merknadsboks"
+
+#: src/components/OutlineSwitcher.tsx:222
+#: src/components/TemplateManager.tsx:66
+#: src/components/TemplateManager.tsx:206
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: src/utils/shortcuts.ts:61
+msgid "Cancel edit"
+msgstr "Avbryt redigering"
+
+#: src/components/NoteHeader.tsx:45
+msgid "Change icon"
+msgstr "Endre ikon"
+
+#: src/components/FormatPanel.tsx:62
+msgid "Clear all"
+msgstr "Fjern alt"
+
+#: src/components/KeyboardShortcuts.tsx:157
+msgid "Click a shortcut to remap · Esc to close"
+msgstr "Klikk en snarvei for å endre · Esc for å lukke"
+
+#: src/components/KeyboardShortcuts.tsx:197
+msgid "Click to remap"
+msgstr "Klikk for å endre"
+
+#: src/components/EditorView.tsx:329
+msgid "Code"
+msgstr "Kode"
+
+#: src/utils/shortcuts.ts:32
+msgid "Collapse / parent"
+msgstr "Lukk / overordnet"
+
+#: src/utils/shortcuts.ts:60
+msgid "Confirm edit"
+msgstr "Bekreft redigering"
+
+#: src/components/KeyboardShortcuts.tsx:124
+msgid "Conflicts with \"{label}\" — press a different key"
+msgstr "Konflikt med «{label}» — trykk en annen tast"
+
+#: src/utils/shortcuts.ts:57
+msgid "Copy node"
+msgstr "Kopier punkt"
+
+#: src/components/WelcomeScreen.tsx:102
+msgid "Create"
+msgstr "Opprett"
+
+#: src/utils/shortcuts.ts:58
+msgid "Cut node"
+msgstr "Klipp ut punkt"
+
+#: src/components/FormatPanel.tsx:136
+msgid "Default child template"
+msgstr "Standard undermal"
+
+#: src/components/OutlineSwitcher.tsx:223
+#: src/components/OutlineSwitcher.tsx:256
+#: src/components/TemplateManager.tsx:207
+#: src/components/TemplateManager.tsx:238
+msgid "Delete"
+msgstr "Slett"
+
+#. placeholder {0}: o.name
+#. placeholder {0}: tmpl.name
+#: src/components/OutlineSwitcher.tsx:220
+#: src/components/TemplateManager.tsx:204
+msgid "Delete \"{0}\"?"
+msgstr "Slette «{0}»?"
+
+#: src/utils/shortcuts.ts:56
+msgid "Delete node"
+msgstr "Slett punkt"
+
+#: src/components/EditorView.tsx:318
+msgid "Divider"
+msgstr "Skillelinje"
+
+#: src/components/TemplateManager.tsx:230
+msgid "Edit content"
+msgstr "Rediger innhold"
+
+#: src/components/TemplateManager.tsx:262
+msgid "Edit Template"
+msgstr "Rediger mal"
+
+#: src/utils/shortcuts.ts:55
+msgid "Edit title"
+msgstr "Rediger tittel"
+
+#: src/components/KeyboardShortcuts.tsx:101
+msgid "Editing"
+msgstr "Redigering"
+
+#: src/components/EditorView.tsx:725
+#: src/components/EditorView.tsx:726
+msgid "Editor options"
+msgstr "Editorinnstillinger"
+
+#: src/utils/shortcuts.ts:31
+msgid "Expand / enter"
+msgstr "Utvid / gå inn"
+
+#: src/components/OutlineSwitcher.tsx:247
+msgid "Export to file"
+msgstr "Eksporter til fil"
+
+#: src/components/OutlineView.tsx:391
+msgid "Filter..."
+msgstr "Filtrer…"
+
+#: src/utils/shortcuts.ts:33
+msgid "Focus editor"
+msgstr "Fokuser editor"
+
+#: src/editor/calloutPlugin.ts:14
+msgid "Gray"
+msgstr "Grå"
+
+#: src/editor/calloutPlugin.ts:9
+msgid "Green"
+msgstr "Grønn"
+
+#: src/components/EditorView.tsx:311
+msgid "Heading 1"
+msgstr "Overskrift 1"
+
+#: src/components/EditorView.tsx:312
+msgid "Heading 2"
+msgstr "Overskrift 2"
+
+#: src/components/EditorView.tsx:313
+msgid "Heading 3"
+msgstr "Overskrift 3"
+
+#: src/components/EditorView.tsx:314
+msgid "Heading 4"
+msgstr "Overskrift 4"
+
+#: src/components/EditorView.tsx:315
+msgid "Heading 5"
+msgstr "Overskrift 5"
+
+#: src/components/EditorView.tsx:316
+msgid "Heading 6"
+msgstr "Overskrift 6"
+
+#: src/components/EditorView.tsx:406
+msgid "Highlight"
+msgstr "Utheving"
+
+#: src/components/EditorView.tsx:328
+msgid "Image"
+msgstr "Bilde"
+
+#: src/components/OutlineSwitcher.tsx:276
+msgid "Import from file (.olz)"
+msgstr "Importer fra fil (.olz)"
+
+#: src/components/OutlineSwitcher.tsx:272
+msgid "Import from Word"
+msgstr "Importer fra Word"
+
+#: src/components/OutlineSwitcher.tsx:272
+#: src/components/OutlineSwitcher.tsx:276
+msgid "Importing…"
+msgstr "Importerer…"
+
+#: src/utils/shortcuts.ts:37
+msgid "Indent"
+msgstr "Rykk inn"
+
+#: src/utils/shortcuts.ts:62
+msgid "Insert date"
+msgstr "Sett inn dato"
+
+#: src/utils/shortcuts.ts:64
+msgid "Insert date+time"
+msgstr "Sett inn dato+tid"
+
+#: src/utils/shortcuts.ts:63
+msgid "Insert time"
+msgstr "Sett inn tid"
+
+#: src/components/KeyboardShortcuts.tsx:114
+msgid "Keyboard Shortcuts"
+msgstr "Tastatursnarveier"
+
+#: src/components/SplitLayout.tsx:152
+msgid "Keyboard Shortcuts (?)"
+msgstr "Tastatursnarveier (?)"
+
+#: src/components/EditorView.tsx:321
+msgid "List"
+msgstr "Liste"
+
+#: src/App.tsx:66
+#: src/App.tsx:159
+msgid "Loading…"
+msgstr "Laster…"
+
+#: src/components/TemplateManager.tsx:171
+msgid "Manage templates"
+msgstr "Administrer maler"
+
+#: src/utils/shortcuts.ts:30
+msgid "Move down"
+msgstr "Flytt ned"
+
+#: src/utils/shortcuts.ts:50
+msgid "Move node down"
+msgstr "Flytt punkt ned"
+
+#: src/utils/shortcuts.ts:49
+msgid "Move node up"
+msgstr "Flytt punkt opp"
+
+#: src/utils/shortcuts.ts:29
+msgid "Move up"
+msgstr "Flytt opp"
+
+#: src/components/WelcomeScreen.tsx:23
+#: src/components/WelcomeScreen.tsx:95
+msgid "My Outline"
+msgstr "Min disposisjon"
+
+#: src/components/WelcomeScreen.tsx:90
+msgid "Name your outline"
+msgstr "Gi disposisjonen et navn"
+
+#: src/components/KeyboardShortcuts.tsx:99
+msgid "Navigation"
+msgstr "Navigasjon"
+
+#: src/components/OutlineSwitcher.tsx:268
+msgid "New outline"
+msgstr "Ny disposisjon"
+
+#: src/components/TemplateManager.tsx:250
+msgid "New template"
+msgstr "Ny mal"
+
+#: src/components/NodeLinkSearch.tsx:20
+msgid "No matches"
+msgstr "Ingen treff"
+
+#: src/components/OutlineView.tsx:431
+msgid "No results for \"{filterText}\""
+msgstr "Ingen resultater for «{filterText}»"
+
+#: src/components/FormatPanel.tsx:144
+msgid "None"
+msgstr "Ingen"
+
+#: src/components/SplitLayout.tsx:201
+msgid "Offline"
+msgstr "Frakoblet"
+
+#: src/editor/calloutPlugin.ts:12
+msgid "Orange"
+msgstr "Oransje"
+
+#: src/components/EditorView.tsx:323
+msgid "Ordered List"
+msgstr "Nummerert liste"
+
+#: src/utils/shortcuts.ts:44
+msgid "Outdent"
+msgstr "Rykk ut"
+
+#: src/components/WelcomeScreen.tsx:61
+msgid "Outlines"
+msgstr "Outlines"
+
+#: src/utils/shortcuts.ts:59
+msgid "Paste"
+msgstr "Lim inn"
+
+#: src/components/EditorView.tsx:358
+#: src/components/EditorView.tsx:366
+msgid "Placeholder"
+msgstr "Plassholder"
+
+#: src/components/EditorView.tsx:355
+msgid "Placeholders"
+msgstr "Plassholdere"
+
+#: src/components/FormatPanel.tsx:114
+msgid "Presets"
+msgstr "Forhåndsinnstillinger"
+
+#: src/components/KeyboardShortcuts.tsx:190
+msgid "Press a key…"
+msgstr "Trykk en tast…"
+
+#: src/editor/calloutPlugin.ts:13
+msgid "Purple"
+msgstr "Lilla"
+
+#: src/components/EditorView.tsx:317
+msgid "Quote"
+msgstr "Sitat"
+
+#: src/utils/shortcuts.ts:66
+msgid "Redo"
+msgstr "Gjør om"
+
+#: src/App.tsx:120
+msgid "Refresh"
+msgstr "Oppdater"
+
+#: src/components/IconPickerPanel.tsx:60
+msgid "REMOVE ICON"
+msgstr "FJERN IKON"
+
+#: src/components/OutlineSwitcher.tsx:239
+#: src/components/TemplateManager.tsx:222
+msgid "Rename"
+msgstr "Gi nytt navn"
+
+#: src/components/KeyboardShortcuts.tsx:210
+msgid "Reset to default"
+msgstr "Tilbakestill til standard"
+
+#: src/editor/calloutPlugin.ts:11
+msgid "Rose"
+msgstr "Rosa"
+
+#: src/components/TemplateManager.tsx:74
+msgid "Save"
+msgstr "Lagre"
+
+#: src/components/EditorView.tsx:671
+msgid "Select a note to edit..."
+msgstr "Velg et notat å redigere…"
+
+#: src/components/EditorView.tsx:749
+msgid "Show character count"
+msgstr "Vis tegnantall"
+
+#: src/components/EditorView.tsx:741
+msgid "Show word count"
+msgstr "Vis ordantall"
+
+#: src/components/SplitLayout.tsx:224
+msgid "Sign in"
+msgstr "Logg inn"
+
+#: src/components/SplitLayout.tsx:204
+#: src/components/WelcomeScreen.tsx:65
+msgid "Sign in to sync"
+msgstr "Logg inn for å synkronisere"
+
+#: src/components/SplitLayout.tsx:212
+msgid "Sign out and stop syncing?"
+msgstr "Logge ut og slutte å synkronisere?"
+
+#: src/components/WelcomeScreen.tsx:68
+msgid "Start locally"
+msgstr "Start lokalt"
+
+#: src/components/OutlineView.tsx:358
+msgid "Start outlining"
+msgstr "Begynn å skrive"
+
+#: src/components/KeyboardShortcuts.tsx:100
+msgid "Structure"
+msgstr "Struktur"
+
+#: src/components/OutlineSwitcher.tsx:181
+msgid "Switch outline"
+msgstr "Bytt disposisjon"
+
+#: src/components/SplitLayout.tsx:131
+msgid "Switch to Dark Mode"
+msgstr "Bytt til mørk modus"
+
+#: src/components/SplitLayout.tsx:131
+msgid "Switch to Light Mode"
+msgstr "Bytt til lys modus"
+
+#: src/components/EditorView.tsx:758
+msgid "Sync title style"
+msgstr "Synkroniser tittelstil"
+
+#: src/components/SplitLayout.tsx:203
+msgid "Synced"
+msgstr "Synkronisert"
+
+#: src/components/SplitLayout.tsx:199
+msgid "Syncing…"
+msgstr "Synkroniserer…"
+
+#: src/components/EditorView.tsx:330
+msgid "Table"
+msgstr "Tabell"
+
+#: src/components/EditorView.tsx:324
+msgid "Task List"
+msgstr "Oppgaveliste"
+
+#: src/components/EditorView.tsx:378
+msgid "Templates"
+msgstr "Maler"
+
+#: src/components/EditorView.tsx:309
+#: src/components/EditorView.tsx:310
+msgid "Text"
+msgstr "Tekst"
+
+#: src/components/FormatPanel.tsx:70
+msgid "Text Color"
+msgstr "Tekstfarge"
+
+#: src/components/FormatPanel.tsx:35
+msgid "Text Format"
+msgstr "Tekstformat"
+
+#: src/components/SplitLayout.tsx:120
+msgid "Toggle Layout"
+msgstr "Bytt oppsett"
+
+#: src/components/EditorView.tsx:288
+msgid "Type / to use the slash menu"
+msgstr "Skriv / for å bruke hurtigmenyen"
+
+#: src/utils/shortcuts.ts:65
+msgid "Undo"
+msgstr "Angre"
+
+#: src/components/Breadcrumbs.tsx:26
+#: src/components/NodeLinkSearch.tsx:31
+#: src/components/NoteHeader.tsx:76
+#: src/components/OutlineSwitcher.tsx:61
+#: src/components/OutlineSwitcher.tsx:153
+#: src/components/OutlineView.tsx:490
+msgid "Untitled"
+msgstr "Uten tittel"
+
+#: src/components/TemplateManager.tsx:113
+msgid "Untitled Template"
+msgstr "Mal uten tittel"
+
+#: src/editor/calloutPlugin.ts:8
+msgid "Yellow"
+msgstr "Gul"

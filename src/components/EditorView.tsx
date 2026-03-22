@@ -1,4 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react"
+import { plural } from "@lingui/core/macro"
 import * as Y from "yjs"
 import { Crepe, CrepeFeature } from "@milkdown/crepe"
 import {
@@ -281,6 +285,9 @@ const LoadedEditor = ({
       root,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       featureConfigs: {
+        [CrepeFeature.Placeholder]: {
+          text: t`Type / to use the slash menu`,
+        },
         [CrepeFeature.ImageBlock]: {
           onUpload: async (file: File) => {
             const id = await saveImage(file)
@@ -299,10 +306,34 @@ const LoadedEditor = ({
           },
         },
         [CrepeFeature.BlockEdit]: {
+          textGroup: {
+            label: t`Text`,
+            text: { label: t`Text` },
+            h1: { label: t`Heading 1` },
+            h2: { label: t`Heading 2` },
+            h3: { label: t`Heading 3` },
+            h4: { label: t`Heading 4` },
+            h5: { label: t`Heading 5` },
+            h6: { label: t`Heading 6` },
+            quote: { label: t`Quote` },
+            divider: { label: t`Divider` },
+          },
+          listGroup: {
+            label: t`List`,
+            bulletList: { label: t`Bullet List` },
+            orderedList: { label: t`Ordered List` },
+            taskList: { label: t`Task List` },
+          },
+          advancedGroup: {
+            label: t`Advanced`,
+            image: { label: t`Image` },
+            codeBlock: { label: t`Code` },
+            table: { label: t`Table` },
+          },
           buildMenu: (builder) => {
-            const calloutGroup = builder.addGroup("callout", "Callout")
+            const calloutGroup = builder.addGroup("callout", t`Callout`)
             calloutGroup.addItem("callout", {
-              label: "Callout",
+              label: t`Callout`,
               icon: CALLOUT_ICON_SVG,
               onRun: (ctx) => {
                 const commands = ctx.get(commandsCtx)
@@ -322,10 +353,10 @@ const LoadedEditor = ({
 
             const placeholderGroup = builder.addGroup(
               "placeholders",
-              "Placeholders",
+              t`Placeholders`,
             )
             placeholderGroup.addItem("placeholder", {
-              label: "Placeholder",
+              label: t`Placeholder`,
               icon: PLACEHOLDER_ICON_SVG,
               onRun: (ctx) => {
                 const commands = ctx.get(commandsCtx)
@@ -333,7 +364,7 @@ const LoadedEditor = ({
                 const view = ctx.get(editorViewCtx)
                 const node = placeholderNode
                   .type(ctx)
-                  .create({ label: "Placeholder" })
+                  .create({ label: t`Placeholder` })
                 const { state } = view
                 const insertPos = state.selection.from
                 const tr = state.tr.replaceSelectionWith(node)
@@ -345,17 +376,17 @@ const LoadedEditor = ({
 
             const templates = getTemplatesRef.current?.() ?? []
             if (templates.length === 0) return
-            const group = builder.addGroup("templates", "Templates")
-            for (const t of templates) {
-              group.addItem(`tpl-${t.id}`, {
-                label: t.name,
+            const group = builder.addGroup("templates", t`Templates`)
+            for (const tmpl of templates) {
+              group.addItem(`tpl-${tmpl.id}`, {
+                label: tmpl.name,
                 icon: TEMPLATE_ICON_SVG,
                 onRun: (ctx) => {
                   const commands = ctx.get(commandsCtx)
                   commands.call(clearTextInCurrentBlockCommand.key)
                   const view = ctx.get(editorViewCtx)
                   const parser = ctx.get(parserCtx)
-                  const parsed = parser(resolveAutoPlaceholders(t.content))
+                  const parsed = parser(resolveAutoPlaceholders(tmpl.content))
                   if (parsed) {
                     const { state, dispatch } = view
                     dispatch(
@@ -373,7 +404,7 @@ const LoadedEditor = ({
         },
         [CrepeFeature.Toolbar]: {
           buildToolbar: (builder) => {
-            const group = builder.addGroup("highlight", "Highlight")
+            const group = builder.addGroup("highlight", t`Highlight`)
             for (const { key } of HIGHLIGHT_COLORS) {
               group.addItem(`highlight-${key}`, {
                 icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--highlight-${key})"/></svg>`,
@@ -619,6 +650,8 @@ export const EditorView = ({
   const [optionsOpen, setOptionsOpen] = useState(false)
   const gearRef = useRef<HTMLButtonElement>(null)
 
+  const { i18n } = useLingui()
+
   const handleCountsChange = useCallback((w: number, c: number) => {
     setWords(w)
     setChars(c)
@@ -638,7 +671,7 @@ export const EditorView = ({
   if (!activeId || !activeNode) {
     return (
       <div style={{ padding: "20px", color: "var(--text-secondary)" }}>
-        <p>Select a note to edit...</p>
+        <p><Trans>Select a note to edit...</Trans></p>
       </div>
     )
   }
@@ -658,7 +691,7 @@ export const EditorView = ({
       />
       <div className="editor-container">
         <Editor
-          key={activeId}
+          key={`${activeId}-${i18n.locale}`}
           nodeId={activeId}
           onCountsChange={handleCountsChange}
           spellcheck={options.spellcheck}
@@ -676,13 +709,12 @@ export const EditorView = ({
         <div className="editor-footer-counts">
           {options.showWords && (
             <span>
-              {words.toLocaleString()} {words === 1 ? "word" : "words"}
+              {plural(words, { one: "# word", other: "# words" })}
             </span>
           )}
           {options.showChars && (
             <span>
-              {chars.toLocaleString()}{" "}
-              {chars === 1 ? "character" : "characters"}
+              {plural(chars, { one: "# character", other: "# characters" })}
             </span>
           )}
         </div>
@@ -693,8 +725,8 @@ export const EditorView = ({
             <button
               ref={gearRef}
               className="editor-footer-btn"
-              aria-label="Editor options"
-              title="Editor options"
+              aria-label={t`Editor options`}
+              title={t`Editor options`}
             >
               <Settings size={13} />
             </button>
@@ -709,7 +741,7 @@ export const EditorView = ({
                 checked={options.showWords}
                 onChange={(e) => setOption("showWords", e.target.checked)}
               />
-              Show word count
+              <Trans>Show word count</Trans>
             </label>
             <label className="editor-options-item">
               <input
@@ -717,7 +749,7 @@ export const EditorView = ({
                 checked={options.showChars}
                 onChange={(e) => setOption("showChars", e.target.checked)}
               />
-              Show character count
+              <Trans>Show character count</Trans>
             </label>
             <div className="editor-options-divider" />
             <label className="editor-options-item">
@@ -726,7 +758,7 @@ export const EditorView = ({
                 checked={options.syncTitleStyle}
                 onChange={(e) => setOption("syncTitleStyle", e.target.checked)}
               />
-              Sync title style
+              <Trans>Sync title style</Trans>
             </label>
             <div className="editor-options-divider" />
             <label className="editor-options-item">
@@ -735,7 +767,7 @@ export const EditorView = ({
                 checked={options.spellcheck}
                 onChange={(e) => setOption("spellcheck", e.target.checked)}
               />
-              Browser spellcheck
+              <Trans>Browser spellcheck</Trans>
             </label>
             <label className="editor-options-item">
               <input
@@ -743,7 +775,7 @@ export const EditorView = ({
                 checked={options.autocorrect}
                 onChange={(e) => setOption("autocorrect", e.target.checked)}
               />
-              Browser autocorrect
+              <Trans>Browser autocorrect</Trans>
             </label>
           </div>
         </Popover>

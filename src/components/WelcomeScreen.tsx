@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
 import { db } from "../store"
 import styles from "./WelcomeScreen.module.css"
 
@@ -18,7 +20,7 @@ export const WelcomeScreen = ({
   }, [view])
 
   const handleCreate = useCallback(() => {
-    onCreateLocal(name.trim() || "My Outline")
+    onCreateLocal(name.trim() || t`My Outline`)
   }, [name, onCreateLocal])
 
   const handleKeyDown = useCallback(
@@ -56,14 +58,14 @@ const ChoiceView = ({
   onStartLocally: () => void
 }) => (
   <div className={styles.content}>
-    <h1 className={styles.appName}>Outlines</h1>
-    <p className={styles.tagline}>A fast, local-first outliner</p>
+    <h1 className={styles.appName}><Trans>Outlines</Trans></h1>
+    <p className={styles.tagline}><Trans>A fast, local-first outliner</Trans></p>
     <div className={styles.actions}>
       <button className={styles.primaryBtn} onClick={onSignIn}>
-        Sign in to sync
+        <Trans>Sign in to sync</Trans>
       </button>
       <button className={styles.secondaryBtn} onClick={onStartLocally}>
-        Start locally
+        <Trans>Start locally</Trans>
       </button>
     </div>
   </div>
@@ -85,22 +87,22 @@ const NamingView = ({
   onBack: () => void
 }) => (
   <div className={styles.content}>
-    <h2 className={styles.sectionTitle}>Name your outline</h2>
+    <h2 className={styles.sectionTitle}><Trans>Name your outline</Trans></h2>
     <input
       ref={inputRef}
       className={styles.nameInput}
       type="text"
-      placeholder="My Outline"
+      placeholder={t`My Outline`}
       value={name}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
     />
     <div className={styles.actions}>
       <button className={styles.primaryBtn} onClick={onCreate}>
-        Create
+        <Trans>Create</Trans>
       </button>
       <button className={styles.backLink} onClick={onBack}>
-        ← Back
+        <Trans>← Back</Trans>
       </button>
     </div>
   </div>

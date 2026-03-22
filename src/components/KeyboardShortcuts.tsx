@@ -1,4 +1,8 @@
 import React, { useEffect, useRef, useState } from "react"
+import { t } from "@lingui/core/macro"
+import { Trans } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react"
+import type { MessageDescriptor } from "@lingui/core"
 import {
   SHORTCUT_DEFS,
   KeyBinding,
@@ -18,10 +22,11 @@ interface Props {
 }
 
 export function KeyboardShortcuts({ open, onClose }: Props) {
+  const { i18n } = useLingui()
   const [bindings, setBindingsState] = useState<Record<string, KeyBinding>>({})
   const [overrides, setOverrides] = useState<Record<string, KeyBinding>>({})
   const [capturing, setCapturing] = useState<string | null>(null)
-  const [conflictLabel, setConflictLabel] = useState<string | null>(null)
+  const [conflictLabel, setConflictLabel] = useState<MessageDescriptor | string | null>(null)
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -90,6 +95,11 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
   }
 
   const groups = ["Navigation", "Structure", "Editing"] as const
+  const groupLabels: Record<string, string> = {
+    Navigation: t`Navigation`,
+    Structure: t`Structure`,
+    Editing: t`Editing`,
+  }
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -101,24 +111,27 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
-          <span className={styles.title}>Keyboard Shortcuts</span>
+          <span className={styles.title}><Trans>Keyboard Shortcuts</Trans></span>
           <button className={styles.closeBtn} onClick={onClose}>
             ✕
           </button>
         </div>
 
-        {conflictLabel && (
-          <div className={styles.conflict}>
-            Conflicts with &ldquo;{conflictLabel}&rdquo; — press a different key
-          </div>
-        )}
+        {conflictLabel && (() => {
+          const label = typeof conflictLabel === "string" ? conflictLabel : i18n._(conflictLabel)
+          return (
+            <div className={styles.conflict}>
+              {t`Conflicts with "${label}" — press a different key`}
+            </div>
+          )
+        })()}
 
         <div className={styles.body}>
           {groups.map((group) => {
             const defs = SHORTCUT_DEFS.filter((d) => d.group === group)
             return (
               <div key={group} className={styles.group}>
-                <div className={styles.groupLabel}>{group}</div>
+                <div className={styles.groupLabel}>{groupLabels[group]}</div>
                 {defs.map((def) => (
                   <ShortcutRow
                     key={def.id}
@@ -141,7 +154,7 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
         </div>
 
         <div className={styles.footer}>
-          Click a shortcut to remap · Esc to close
+          <Trans>Click a shortcut to remap · Esc to close</Trans>
         </div>
       </div>
     </div>
@@ -165,22 +178,23 @@ function ShortcutRow({
   onStartCapture,
   onReset,
 }: RowProps) {
+  const { i18n } = useLingui()
   const isRemappable = def.remappable !== false
 
   return (
     <div className={`${styles.row} ${isCapturing ? styles.rowCapturing : ""}`}>
-      <span className={styles.rowLabel}>{def.label}</span>
+      <span className={styles.rowLabel}>{i18n._(def.label)}</span>
       <div className={styles.badges}>
         {isCapturing ? (
           <span className={`${styles.badge} ${styles.badgeCapturing}`}>
-            Press a key…
+            <Trans>Press a key…</Trans>
           </span>
         ) : (
           <>
             <span
               className={`${styles.badge} ${isRemappable ? styles.badgeClickable : ""}`}
               onClick={isRemappable ? onStartCapture : undefined}
-              title={isRemappable ? "Click to remap" : undefined}
+              title={isRemappable ? t`Click to remap` : undefined}
             >
               {formatBinding(binding)}
             </span>
@@ -193,7 +207,7 @@ function ShortcutRow({
               <button
                 className={styles.resetBtn}
                 onClick={onReset}
-                title="Reset to default"
+                title={t`Reset to default`}
               >
                 ↺
               </button>
