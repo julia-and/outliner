@@ -160,9 +160,10 @@ export function useOutline(
     setActiveId(id)
   }, [])
 
-  const handleSetMode = useCallback((m: "nav" | "insert") => {
+  const handleSetMode = useCallback((m: "nav" | "insert", forId?: string) => {
     if (m === "insert") {
-      const node = nodesRef.current.find((n) => n.id === activeIdRef.current)
+      const id = forId ?? activeIdRef.current
+      const node = nodesRef.current.find((n) => n.id === id)
       originalTitleRef.current = node ? node.title : ""
     } else {
       originalTitleRef.current = null
@@ -274,7 +275,7 @@ export function useOutline(
           if (currentActiveId) {
             const newId = addRootSibling(outlineDoc, currentActiveId)
             handleSetActive(newId)
-            handleSetMode("insert")
+            handleSetMode("insert", newId)
           }
           return
         }
@@ -286,7 +287,7 @@ export function useOutline(
             const templateContent = templateId ? getTemplateContentRef.current?.(templateId) : undefined
             const newId = addChild(outlineDoc, currentActiveId, templateContent)
             handleSetActive(newId)
-            handleSetMode("insert")
+            handleSetMode("insert", newId)
           }
           return
         }
@@ -295,7 +296,7 @@ export function useOutline(
           if (currentActiveId) {
             const newId = addSibling(outlineDoc, currentActiveId)
             handleSetActive(newId)
-            handleSetMode("insert")
+            handleSetMode("insert", newId)
           }
           return
         }
