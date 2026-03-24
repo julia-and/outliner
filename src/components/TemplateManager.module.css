@@ -219,8 +219,8 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 8px 32px var(--popover-shadow);
-  width: min(700px, 90vw);
-  max-height: 80vh;
+  width: 80vw;
+  height: 80vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -264,7 +264,7 @@
 }
 
 .editorInner {
-  min-height: 200px;
+  min-height: 400px;
 }
 
 .editorFooter {
