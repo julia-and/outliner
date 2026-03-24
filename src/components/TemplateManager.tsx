@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { t } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react"
 import { LayoutTemplate, Plus, Pencil, Trash2, FileEdit } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
@@ -14,14 +15,21 @@ import {
   useInteractions,
   FloatingPortal,
 } from "@floating-ui/react"
-import { Crepe } from "@milkdown/crepe"
+import { Crepe, CrepeFeature } from "@milkdown/crepe"
 import "@milkdown/crepe/theme/common/style.css"
+import { editorViewCtx, commandsCtx } from "@milkdown/kit/core"
+import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark"
+import { NodeSelection } from "@milkdown/prose/state"
+import { findWrapping } from "@milkdown/prose/transform"
 import { createHighlightPlugins } from "../editor/highlightPlugin"
-import { createCalloutPlugins } from "../editor/calloutPlugin"
-import { createPlaceholderPlugins } from "../editor/placeholderPlugin"
+import { createCalloutPlugins, calloutNode } from "../editor/calloutPlugin"
+import { createPlaceholderPlugins, placeholderNode, schedulePlaceholderEditMode } from "../editor/placeholderPlugin"
 import classNames from "classnames"
 import { db, createTemplate, updateTemplate, deleteTemplate } from "../store"
 import styles from "./TemplateManager.module.css"
+
+const CALLOUT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="3"/><line x1="6" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="12" y2="16"/></svg>`
+const PLACEHOLDER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>`
 
 // --- Template content editor ---
 
@@ -41,7 +49,78 @@ const TemplateContentEditor = ({
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const crepe = new Crepe({ root: container, defaultValue })
+    const crepe = new Crepe({
+      root: container,
+      defaultValue,
+      featureConfigs: {
+        [CrepeFeature.Placeholder]: {
+          text: t`Type / to use the slash menu`,
+        },
+        [CrepeFeature.BlockEdit]: {
+          textGroup: {
+            label: t`Text`,
+            text: { label: t`Text` },
+            h1: { label: t`Heading 1` },
+            h2: { label: t`Heading 2` },
+            h3: { label: t`Heading 3` },
+            h4: { label: t`Heading 4` },
+            h5: { label: t`Heading 5` },
+            h6: { label: t`Heading 6` },
+            quote: { label: t`Quote` },
+            divider: { label: t`Divider` },
+          },
+          listGroup: {
+            label: t`List`,
+            bulletList: { label: t`Bullet List` },
+            orderedList: { label: t`Ordered List` },
+            taskList: { label: t`Task List` },
+          },
+          advancedGroup: {
+            label: t`Advanced`,
+            image: { label: t`Image` },
+            codeBlock: { label: t`Code` },
+            table: { label: t`Table` },
+          },
+          buildMenu: (builder) => {
+            const calloutGroup = builder.addGroup("callout", t`Callout`)
+            calloutGroup.addItem("callout", {
+              label: t`Callout`,
+              icon: CALLOUT_ICON_SVG,
+              onRun: (ctx) => {
+                const commands = ctx.get(commandsCtx)
+                commands.call(clearTextInCurrentBlockCommand.key)
+                const view = ctx.get(editorViewCtx)
+                const calloutType = calloutNode.type(ctx)
+                const { state, dispatch } = view
+                const { $from, $to } = state.selection
+                const range = $from.blockRange($to)
+                if (!range) return
+                const wrapping = findWrapping(range, calloutType, { color: "yellow" })
+                if (wrapping) dispatch(state.tr.wrap(range, wrapping))
+              },
+            })
+
+            const placeholderGroup = builder.addGroup("placeholders", t`Placeholders`)
+            placeholderGroup.addItem("placeholder", {
+              label: t`Placeholder`,
+              icon: PLACEHOLDER_ICON_SVG,
+              onRun: (ctx) => {
+                const commands = ctx.get(commandsCtx)
+                commands.call(clearTextInCurrentBlockCommand.key)
+                const view = ctx.get(editorViewCtx)
+                const node = placeholderNode.type(ctx).create({ label: t`Placeholder` })
+                const { state } = view
+                const insertPos = state.selection.from
+                const tr = state.tr.replaceSelectionWith(node)
+                tr.setSelection(NodeSelection.create(tr.doc, insertPos))
+                schedulePlaceholderEditMode()
+                view.dispatch(tr)
+              },
+            })
+          },
+        },
+      },
+    })
     crepe.editor.use([
       ...createHighlightPlugins(),
       ...createCalloutPlugins({ onPickerRef: noopPickerRef }),
@@ -157,6 +236,8 @@ export const TemplateManager = () => {
     setContentEditorId(null)
   }
 
+  const { i18n } = useLingui()
+
   const contentEditorTemplate = contentEditorId
     ? templates.find((tp) => tp.id === contentEditorId)
     : null
@@ -264,7 +345,7 @@ export const TemplateManager = () => {
                 <button className={styles.closeBtn} onClick={() => setContentEditorId(null)}>✕</button>
               </div>
               <TemplateContentEditor
-                key={contentEditorId}
+                key={`${contentEditorId}-${i18n.locale}`}
                 defaultValue={contentEditorTemplate?.content ?? ""}
                 onSave={handleSaveContent}
                 onCancel={() => setContentEditorId(null)}
