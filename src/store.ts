@@ -412,6 +412,35 @@ export function updateStyle(
   nodesMap.set(id, { ...node, style: merged })
 }
 
+export function updateStyleRecursive(
+  doc: Y.Doc,
+  id: string,
+  style: Partial<NodeStyle>,
+): void {
+  const nodesMap = getNodesMap(doc)
+  const childMap = new Map<string | null, string[]>()
+  for (const [nid, n] of nodesMap.entries()) {
+    const list = childMap.get(n.parentId) ?? []
+    list.push(nid)
+    childMap.set(n.parentId, list)
+  }
+  doc.transact(() => {
+    const apply = (nodeId: string) => {
+      const node = nodesMap.get(nodeId)
+      if (!node) return
+      const merged = { ...(node.style ?? {}), ...style }
+      Object.keys(merged).forEach((k) => {
+        if ((merged as Record<string, unknown>)[k] === undefined)
+          delete (merged as Record<string, unknown>)[k]
+      })
+      nodesMap.set(nodeId, { ...node, style: merged })
+      const children = childMap.get(nodeId) ?? []
+      for (const childId of children) apply(childId)
+    }
+    apply(id)
+  })
+}
+
 export function toggleCollapse(doc: Y.Doc, id: string): void {
   const nodesMap = getNodesMap(doc)
   const node = nodesMap.get(id)

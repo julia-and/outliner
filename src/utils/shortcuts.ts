@@ -16,7 +16,7 @@ export interface KeyBinding {
 export interface ShortcutDef {
   id: string
   label: MessageDescriptor
-  group: "Navigation" | "Structure" | "Editing"
+  group: "Navigation" | "Structure" | "Editing" | "Formatting"
   defaultBinding: KeyBinding
   /** Hardcoded alias shown in the popup but not remappable */
   alias?: KeyBinding
@@ -64,6 +64,10 @@ export const SHORTCUT_DEFS: ShortcutDef[] = [
   { id: "insert.datetime", label: msg`Insert date+time`, group: "Editing", defaultBinding: { key: ";", cmd: true, shift: true } },
   { id: "node.undo", label: msg`Undo`, group: "Editing", defaultBinding: { key: "z", cmd: true } },
   { id: "node.redo", label: msg`Redo`, group: "Editing", defaultBinding: { key: "z", cmd: true, shift: true } },
+  // Formatting (nav mode; Shift extends to descendants where the base binding has no shift)
+  { id: "format.bold",          label: msg`Bold`,          group: "Formatting", defaultBinding: { key: "b", cmd: true } },
+  { id: "format.italic",        label: msg`Italic`,        group: "Formatting", defaultBinding: { key: "i", cmd: true } },
+  { id: "format.strikethrough", label: msg`Strikethrough`, group: "Formatting", defaultBinding: { key: "s", cmd: true, shift: true } },
 ]
 
 // Shortcuts that only apply in nav mode (for conflict detection)
@@ -74,6 +78,7 @@ const NAV_IDS = new Set([
   "node.edit", "node.delete",
   "node.copy", "node.cut", "node.paste",
   "node.undo", "node.redo",
+  "format.bold", "format.italic", "format.strikethrough",
 ])
 const INSERT_IDS = new Set(["insert.confirm", "insert.cancel", "insert.date", "insert.time", "insert.datetime"])
 

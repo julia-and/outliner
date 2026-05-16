@@ -94,11 +94,12 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
     setOverrides(getStoredOverrides())
   }
 
-  const groups = ["Navigation", "Structure", "Editing"] as const
+  const groups = ["Navigation", "Structure", "Editing", "Formatting"] as const
   const groupLabels: Record<string, string> = {
     Navigation: t`Navigation`,
     Structure: t`Structure`,
     Editing: t`Editing`,
+    Formatting: t`Formatting`,
   }
 
   return (

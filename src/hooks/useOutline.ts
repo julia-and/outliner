@@ -10,6 +10,7 @@ import {
   indentNode,
   outdentNode,
   updateTitle as storeUpdateTitle,
+  updateStyle,
   getActiveNodeId,
   setActiveNodeId,
   pasteSubtree,
@@ -340,6 +341,24 @@ export function useOutline(
         if (m("node.paste")) {
           return
         }
+
+        const tryToggleFormat = (
+          shortcutId: string,
+          styleKey: "bold" | "italic" | "strikethrough",
+        ): boolean => {
+          if (!m(shortcutId)) return false
+          e.preventDefault()
+          if (!currentActiveId) return true
+          const record = nodesSnapshotRef.current.get(currentActiveId)
+          if (!record) return true
+          updateStyle(outlineDoc, currentActiveId, {
+            [styleKey]: !record.style?.[styleKey],
+          })
+          return true
+        }
+        if (tryToggleFormat("format.bold", "bold")) return
+        if (tryToggleFormat("format.italic", "italic")) return
+        if (tryToggleFormat("format.strikethrough", "strikethrough")) return
 
         if (m("nav.up")) {
           e.preventDefault()
