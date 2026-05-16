@@ -32,6 +32,12 @@ interface NodeContentsRow {
   content: Y.Doc
 }
 
+// y-dexie auto-creates the `content: Y.Doc` column on insert, so it must not
+// appear in the insert shape. These types feed Dexie's third TInsertType
+// generic on the tables below.
+type OutlineInsert = Omit<OutlineRow, "content">
+type NodeContentsInsert = Omit<NodeContentsRow, "content">
+
 interface ImageRow {
   id: string
   blob: Blob
@@ -41,8 +47,8 @@ interface ImageRow {
 }
 
 class OutlineDB extends Dexie {
-  outlines!: EntityTable<OutlineRow, "id">
-  nodeContents!: Table<NodeContentsRow, string>
+  outlines!: EntityTable<OutlineRow, "id", OutlineInsert>
+  nodeContents!: Table<NodeContentsRow, string, NodeContentsInsert>
   uiState!: Table<UiStateRow, string>
   images!: Table<ImageRow, string>
   templates!: EntityTable<TemplateRow, "id">
@@ -196,7 +202,7 @@ const justCreatedIds = new Set<string>()
 
 export async function createOutline(name: string): Promise<string> {
   const id = crypto.randomUUID()
-  await db.outlines.add({ id, name, createdAt: Date.now() } as any)
+  await db.outlines.add({ id, name, createdAt: Date.now() })
   justCreatedIds.add(id)
   return id
 }
@@ -255,7 +261,7 @@ export function createNode(
     data: {},
   })
   // Ensure nodeContents entry exists for the editor (fire-and-forget)
-  db.nodeContents.put({ nodeId: newId } as any).catch(console.error)
+  db.nodeContents.put({ nodeId: newId }).catch(console.error)
   if (templateContent) pendingNodeContent.set(newId, templateContent)
   return newId
 }

@@ -9,6 +9,7 @@ import { OutlineView } from "./components/OutlineView"
 import { EditorView } from "./components/EditorView"
 import { OutlineSwitcher } from "./components/OutlineSwitcher"
 import { TemplateManager } from "./components/TemplateManager"
+import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { WelcomeScreen } from "./components/WelcomeScreen"
 import { NodeYRecord } from "./types"
@@ -221,18 +222,20 @@ const OutlineWorkspace = ({
         />
       }
       right={
-        <EditorView
-          activeId={outline.activeId}
-          activeNode={activeNode}
-          ancestors={ancestors}
-          updateTitle={outline.updateTitle}
-          updateStyle={(id, style) => updateStyle(outlineDoc, id, style)}
-          onNavigate={outline.setActiveId}
-          getTemplates={getTemplates}
-          getNodes={getNodes}
-          onFocusOutline={focusOutline}
-          outlineDoc={outlineDoc}
-        />
+        <ErrorBoundary key={outline.activeId ?? "none"}>
+          <EditorView
+            activeId={outline.activeId}
+            activeNode={activeNode}
+            ancestors={ancestors}
+            updateTitle={outline.updateTitle}
+            updateStyle={(id, style) => updateStyle(outlineDoc, id, style)}
+            onNavigate={outline.setActiveId}
+            getTemplates={getTemplates}
+            getNodes={getNodes}
+            onFocusOutline={focusOutline}
+            outlineDoc={outlineDoc}
+          />
+        </ErrorBoundary>
       }
     />
   )

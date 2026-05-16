@@ -5,7 +5,6 @@ import { ICON_NAMES } from "../utils/iconMap"
 import { COLOR_PALETTE } from "../utils/palette"
 import { NodeIcon } from "./NodeIcon"
 import styles from "./IconPickerPanel.module.css"
-import { useState } from "react"
 
 interface IconPickerPanelProps {
   nodeStyle: NodeStyle
@@ -20,11 +19,6 @@ export const IconPickerPanel = ({
   onRemoveIcon,
   onSelectColor,
 }: IconPickerPanelProps) => {
-  const [color, setColor] = useState<string>()
-  const onSelectColorWrapper = (newColor: string) => {
-    setColor(newColor)
-    onSelectColor(newColor)
-  }
   return (
     <div className={styles.panel}>
       <div className={styles.iconGrid}>
@@ -37,7 +31,7 @@ export const IconPickerPanel = ({
             onClick={() => onSelectIcon(name)}
             title={name}
           >
-            <NodeIcon name={name} size={16} color={color} />
+            <NodeIcon name={name} size={16} color={nodeStyle.iconColor} />
           </button>
         ))}
       </div>
@@ -50,7 +44,7 @@ export const IconPickerPanel = ({
               [styles.swatchSelected]: nodeStyle.iconColor === color,
             })}
             style={{ background: color }}
-            onClick={() => onSelectColorWrapper(color)}
+            onClick={() => onSelectColor(color)}
             title={color}
           />
         ))}
