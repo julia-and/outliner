@@ -6,6 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { OutlineRow } from "./OutlineRow"
 import {
   updateStyle,
+  updateStyleRecursive,
   createNode,
   toggleCollapse,
   moveNodeBefore,
@@ -16,7 +17,7 @@ import {
 } from "../store"
 import { VirtualElement } from "@floating-ui/react"
 import styles from "./OutlineView.module.css"
-import { OutletNode } from "../types"
+import { NodeStyle, OutletNode } from "../types"
 import { Popover } from "./Popover"
 import { FormatPanel } from "./FormatPanel"
 import { IconPickerPanel } from "./IconPickerPanel"
@@ -281,44 +282,64 @@ export const OutlineView = ({
     setIconPicker({ open: true, element, nodeId: id })
   }
 
-  const handleToggleFormat = (key: "bold" | "italic" | "strikethrough") => {
+  const applyStyle = (
+    id: string,
+    style: Partial<NodeStyle>,
+    recursive: boolean,
+  ) => {
+    if (recursive) updateStyleRecursive(outlineDoc, id, style)
+    else updateStyle(outlineDoc, id, style)
+  }
+
+  const handleToggleFormat = (
+    key: "bold" | "italic" | "strikethrough",
+    recursive: boolean,
+  ) => {
     if (!contextMenu.nodeId) return
     const node = nodes.find((n) => n.id === contextMenu.nodeId)
     if (node) {
-      updateStyle(outlineDoc, contextMenu.nodeId, { [key]: !node.style[key] })
+      applyStyle(contextMenu.nodeId, { [key]: !node.style[key] }, recursive)
     }
   }
 
-  const handleClearFormat = () => {
+  const handleClearFormat = (recursive: boolean) => {
     if (!contextMenu.nodeId) return
-    updateStyle(outlineDoc, contextMenu.nodeId, {
-      bold: undefined,
-      italic: undefined,
-      strikethrough: undefined,
-      color: undefined,
-      backgroundColor: undefined,
-    })
+    applyStyle(
+      contextMenu.nodeId,
+      {
+        bold: undefined,
+        italic: undefined,
+        strikethrough: undefined,
+        color: undefined,
+        backgroundColor: undefined,
+      },
+      recursive,
+    )
   }
 
-  const handleSetColor = (color: string | undefined) => {
+  const handleSetColor = (color: string | undefined, recursive: boolean) => {
     if (!contextMenu.nodeId) return
-    updateStyle(outlineDoc, contextMenu.nodeId, { color })
+    applyStyle(contextMenu.nodeId, { color }, recursive)
   }
 
-  const handleSetBackground = (color: string | undefined) => {
+  const handleSetBackground = (
+    color: string | undefined,
+    recursive: boolean,
+  ) => {
     if (!contextMenu.nodeId) return
-    updateStyle(outlineDoc, contextMenu.nodeId, { backgroundColor: color })
+    applyStyle(contextMenu.nodeId, { backgroundColor: color }, recursive)
   }
 
-  const handleApplyPreset = (preset: {
-    color: string
-    backgroundColor: string
-  }) => {
+  const handleApplyPreset = (
+    preset: { color: string; backgroundColor: string },
+    recursive: boolean,
+  ) => {
     if (!contextMenu.nodeId) return
-    updateStyle(outlineDoc, contextMenu.nodeId, {
-      color: preset.color,
-      backgroundColor: preset.backgroundColor,
-    })
+    applyStyle(
+      contextMenu.nodeId,
+      { color: preset.color, backgroundColor: preset.backgroundColor },
+      recursive,
+    )
     setContextMenu((prev) => ({ ...prev, open: false }))
     parentRef.current?.focus()
   }
@@ -500,6 +521,7 @@ export const OutlineView = ({
         {contextMenuNode && (
           <FormatPanel
             nodeStyle={contextMenuNode.style}
+            hasChildren={contextMenuNode.hasChildren}
             onToggle={handleToggleFormat}
             onClearFormat={handleClearFormat}
             onSetColor={handleSetColor}

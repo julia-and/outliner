@@ -8,11 +8,15 @@ import styles from "./FormatPanel.module.css"
 
 interface FormatPanelProps {
   nodeStyle: NodeStyle
-  onToggle: (key: "bold" | "italic" | "strikethrough") => void
-  onClearFormat: () => void
-  onSetColor: (color: string | undefined) => void
-  onSetBackground: (color: string | undefined) => void
-  onApplyPreset: (preset: { color: string; backgroundColor: string }) => void
+  hasChildren: boolean
+  onToggle: (key: "bold" | "italic" | "strikethrough", recursive: boolean) => void
+  onClearFormat: (recursive: boolean) => void
+  onSetColor: (color: string | undefined, recursive: boolean) => void
+  onSetBackground: (color: string | undefined, recursive: boolean) => void
+  onApplyPreset: (
+    preset: { color: string; backgroundColor: string },
+    recursive: boolean,
+  ) => void
   templates?: TemplateRow[]
   defaultChildTemplateId?: string
   onSetDefaultChildTemplate?: (id: string | null) => void
@@ -20,6 +24,7 @@ interface FormatPanelProps {
 
 export const FormatPanel = ({
   nodeStyle,
+  hasChildren,
   onToggle,
   onClearFormat,
   onSetColor,
@@ -38,7 +43,8 @@ export const FormatPanel = ({
             className={classNames(styles.formatBtn, {
               [styles.active]: nodeStyle.bold,
             })}
-            onClick={() => onToggle("bold")}
+            onClick={(e) => onToggle("bold", e.shiftKey)}
+            title={t`Click to toggle (Shift+click to apply to children)`}
           >
             <strong>B</strong>
           </button>
@@ -46,7 +52,8 @@ export const FormatPanel = ({
             className={classNames(styles.formatBtn, {
               [styles.active]: nodeStyle.italic,
             })}
-            onClick={() => onToggle("italic")}
+            onClick={(e) => onToggle("italic", e.shiftKey)}
+            title={t`Click to toggle (Shift+click to apply to children)`}
           >
             <em>I</em>
           </button>
@@ -54,11 +61,15 @@ export const FormatPanel = ({
             className={classNames(styles.formatBtn, {
               [styles.active]: nodeStyle.strikethrough,
             })}
-            onClick={() => onToggle("strikethrough")}
+            onClick={(e) => onToggle("strikethrough", e.shiftKey)}
+            title={t`Click to toggle (Shift+click to apply to children)`}
           >
             <span style={{ textDecoration: "line-through" }}>S</span>
           </button>
-          <button className={styles.clearBtn} onClick={onClearFormat}>
+          <button
+            className={styles.clearBtn}
+            onClick={(e) => onClearFormat(e.shiftKey)}
+          >
             <Trans>Clear all</Trans>
           </button>
         </div>
@@ -76,8 +87,11 @@ export const FormatPanel = ({
                 [styles.swatchSelected]: nodeStyle.color === color,
               })}
               style={{ background: color }}
-              onClick={() =>
-                onSetColor(nodeStyle.color === color ? undefined : color)
+              onClick={(e) =>
+                onSetColor(
+                  nodeStyle.color === color ? undefined : color,
+                  e.shiftKey,
+                )
               }
               title={color}
             />
@@ -97,9 +111,10 @@ export const FormatPanel = ({
                 [styles.swatchSelected]: nodeStyle.backgroundColor === color,
               })}
               style={{ background: color }}
-              onClick={() =>
+              onClick={(e) =>
                 onSetBackground(
                   nodeStyle.backgroundColor === color ? undefined : color,
+                  e.shiftKey,
                 )
               }
               title={color}
@@ -121,7 +136,7 @@ export const FormatPanel = ({
                 color: preset.color,
                 backgroundColor: preset.backgroundColor,
               }}
-              onClick={() => onApplyPreset(preset)}
+              onClick={(e) => onApplyPreset(preset, e.shiftKey)}
             >
               {preset.label}
             </button>
@@ -152,6 +167,11 @@ export const FormatPanel = ({
         </>
       )}
 
+      {hasChildren && (
+        <div className={styles.hint}>
+          <Trans>Hold Shift to apply to children</Trans>
+        </div>
+      )}
     </div>
   )
 }
