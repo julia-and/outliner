@@ -13,11 +13,11 @@ msgstr ""
 "Last-Translator: \n"
 "Language-Team: \n"
 
-#: src/components/EditorView.tsx:714
+#: src/components/EditorView.tsx:721
 msgid "{chars, plural, one {# character} other {# characters}}"
 msgstr "{chars, plural, one {# tegn} other {# tegn}}"
 
-#: src/components/EditorView.tsx:709
+#: src/components/EditorView.tsx:716
 msgid "{words, plural, one {# word} other {# words}}"
 msgstr "{words, plural, one {# ord} other {# ord}}"
 
@@ -29,7 +29,7 @@ msgstr "← Tilbake"
 msgid "A fast, local-first outliner"
 msgstr "En rask, lokal disposisjonsverktøy"
 
-#: src/App.tsx:106
+#: src/App.tsx:107
 msgid "A new version is available."
 msgstr "En ny versjon er tilgjengelig."
 
@@ -45,11 +45,12 @@ msgstr "Legg til rotpunkt"
 msgid "Add sibling"
 msgstr "Legg til sidepunkt"
 
-#: src/components/EditorView.tsx:327
+#: src/components/EditorView.tsx:332
+#: src/components/TemplateManager.tsx:79
 msgid "Advanced"
 msgstr "Avansert"
 
-#: src/components/FormatPanel.tsx:91
+#: src/components/FormatPanel.tsx:105
 msgid "Background Color"
 msgstr "Bakgrunnsfarge"
 
@@ -57,26 +58,33 @@ msgstr "Bakgrunnsfarge"
 msgid "Blue"
 msgstr "Blå"
 
-#: src/components/EditorView.tsx:775
+#: src/utils/shortcuts.ts:68
+msgid "Bold"
+msgstr ""
+
+#: src/components/EditorView.tsx:782
 msgid "Browser autocorrect"
 msgstr "Autokorrektur i nettleser"
 
-#: src/components/EditorView.tsx:767
+#: src/components/EditorView.tsx:774
 msgid "Browser spellcheck"
 msgstr "Stavekontroll i nettleser"
 
-#: src/components/EditorView.tsx:322
+#: src/components/EditorView.tsx:327
+#: src/components/TemplateManager.tsx:74
 msgid "Bullet List"
 msgstr "Punktliste"
 
-#: src/components/EditorView.tsx:333
-#: src/components/EditorView.tsx:335
+#: src/components/EditorView.tsx:338
+#: src/components/EditorView.tsx:340
+#: src/components/TemplateManager.tsx:85
+#: src/components/TemplateManager.tsx:87
 msgid "Callout"
 msgstr "Merknadsboks"
 
 #: src/components/OutlineSwitcher.tsx:222
-#: src/components/TemplateManager.tsx:66
-#: src/components/TemplateManager.tsx:206
+#: src/components/TemplateManager.tsx:145
+#: src/components/TemplateManager.tsx:287
 msgid "Cancel"
 msgstr "Avbryt"
 
@@ -88,19 +96,26 @@ msgstr "Avbryt redigering"
 msgid "Change icon"
 msgstr "Endre ikon"
 
-#: src/components/FormatPanel.tsx:62
+#: src/components/FormatPanel.tsx:73
 msgid "Clear all"
 msgstr "Fjern alt"
 
-#: src/components/KeyboardShortcuts.tsx:157
+#: src/components/KeyboardShortcuts.tsx:158
 msgid "Click a shortcut to remap · Esc to close"
 msgstr "Klikk en snarvei for å endre · Esc for å lukke"
 
-#: src/components/KeyboardShortcuts.tsx:197
+#: src/components/KeyboardShortcuts.tsx:198
 msgid "Click to remap"
 msgstr "Klikk for å endre"
 
-#: src/components/EditorView.tsx:329
+#: src/components/FormatPanel.tsx:47
+#: src/components/FormatPanel.tsx:56
+#: src/components/FormatPanel.tsx:65
+msgid "Click to toggle (Shift+click to apply to children)"
+msgstr ""
+
+#: src/components/EditorView.tsx:334
+#: src/components/TemplateManager.tsx:81
 msgid "Code"
 msgstr "Kode"
 
@@ -112,7 +127,7 @@ msgstr "Lukk / overordnet"
 msgid "Confirm edit"
 msgstr "Bekreft redigering"
 
-#: src/components/KeyboardShortcuts.tsx:124
+#: src/components/KeyboardShortcuts.tsx:125
 msgid "Conflicts with \"{label}\" — press a different key"
 msgstr "Konflikt med «{label}» — trykk en annen tast"
 
@@ -128,21 +143,21 @@ msgstr "Opprett"
 msgid "Cut node"
 msgstr "Klipp ut punkt"
 
-#: src/components/FormatPanel.tsx:136
+#: src/components/FormatPanel.tsx:151
 msgid "Default child template"
 msgstr "Standard undermal"
 
 #: src/components/OutlineSwitcher.tsx:223
 #: src/components/OutlineSwitcher.tsx:256
-#: src/components/TemplateManager.tsx:207
-#: src/components/TemplateManager.tsx:238
+#: src/components/TemplateManager.tsx:288
+#: src/components/TemplateManager.tsx:319
 msgid "Delete"
 msgstr "Slett"
 
 #. placeholder {0}: o.name
 #. placeholder {0}: tmpl.name
 #: src/components/OutlineSwitcher.tsx:220
-#: src/components/TemplateManager.tsx:204
+#: src/components/TemplateManager.tsx:285
 msgid "Delete \"{0}\"?"
 msgstr "Slette «{0}»?"
 
@@ -150,15 +165,16 @@ msgstr "Slette «{0}»?"
 msgid "Delete node"
 msgstr "Slett punkt"
 
-#: src/components/EditorView.tsx:318
+#: src/components/EditorView.tsx:323
+#: src/components/TemplateManager.tsx:70
 msgid "Divider"
 msgstr "Skillelinje"
 
-#: src/components/TemplateManager.tsx:230
+#: src/components/TemplateManager.tsx:311
 msgid "Edit content"
 msgstr "Rediger innhold"
 
-#: src/components/TemplateManager.tsx:262
+#: src/components/TemplateManager.tsx:343
 msgid "Edit Template"
 msgstr "Rediger mal"
 
@@ -170,8 +186,8 @@ msgstr "Rediger tittel"
 msgid "Editing"
 msgstr "Redigering"
 
-#: src/components/EditorView.tsx:725
-#: src/components/EditorView.tsx:726
+#: src/components/EditorView.tsx:732
+#: src/components/EditorView.tsx:733
 msgid "Editor options"
 msgstr "Editorinnstillinger"
 
@@ -183,13 +199,17 @@ msgstr "Utvid / gå inn"
 msgid "Export to file"
 msgstr "Eksporter til fil"
 
-#: src/components/OutlineView.tsx:391
+#: src/components/OutlineView.tsx:412
 msgid "Filter..."
 msgstr "Filtrer…"
 
 #: src/utils/shortcuts.ts:33
 msgid "Focus editor"
 msgstr "Fokuser editor"
+
+#: src/components/KeyboardShortcuts.tsx:102
+msgid "Formatting"
+msgstr ""
 
 #: src/editor/calloutPlugin.ts:14
 msgid "Gray"
@@ -199,35 +219,46 @@ msgstr "Grå"
 msgid "Green"
 msgstr "Grønn"
 
-#: src/components/EditorView.tsx:311
+#: src/components/EditorView.tsx:316
+#: src/components/TemplateManager.tsx:63
 msgid "Heading 1"
 msgstr "Overskrift 1"
 
-#: src/components/EditorView.tsx:312
+#: src/components/EditorView.tsx:317
+#: src/components/TemplateManager.tsx:64
 msgid "Heading 2"
 msgstr "Overskrift 2"
 
-#: src/components/EditorView.tsx:313
+#: src/components/EditorView.tsx:318
+#: src/components/TemplateManager.tsx:65
 msgid "Heading 3"
 msgstr "Overskrift 3"
 
-#: src/components/EditorView.tsx:314
+#: src/components/EditorView.tsx:319
+#: src/components/TemplateManager.tsx:66
 msgid "Heading 4"
 msgstr "Overskrift 4"
 
-#: src/components/EditorView.tsx:315
+#: src/components/EditorView.tsx:320
+#: src/components/TemplateManager.tsx:67
 msgid "Heading 5"
 msgstr "Overskrift 5"
 
-#: src/components/EditorView.tsx:316
+#: src/components/EditorView.tsx:321
+#: src/components/TemplateManager.tsx:68
 msgid "Heading 6"
 msgstr "Overskrift 6"
 
-#: src/components/EditorView.tsx:406
+#: src/components/EditorView.tsx:411
 msgid "Highlight"
 msgstr "Utheving"
 
-#: src/components/EditorView.tsx:328
+#: src/components/FormatPanel.tsx:172
+msgid "Hold Shift to apply to children"
+msgstr ""
+
+#: src/components/EditorView.tsx:333
+#: src/components/TemplateManager.tsx:80
 msgid "Image"
 msgstr "Bilde"
 
@@ -260,7 +291,11 @@ msgstr "Sett inn dato+tid"
 msgid "Insert time"
 msgstr "Sett inn tid"
 
-#: src/components/KeyboardShortcuts.tsx:114
+#: src/utils/shortcuts.ts:69
+msgid "Italic"
+msgstr ""
+
+#: src/components/KeyboardShortcuts.tsx:115
 msgid "Keyboard Shortcuts"
 msgstr "Tastatursnarveier"
 
@@ -268,16 +303,17 @@ msgstr "Tastatursnarveier"
 msgid "Keyboard Shortcuts (?)"
 msgstr "Tastatursnarveier (?)"
 
-#: src/components/EditorView.tsx:321
+#: src/components/EditorView.tsx:326
+#: src/components/TemplateManager.tsx:73
 msgid "List"
 msgstr "Liste"
 
-#: src/App.tsx:66
-#: src/App.tsx:159
+#: src/App.tsx:67
+#: src/App.tsx:160
 msgid "Loading…"
 msgstr "Laster…"
 
-#: src/components/TemplateManager.tsx:171
+#: src/components/TemplateManager.tsx:252
 msgid "Manage templates"
 msgstr "Administrer maler"
 
@@ -314,7 +350,7 @@ msgstr "Navigasjon"
 msgid "New outline"
 msgstr "Ny disposisjon"
 
-#: src/components/TemplateManager.tsx:250
+#: src/components/TemplateManager.tsx:331
 msgid "New template"
 msgstr "Ny mal"
 
@@ -322,11 +358,11 @@ msgstr "Ny mal"
 msgid "No matches"
 msgstr "Ingen treff"
 
-#: src/components/OutlineView.tsx:431
+#: src/components/OutlineView.tsx:452
 msgid "No results for \"{filterText}\""
 msgstr "Ingen resultater for «{filterText}»"
 
-#: src/components/FormatPanel.tsx:144
+#: src/components/FormatPanel.tsx:159
 msgid "None"
 msgstr "Ingen"
 
@@ -338,7 +374,8 @@ msgstr "Frakoblet"
 msgid "Orange"
 msgstr "Oransje"
 
-#: src/components/EditorView.tsx:323
+#: src/components/EditorView.tsx:328
+#: src/components/TemplateManager.tsx:75
 msgid "Ordered List"
 msgstr "Nummerert liste"
 
@@ -354,20 +391,23 @@ msgstr "Outlines"
 msgid "Paste"
 msgstr "Lim inn"
 
-#: src/components/EditorView.tsx:358
-#: src/components/EditorView.tsx:366
+#: src/components/EditorView.tsx:363
+#: src/components/EditorView.tsx:371
+#: src/components/TemplateManager.tsx:105
+#: src/components/TemplateManager.tsx:111
 msgid "Placeholder"
 msgstr "Plassholder"
 
-#: src/components/EditorView.tsx:355
+#: src/components/EditorView.tsx:360
+#: src/components/TemplateManager.tsx:103
 msgid "Placeholders"
 msgstr "Plassholdere"
 
-#: src/components/FormatPanel.tsx:114
+#: src/components/FormatPanel.tsx:129
 msgid "Presets"
 msgstr "Forhåndsinnstillinger"
 
-#: src/components/KeyboardShortcuts.tsx:190
+#: src/components/KeyboardShortcuts.tsx:191
 msgid "Press a key…"
 msgstr "Trykk en tast…"
 
@@ -375,7 +415,8 @@ msgstr "Trykk en tast…"
 msgid "Purple"
 msgstr "Lilla"
 
-#: src/components/EditorView.tsx:317
+#: src/components/EditorView.tsx:322
+#: src/components/TemplateManager.tsx:69
 msgid "Quote"
 msgstr "Sitat"
 
@@ -383,40 +424,44 @@ msgstr "Sitat"
 msgid "Redo"
 msgstr "Gjør om"
 
-#: src/App.tsx:120
+#: src/App.tsx:121
 msgid "Refresh"
 msgstr "Oppdater"
 
-#: src/components/IconPickerPanel.tsx:60
+#: src/components/IconPickerPanel.tsx:54
 msgid "REMOVE ICON"
 msgstr "FJERN IKON"
 
 #: src/components/OutlineSwitcher.tsx:239
-#: src/components/TemplateManager.tsx:222
+#: src/components/TemplateManager.tsx:303
 msgid "Rename"
 msgstr "Gi nytt navn"
 
-#: src/components/KeyboardShortcuts.tsx:210
+#: src/components/KeyboardShortcuts.tsx:211
 msgid "Reset to default"
 msgstr "Tilbakestill til standard"
+
+#: src/components/ErrorBoundary.tsx:58
+msgid "Retry"
+msgstr "Prøv igjen"
 
 #: src/editor/calloutPlugin.ts:11
 msgid "Rose"
 msgstr "Rosa"
 
-#: src/components/TemplateManager.tsx:74
+#: src/components/TemplateManager.tsx:153
 msgid "Save"
 msgstr "Lagre"
 
-#: src/components/EditorView.tsx:671
+#: src/components/EditorView.tsx:678
 msgid "Select a note to edit..."
 msgstr "Velg et notat å redigere…"
 
-#: src/components/EditorView.tsx:749
+#: src/components/EditorView.tsx:756
 msgid "Show character count"
 msgstr "Vis tegnantall"
 
-#: src/components/EditorView.tsx:741
+#: src/components/EditorView.tsx:748
 msgid "Show word count"
 msgstr "Vis ordantall"
 
@@ -437,9 +482,13 @@ msgstr "Logge ut og slutte å synkronisere?"
 msgid "Start locally"
 msgstr "Start lokalt"
 
-#: src/components/OutlineView.tsx:358
+#: src/components/OutlineView.tsx:379
 msgid "Start outlining"
 msgstr "Begynn å skrive"
+
+#: src/utils/shortcuts.ts:70
+msgid "Strikethrough"
+msgstr ""
 
 #: src/components/KeyboardShortcuts.tsx:100
 msgid "Structure"
@@ -457,7 +506,7 @@ msgstr "Bytt til mørk modus"
 msgid "Switch to Light Mode"
 msgstr "Bytt til lys modus"
 
-#: src/components/EditorView.tsx:758
+#: src/components/EditorView.tsx:765
 msgid "Sync title style"
 msgstr "Synkroniser tittelstil"
 
@@ -469,36 +518,45 @@ msgstr "Synkronisert"
 msgid "Syncing…"
 msgstr "Synkroniserer…"
 
-#: src/components/EditorView.tsx:330
+#: src/components/EditorView.tsx:335
+#: src/components/TemplateManager.tsx:82
 msgid "Table"
 msgstr "Tabell"
 
-#: src/components/EditorView.tsx:324
+#: src/components/EditorView.tsx:329
+#: src/components/TemplateManager.tsx:76
 msgid "Task List"
 msgstr "Oppgaveliste"
 
-#: src/components/EditorView.tsx:378
+#: src/components/EditorView.tsx:383
 msgid "Templates"
 msgstr "Maler"
 
-#: src/components/EditorView.tsx:309
-#: src/components/EditorView.tsx:310
+#: src/components/EditorView.tsx:314
+#: src/components/EditorView.tsx:315
+#: src/components/TemplateManager.tsx:61
+#: src/components/TemplateManager.tsx:62
 msgid "Text"
 msgstr "Tekst"
 
-#: src/components/FormatPanel.tsx:70
+#: src/components/FormatPanel.tsx:81
 msgid "Text Color"
 msgstr "Tekstfarge"
 
-#: src/components/FormatPanel.tsx:35
+#: src/components/FormatPanel.tsx:40
 msgid "Text Format"
 msgstr "Tekstformat"
+
+#: src/components/ErrorBoundary.tsx:43
+msgid "The editor crashed — your data is safe."
+msgstr "Redigereren krasjet — dataene dine er trygge."
 
 #: src/components/SplitLayout.tsx:120
 msgid "Toggle Layout"
 msgstr "Bytt oppsett"
 
-#: src/components/EditorView.tsx:288
+#: src/components/EditorView.tsx:293
+#: src/components/TemplateManager.tsx:57
 msgid "Type / to use the slash menu"
 msgstr "Skriv / for å bruke hurtigmenyen"
 
@@ -511,11 +569,11 @@ msgstr "Angre"
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61
 #: src/components/OutlineSwitcher.tsx:153
-#: src/components/OutlineView.tsx:490
+#: src/components/OutlineView.tsx:511
 msgid "Untitled"
 msgstr "Uten tittel"
 
-#: src/components/TemplateManager.tsx:113
+#: src/components/TemplateManager.tsx:192
 msgid "Untitled Template"
 msgstr "Mal uten tittel"
 
