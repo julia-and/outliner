@@ -6,10 +6,9 @@
 // accessible labels on color swatches that have no visible text.
 //   "var(--color-blue)" → "Blue"
 export function colorLabel(token: string): string {
-  const m = token.match(/--color-([a-z]+)/i)
-  if (!m) return token
-  const name = m[1]
-  return name[0].toUpperCase() + name.slice(1).toLowerCase()
+  const name = token.match(/--color-([a-z]+)/i)?.[1]
+  if (!name) return token
+  return (name[0] ?? "").toUpperCase() + name.slice(1).toLowerCase()
 }
 
 export const COLOR_PALETTE = [

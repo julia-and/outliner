@@ -31,7 +31,9 @@ export function getCachedImageURL(id: string): string | undefined {
 }
 
 export async function preCacheImagesFromText(text: string): Promise<void> {
-  const ids = [...text.matchAll(/ol-image:\/\/([a-f0-9-]+)/g)].map((m) => m[1])
+  const ids = [...text.matchAll(/ol-image:\/\/([a-f0-9-]+)/g)]
+    .map((m) => m[1])
+    .filter((id): id is string => !!id)
   await Promise.all(ids.map(getImageURL))
 }
 

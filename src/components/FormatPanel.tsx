@@ -40,27 +40,21 @@ export const FormatPanel = ({
         <div className={styles.sectionLabel}><Trans>Text Format</Trans></div>
         <div className={styles.formatRow}>
           <button
-            className={classNames(styles.formatBtn, {
-              [styles.active]: nodeStyle.bold,
-            })}
+            className={classNames(styles.formatBtn, nodeStyle.bold && styles.active)}
             onClick={(e) => onToggle("bold", e.shiftKey)}
             title={t`Click to toggle (Shift+click to apply to children)`}
           >
             <strong>B</strong>
           </button>
           <button
-            className={classNames(styles.formatBtn, {
-              [styles.active]: nodeStyle.italic,
-            })}
+            className={classNames(styles.formatBtn, nodeStyle.italic && styles.active)}
             onClick={(e) => onToggle("italic", e.shiftKey)}
             title={t`Click to toggle (Shift+click to apply to children)`}
           >
             <em>I</em>
           </button>
           <button
-            className={classNames(styles.formatBtn, {
-              [styles.active]: nodeStyle.strikethrough,
-            })}
+            className={classNames(styles.formatBtn, nodeStyle.strikethrough && styles.active)}
             onClick={(e) => onToggle("strikethrough", e.shiftKey)}
             title={t`Click to toggle (Shift+click to apply to children)`}
           >
@@ -83,9 +77,10 @@ export const FormatPanel = ({
           {COLOR_PALETTE.map((color) => (
             <button
               key={color}
-              className={classNames(styles.swatch, {
-                [styles.swatchSelected]: nodeStyle.color === color,
-              })}
+              className={classNames(
+                styles.swatch,
+                nodeStyle.color === color && styles.swatchSelected,
+              )}
               style={{ background: color }}
               onClick={(e) =>
                 onSetColor(
@@ -108,9 +103,10 @@ export const FormatPanel = ({
           {COLOR_PALETTE.map((color) => (
             <button
               key={color}
-              className={classNames(styles.swatch, {
-                [styles.swatchSelected]: nodeStyle.backgroundColor === color,
-              })}
+              className={classNames(
+                styles.swatch,
+                nodeStyle.backgroundColor === color && styles.swatchSelected,
+              )}
               style={{ background: color }}
               onClick={(e) =>
                 onSetBackground(

@@ -15,7 +15,7 @@ function detectLocale(): Locale {
   if (stored && stored in LOCALES) return stored as Locale
 
   for (const tag of navigator.languages ?? [navigator.language]) {
-    const base = tag.split("-")[0]
+    const base = tag.split("-")[0] ?? ""
     if (base in LOCALES) return base as Locale
     // nb/nn both map to nb
     if (base === "nn") return "nb"

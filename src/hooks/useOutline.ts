@@ -170,10 +170,11 @@ export function useOutline(
   // Auto-select: restore persisted selection if still valid, else fall back
   // to first node.
   useEffect(() => {
-    if (nodes.length === 0) return
+    const first = nodes[0]
+    if (!first) return
     const current = liveRef.current.activeId
     if (current && nodes.some((n) => n.id === current)) return
-    setActiveId(nodes[0].id)
+    setActiveId(first.id)
   }, [nodes])
 
   const handleSetActive = useCallback((id: string) => {
@@ -237,7 +238,8 @@ export function useOutline(
       const node = live.nodeMap.get(live.activeId)
       const parentId = node?.parentId ?? null
       const newIds = pasteSubtree(outlineDoc, payload, parentId, live.activeId)
-      if (newIds.length > 0) handleSetActive(newIds[0])
+      const firstNew = newIds[0]
+      if (firstNew) handleSetActive(firstNew)
     },
     [outlineDoc, handleSetActive],
   )

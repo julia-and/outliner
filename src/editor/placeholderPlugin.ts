@@ -166,19 +166,23 @@ export function createPlaceholderPlugins() {
             doc.descendants((node, pos) => {
               if (node.type.name === "placeholder") positions.push(pos)
             })
-            if (positions.length === 0) return false
+            const last = positions.at(-1)
+            const first = positions[0]
+            if (last === undefined || first === undefined) return false
 
             const current = selection.from
             let target: number
             if (event.shiftKey) {
-              target = positions[positions.length - 1]
+              target = last
               for (let i = positions.length - 1; i >= 0; i--) {
-                if (positions[i] < current) { target = positions[i]; break }
+                const p = positions[i]
+                if (p !== undefined && p < current) { target = p; break }
               }
             } else {
-              target = positions[0]
+              target = first
               for (let i = 0; i < positions.length; i++) {
-                if (positions[i] > current) { target = positions[i]; break }
+                const p = positions[i]
+                if (p !== undefined && p > current) { target = p; break }
               }
             }
             dispatch(state.tr.setSelection(NodeSelection.create(doc, target)))

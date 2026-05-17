@@ -310,12 +310,14 @@ export function buildCrepeEditor(opts: CrepeBuildOptions): Crepe {
         props: {
           handleKeyDown(view, event) {
             const bindings = getBindings()
+            const date = bindings["insert.date"]
+            const time = bindings["insert.time"]
+            const datetime = bindings["insert.datetime"]
             let text: string | null = null
-            if (matchesBinding(event, bindings["insert.date"]))
-              text = currentDateString()
-            else if (matchesBinding(event, bindings["insert.time"]))
+            if (date && matchesBinding(event, date)) text = currentDateString()
+            else if (time && matchesBinding(event, time))
               text = currentTimeString()
-            else if (matchesBinding(event, bindings["insert.datetime"]))
+            else if (datetime && matchesBinding(event, datetime))
               text = `${currentDateString()} ${currentTimeString()}`
             if (!text) return false
             view.dispatch(view.state.tr.insertText(text))

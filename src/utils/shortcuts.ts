@@ -106,8 +106,9 @@ export function getBindings(): Record<string, KeyBinding> {
   }
   const overrides = getStoredOverrides()
   for (const def of SHORTCUT_DEFS) {
-    if (def.remappable !== false && overrides[def.id]) {
-      result[def.id] = overrides[def.id]
+    const override = overrides[def.id]
+    if (def.remappable !== false && override) {
+      result[def.id] = override
     }
   }
   return result
