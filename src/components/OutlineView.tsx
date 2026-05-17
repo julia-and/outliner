@@ -52,13 +52,13 @@ type DragState = {
 
 function getDraggingSubtree(id: string, nodes: OutletNode[]): Set<string> {
   const idx = nodes.findIndex((n) => n.id === id)
-  if (idx === -1) return new Set([id])
-  const result = new Set<string>()
-  result.add(id)
-  const baseDepth = nodes[idx].depth
+  const base = nodes[idx]
+  if (!base) return new Set([id])
+  const result = new Set<string>([id])
   for (let i = idx + 1; i < nodes.length; i++) {
-    if (nodes[i].depth <= baseDepth) break
-    result.add(nodes[i].id)
+    const n = nodes[i]
+    if (!n || n.depth <= base.depth) break
+    result.add(n.id)
   }
   return result
 }
@@ -456,6 +456,7 @@ export const OutlineView = ({
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const node = displayNodes[virtualRow.index]
+              if (!node) return null
               return (
                 <div
                   key={node.id}

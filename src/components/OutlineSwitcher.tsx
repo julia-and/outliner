@@ -147,8 +147,9 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
     setConfirmDeleteId(null)
     await deleteOutline(id)
     if (id === activeOutlineId) {
-      if (remaining.length > 0) {
-        onSelect(remaining[0].id)
+      const next = remaining[0]
+      if (next) {
+        onSelect(next.id)
       } else {
         const fallbackName = t`Untitled`
         const newId = await createOutline(fallbackName)
@@ -191,9 +192,10 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
         <FloatingPortal>
           <div
             ref={refs.setFloating}
-            className={classNames(styles.dropdown, {
-              [styles.dropdownBusy]: editingId !== null || confirmDeleteId !== null,
-            })}
+            className={classNames(
+              styles.dropdown,
+              (editingId !== null || confirmDeleteId !== null) && styles.dropdownBusy,
+            )}
             style={floatingStyles}
             {...getFloatingProps()}
           >

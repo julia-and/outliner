@@ -259,7 +259,7 @@ export const TemplateManager = () => {
         <FloatingPortal>
           <div
             ref={refs.setFloating}
-            className={classNames(styles.dropdown, { [styles.dropdownBusy]: isBusy })}
+            className={classNames(styles.dropdown, isBusy && styles.dropdownBusy)}
             style={floatingStyles}
             {...getFloatingProps()}
           >

@@ -56,10 +56,11 @@ export const OutlineRow = ({
 
   return (
     <div
-      className={classNames(styles.row, {
-        [styles.active]: isActive,
-        [styles.dragging]: isDragging,
-      })}
+      className={classNames(
+        styles.row,
+        isActive && styles.active,
+        isDragging && styles.dragging,
+      )}
       style={rowStyle}
       onClick={() => onRowClick(node.id)}
       onDoubleClick={() => onRowDblClick(node.id)}
@@ -70,9 +71,10 @@ export const OutlineRow = ({
         style={{ paddingLeft: `${node.depth * 16}px` }}
       >
         <button
-          className={classNames(styles.caret, {
-            [styles.caretVisible]: node.hasChildren,
-          })}
+          className={classNames(
+            styles.caret,
+            node.hasChildren && styles.caretVisible,
+          )}
           onClick={(e) => {
             e.stopPropagation()
             if (node.hasChildren) onToggleCollapse(node.id)
@@ -84,10 +86,11 @@ export const OutlineRow = ({
           )}
         </button>
         <button
-          className={classNames(styles.bullet, {
-            [styles.hasChildren]: node.hasChildren && !s.icon,
-            [styles.bulletIcon]: !!s.icon,
-          })}
+          className={classNames(
+            styles.bullet,
+            node.hasChildren && !s.icon && styles.hasChildren,
+            s.icon && styles.bulletIcon,
+          )}
           onClick={(e) => {
             e.stopPropagation()
             onBulletClick(node.id, e.currentTarget)

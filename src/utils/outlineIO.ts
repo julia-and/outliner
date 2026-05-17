@@ -57,7 +57,7 @@ export async function exportOutline(outlineId: string): Promise<Uint8Array> {
   for (const encoded of Object.values(contentEntries)) {
     const text = new TextDecoder("utf-8", { fatal: false }).decode(encoded)
     for (const match of text.matchAll(uuidPattern)) {
-      imageUuids.add(match[1])
+      if (match[1]) imageUuids.add(match[1])
     }
   }
 

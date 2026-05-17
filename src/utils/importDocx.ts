@@ -17,7 +17,9 @@ function dataURItoFile(dataURI: string): File | null {
   const match = dataURI.match(/^data:([^;]+);base64,(.+)$/)
   if (!match) return null
   const mimeType = match[1]
-  const bytes = atob(match[2])
+  const base64 = match[2]
+  if (!mimeType || !base64) return null
+  const bytes = atob(base64)
   const arr = new Uint8Array(bytes.length)
   for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
   const ext = mimeType.split("/")[1] ?? "bin"
@@ -51,7 +53,8 @@ async function elementToMarkdown(el: Element): Promise<string> {
   }
   if (tag === "table") {
     const rows = Array.from(el.querySelectorAll("tr"))
-    if (rows.length === 0) return ""
+    const firstRow = rows[0]
+    if (!firstRow) return ""
     const rowToMd = async (tr: Element) => {
       const cells = Array.from(tr.querySelectorAll("td, th"))
       const cellTexts = await Promise.all(
@@ -59,8 +62,8 @@ async function elementToMarkdown(el: Element): Promise<string> {
       )
       return "| " + cellTexts.join(" | ") + " |"
     }
-    const cols = rows[0].querySelectorAll("td, th").length
-    const header = await rowToMd(rows[0])
+    const cols = firstRow.querySelectorAll("td, th").length
+    const header = await rowToMd(firstRow)
     const separator = "| " + Array(cols).fill("---").join(" | ") + " |"
     const bodyRows = await Promise.all(rows.slice(1).map(rowToMd))
     const body = bodyRows.join("\n")
@@ -110,7 +113,7 @@ async function nodeToInlineMarkdown(el: Element): Promise<string> {
 const HEADING_TAGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"])
 
 function headingLevel(tag: string): number {
-  return parseInt(tag[1], 10)
+  return parseInt(tag[1] ?? "1", 10)
 }
 
 export async function parseDocx(file: File): Promise<ParsedDocx> {
@@ -142,25 +145,24 @@ export async function parseDocx(file: File): Promise<ParsedDocx> {
       if (level === 1 && firstH1 === null) firstH1 = title
 
       // Pop stack entries at same or deeper level
-      while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+      while (stack.length > 0 && (stack.at(-1)?.level ?? 0) >= level) {
         stack.pop()
       }
 
       const section: DocxSection = { title, level, content: "", children: [] }
 
-      if (stack.length === 0) {
-        roots.push(section)
-      } else {
-        stack[stack.length - 1].section.children.push(section)
-      }
+      const parent = stack.at(-1)
+      if (parent) parent.section.children.push(section)
+      else roots.push(section)
 
       stack.push({ section, level })
     } else {
       const md = await elementToMarkdown(el)
       if (!seenHeading) {
         preHeadingContent += md
-      } else if (stack.length > 0) {
-        stack[stack.length - 1].section.content += md
+      } else {
+        const top = stack.at(-1)
+        if (top) top.section.content += md
       }
     }
   }

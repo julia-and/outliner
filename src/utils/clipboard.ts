@@ -137,7 +137,7 @@ function parsePlainText(plain: string): ClipboardPayload {
   let indentUnit = ""
   for (const line of lines) {
     const match = line.match(/^(\s+)/)
-    if (match) {
+    if (match && match[1]) {
       indentUnit = match[1]
       break
     }
@@ -146,7 +146,7 @@ function parsePlainText(plain: string): ClipboardPayload {
   const getDepth = (line: string): number => {
     if (!indentUnit) return 0
     const match = line.match(/^(\s*)/)
-    const leading = match ? match[1] : ""
+    const leading = match?.[1] ?? ""
     if (leading.includes("\t")) {
       return leading.split("\t").length - 1
     }
@@ -170,15 +170,13 @@ function parsePlainText(plain: string): ClipboardPayload {
     const title = stripBullet(line.trim())
     const node: ClipboardNode = { title, style: {}, children: [] }
 
-    while (stack.length > 0 && stack[stack.length - 1].depth >= depth) {
+    while (stack.length > 0 && (stack.at(-1)?.depth ?? 0) >= depth) {
       stack.pop()
     }
 
-    if (stack.length === 0) {
-      roots.push(node)
-    } else {
-      stack[stack.length - 1].node.children.push(node)
-    }
+    const parent = stack.at(-1)
+    if (parent) parent.node.children.push(node)
+    else roots.push(node)
 
     stack.push({ node, depth })
   }

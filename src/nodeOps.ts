@@ -40,9 +40,8 @@ export function createNode(
   const nodesMap = getNodesMap(doc)
   const newId = id ?? crypto.randomUUID()
   const siblings = getSortedSiblings(nodesMap, parentId)
-  const nodeOrder =
-    order ??
-    (siblings.length > 0 ? siblings[siblings.length - 1][1].order + 1 : 0)
+  const lastSibling = siblings.at(-1)
+  const nodeOrder = order ?? (lastSibling ? lastSibling[1].order + 1 : 0)
   nodesMap.set(newId, {
     parentId,
     title,
@@ -75,6 +74,7 @@ export function addSibling(doc: Y.Doc, refId: string): string {
   const siblings = getSortedSiblings(nodesMap, node.parentId)
   const idx = siblings.findIndex(([id]) => id === refId)
   const prev = siblings[idx]
+  if (!prev) return createNode(doc, node.parentId)
   const next = siblings[idx + 1]
   const order = next ? (prev[1].order + next[1].order) / 2 : prev[1].order + 1
   return createNode(doc, node.parentId, "", undefined, order)
@@ -135,8 +135,9 @@ export function moveNode(
   const siblings = getSortedSiblings(nodesMap, node.parentId)
   const idx = siblings.findIndex(([sid]) => sid === id)
   const swapIdx = direction === "up" ? idx - 1 : idx + 1
-  if (swapIdx < 0 || swapIdx >= siblings.length) return
-  const [otherId, other] = siblings[swapIdx]
+  const target = siblings[swapIdx]
+  if (!target) return
+  const [otherId, other] = target
   doc.transact(() => {
     nodesMap.set(id, { ...node, order: other.order })
     nodesMap.set(otherId, { ...other, order: node.order })
@@ -149,13 +150,12 @@ export function indentNode(doc: Y.Doc, id: string): void {
   if (!node) return
   const siblings = getSortedSiblings(nodesMap, node.parentId)
   const idx = siblings.findIndex(([sid]) => sid === id)
-  if (idx <= 0) return
-  const [newParentId, newParent] = siblings[idx - 1]
+  const newParentEntry = idx > 0 ? siblings[idx - 1] : undefined
+  if (!newParentEntry) return
+  const [newParentId, newParent] = newParentEntry
   const newParentChildren = getSortedSiblings(nodesMap, newParentId)
-  const order =
-    newParentChildren.length > 0
-      ? newParentChildren[newParentChildren.length - 1][1].order + 1
-      : 0
+  const lastChild = newParentChildren.at(-1)
+  const order = lastChild ? lastChild[1].order + 1 : 0
   doc.transact(() => {
     nodesMap.set(id, { ...node, parentId: newParentId, order })
     nodesMap.set(newParentId, { ...newParent, collapsed: false })
@@ -223,8 +223,8 @@ export function moveNodeAsLastChild(
   const nodesMap = getNodesMap(doc)
   const children = getSortedSiblings(nodesMap, targetParentId)
   const filtered = children.filter(([cid]) => cid !== id)
-  const order =
-    filtered.length > 0 ? filtered[filtered.length - 1][1].order + 1 : 0
+  const lastChild = filtered.at(-1)
+  const order = lastChild ? lastChild[1].order + 1 : 0
   const node = nodesMap.get(id)
   if (node) nodesMap.set(id, { ...node, parentId: targetParentId, order })
 }
@@ -263,16 +263,13 @@ export function pasteSubtree(
   }
 
   doc.transact(() => {
-    if (nextSibling) {
-      const gap = nextSibling[1].order - afterNode.order
-      const step = gap / (N + 1)
-      for (let i = 0; i < N; i++) {
-        insertNode(payload.nodes[i], parentId, afterNode.order + step * (i + 1))
-      }
-    } else {
-      for (let i = 0; i < N; i++) {
-        insertNode(payload.nodes[i], parentId, afterNode.order + (i + 1))
-      }
+    const baseOrder = afterNode.order
+    const gap = nextSibling ? nextSibling[1].order - baseOrder : null
+    const step = gap !== null ? gap / (N + 1) : 1
+    for (let i = 0; i < N; i++) {
+      const node = payload.nodes[i]
+      if (!node) continue
+      insertNode(node, parentId, baseOrder + step * (i + 1))
     }
   })
 

@@ -109,10 +109,12 @@ function insertDateText(ctx: OutlineKeyContext, text: string): void {
 
 const NAV_HANDLERS: Record<string, Handler> = {
   "nav.up": ({ idx, nodes, setActive }) => {
-    if (idx > 0) setActive(nodes[idx - 1].id)
+    const prev = nodes[idx - 1]
+    if (prev) setActive(prev.id)
   },
   "nav.down": ({ idx, nodes, setActive }) => {
-    if (idx < nodes.length - 1) setActive(nodes[idx + 1].id)
+    const next = nodes[idx + 1]
+    if (next) setActive(next.id)
   },
   "nav.expand": ({ idx, nodes, doc }) => {
     const node = nodes[idx]
@@ -127,8 +129,9 @@ const NAV_HANDLERS: Record<string, Handler> = {
     }
     // Already collapsed (or no children): jump to parent.
     for (let i = idx - 1; i >= 0; i--) {
-      if (nodes[i].depth < node.depth) {
-        setActive(nodes[i].id)
+      const candidate = nodes[i]
+      if (candidate && candidate.depth < node.depth) {
+        setActive(candidate.id)
         return
       }
     }
@@ -231,10 +234,11 @@ function tryDispatch(
 ): boolean {
   for (const id in handlers) {
     const binding = bindings[id]
-    if (!binding) continue
+    const handler = handlers[id]
+    if (!binding || !handler) continue
     if (matchesBinding(ctx.e, binding)) {
       ctx.e.preventDefault()
-      handlers[id](ctx)
+      handler(ctx)
       return true
     }
   }

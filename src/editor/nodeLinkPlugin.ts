@@ -110,7 +110,9 @@ export function createNodeLinkPlugins(opts: {
           if (!match)
             return { active: false, query: "", from: -1, suppressed: false }
           const from = $from.pos - match[0].length
-          const query = match[1]
+          // The capture group uses `*`, so a successful match always sets
+          // group 1 (possibly empty); the fallback is for TS only.
+          const query = match[1] ?? ""
           if (prev.suppressed && from === prev.from && query === prev.query)
             return { active: false, query, from, suppressed: true }
           return { active: true, query, from, suppressed: false }

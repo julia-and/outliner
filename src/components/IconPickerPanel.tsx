@@ -26,9 +26,10 @@ export const IconPickerPanel = ({
         {ICON_NAMES.map((name) => (
           <button
             key={name}
-            className={classNames(styles.iconBtn, {
-              [styles.selected]: nodeStyle.icon === name,
-            })}
+            className={classNames(
+              styles.iconBtn,
+              nodeStyle.icon === name && styles.selected,
+            )}
             onClick={() => onSelectIcon(name)}
             title={name}
           >
@@ -41,9 +42,10 @@ export const IconPickerPanel = ({
         {COLOR_PALETTE.map((color) => (
           <button
             key={color}
-            className={classNames(styles.swatch, {
-              [styles.swatchSelected]: nodeStyle.iconColor === color,
-            })}
+            className={classNames(
+              styles.swatch,
+              nodeStyle.iconColor === color && styles.swatchSelected,
+            )}
             style={{ background: color }}
             onClick={() => onSelectColor(color)}
             aria-label={t`Icon color: ${colorLabel(color)}`}
