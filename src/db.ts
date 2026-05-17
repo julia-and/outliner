@@ -50,6 +50,11 @@ class OutlineDB extends Dexie {
 
   constructor() {
     super("OutlineDB", { addons: [yDexie, dexieCloud] })
+    // Schema migrations are additive-only: each version() call adds a new
+    // table or index. There is no .upgrade(tx => ...) hook, so changing the
+    // *shape* of an existing record (renaming a column, marking a field
+    // required) will leave older rows malformed — bump the version with an
+    // explicit upgrade callback when that day comes.
     this.version(1).stores({
       outlines: "id, name, createdAt, content: Y.Doc",
       nodeContents: "nodeId, content: Y.Doc",
@@ -69,7 +74,8 @@ class OutlineDB extends Dexie {
       templates: "id, name, createdAt",
     })
     this.cloud.configure({
-      databaseUrl: "https://zgpzaaasb.dexie.cloud",
+      databaseUrl:
+        import.meta.env.VITE_DEXIE_CLOUD_URL ?? "https://zgpzaaasb.dexie.cloud",
       unsyncedTables: ["uiState"],
       tryUseServiceWorker: true,
     })

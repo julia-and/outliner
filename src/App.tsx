@@ -85,6 +85,9 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
   )
 }
 
+// Manual refresh by design: an auto-reload would interrupt typing in the
+// editor and the user can keep working on a stale bundle indefinitely.
+// Users who dismiss this banner get the new build on their next page load.
 const UpdateBanner = ({ onUpdate }: { onUpdate: () => void }) => (
   <div style={{
     position: "fixed",

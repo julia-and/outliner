@@ -31,14 +31,15 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (open) {
-      setBindingsState(getBindings())
-      setOverrides(getStoredOverrides())
-      setCapturing(null)
-      setConflictLabel(null)
-      // Focus modal so keyboard events land here
-      setTimeout(() => modalRef.current?.focus(), 0)
-    }
+    if (!open) return
+    setBindingsState(getBindings())
+    setOverrides(getStoredOverrides())
+    setCapturing(null)
+    setConflictLabel(null)
+    // The modal is mounted before this effect runs, so focus synchronously
+    // rather than via setTimeout — the timeout was racy if `open` toggled
+    // back to false before the next tick.
+    modalRef.current?.focus()
   }, [open])
 
   if (!open) return null

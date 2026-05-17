@@ -148,6 +148,10 @@ const LoadedEditor = ({
         ctx.get(collabServiceCtx).disconnect()
       })
     }
+    // `get` is stable for the lifetime of MilkdownProvider; `initialContent`
+    // is captured once at mount via initialContentRef and shouldn't trigger
+    // a reconnect when it changes upstream.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, doc])
 
   useImageCacheRefresh(loading, get)
@@ -352,6 +356,10 @@ export const EditorView = ({
         syncStyle={options.syncTitleStyle}
       />
       <div className="editor-container">
+        {/* Remount on locale change so Crepe's slash-menu labels rebuild
+            with the new translations. A targeted fix would listen to
+            i18n.on("change") inside Crepe and rebuild only the menu, but
+            locale switching is rare so the full remount is acceptable. */}
         <Editor
           key={`${activeId}-${i18n.locale}`}
           nodeId={activeId}
