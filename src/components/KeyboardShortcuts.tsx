@@ -4,6 +4,7 @@ import { Trans } from "@lingui/react/macro"
 import { useLingui } from "@lingui/react"
 import type { MessageDescriptor } from "@lingui/core"
 import {
+  IS_MAC,
   SHORTCUT_DEFS,
   KeyBinding,
   ShortcutDef,
@@ -57,9 +58,7 @@ export function KeyboardShortcuts({ open, onClose }: Props) {
 
       const newBinding: KeyBinding = {
         key: e.key,
-        cmd: navigator.platform.toUpperCase().includes("MAC")
-          ? e.metaKey
-          : e.ctrlKey,
+        cmd: IS_MAC ? e.metaKey : e.ctrlKey,
         shift: e.shiftKey || undefined,
         alt: e.altKey || undefined,
       }

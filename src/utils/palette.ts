@@ -2,6 +2,16 @@
 // Values are CSS custom property references defined in styles.css —
 // change a color there and it propagates everywhere automatically.
 
+// Extracts a human-readable name from a CSS-variable token. Used for
+// accessible labels on color swatches that have no visible text.
+//   "var(--color-blue)" → "Blue"
+export function colorLabel(token: string): string {
+  const m = token.match(/--color-([a-z]+)/i)
+  if (!m) return token
+  const name = m[1]
+  return name[0].toUpperCase() + name.slice(1).toLowerCase()
+}
+
 export const COLOR_PALETTE = [
   "var(--color-white)",
   "var(--color-gray)",

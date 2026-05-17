@@ -1,3 +1,7 @@
+# All msgstr entries in this file are intentionally empty: en is the
+# source locale and Lingui's runtime falls back to msgid when msgstr is
+# empty. Run `npm run i18n:extract` after touching translatable strings.
+
 msgid ""
 msgstr ""
 "POT-Creation-Date: 2026-03-22 18:33+0100\n"
@@ -13,11 +17,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/EditorView.tsx:721
+#: src/components/EditorView.tsx:722
 msgid "{chars, plural, one {# character} other {# characters}}"
 msgstr ""
 
-#: src/components/EditorView.tsx:716
+#: src/components/EditorView.tsx:717
 msgid "{words, plural, one {# word} other {# words}}"
 msgstr ""
 
@@ -35,48 +39,53 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:52
 msgid "Add child"
-msgstr "Add child"
+msgstr ""
 
 #: src/utils/shortcuts.ts:53
 msgid "Add root node"
-msgstr "Add root node"
+msgstr ""
 
 #: src/utils/shortcuts.ts:51
 msgid "Add sibling"
-msgstr "Add sibling"
+msgstr ""
 
-#: src/components/EditorView.tsx:332
+#: src/components/EditorView.tsx:333
 #: src/components/TemplateManager.tsx:79
 msgid "Advanced"
-msgstr "Advanced"
+msgstr ""
 
-#: src/components/FormatPanel.tsx:105
+#: src/components/FormatPanel.tsx:106
 msgid "Background Color"
+msgstr ""
+
+#. placeholder {0}: colorLabel(color)
+#: src/components/FormatPanel.tsx:121
+msgid "Background color: {0}"
 msgstr ""
 
 #: src/editor/calloutPlugin.ts:10
 msgid "Blue"
-msgstr "Blue"
+msgstr ""
 
 #: src/utils/shortcuts.ts:68
 msgid "Bold"
-msgstr "Bold"
+msgstr ""
 
-#: src/components/EditorView.tsx:782
+#: src/components/EditorView.tsx:783
 msgid "Browser autocorrect"
 msgstr ""
 
-#: src/components/EditorView.tsx:774
+#: src/components/EditorView.tsx:775
 msgid "Browser spellcheck"
 msgstr ""
 
-#: src/components/EditorView.tsx:327
+#: src/components/EditorView.tsx:328
 #: src/components/TemplateManager.tsx:74
 msgid "Bullet List"
-msgstr "Bullet List"
+msgstr ""
 
-#: src/components/EditorView.tsx:338
-#: src/components/EditorView.tsx:340
+#: src/components/EditorView.tsx:339
+#: src/components/EditorView.tsx:341
 #: src/components/TemplateManager.tsx:85
 #: src/components/TemplateManager.tsx:87
 msgid "Callout"
@@ -90,7 +99,7 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:61
 msgid "Cancel edit"
-msgstr "Cancel edit"
+msgstr ""
 
 #: src/components/NoteHeader.tsx:45
 msgid "Change icon"
@@ -100,11 +109,11 @@ msgstr ""
 msgid "Clear all"
 msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:158
+#: src/components/KeyboardShortcuts.tsx:157
 msgid "Click a shortcut to remap · Esc to close"
 msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:198
+#: src/components/KeyboardShortcuts.tsx:197
 msgid "Click to remap"
 msgstr ""
 
@@ -112,28 +121,28 @@ msgstr ""
 #: src/components/FormatPanel.tsx:56
 #: src/components/FormatPanel.tsx:65
 msgid "Click to toggle (Shift+click to apply to children)"
-msgstr "Click to toggle (Shift+click to apply to children)"
+msgstr ""
 
-#: src/components/EditorView.tsx:334
+#: src/components/EditorView.tsx:335
 #: src/components/TemplateManager.tsx:81
 msgid "Code"
-msgstr "Code"
+msgstr ""
 
 #: src/utils/shortcuts.ts:32
 msgid "Collapse / parent"
-msgstr "Collapse / parent"
+msgstr ""
 
 #: src/utils/shortcuts.ts:60
 msgid "Confirm edit"
-msgstr "Confirm edit"
+msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:125
+#: src/components/KeyboardShortcuts.tsx:124
 msgid "Conflicts with \"{label}\" — press a different key"
 msgstr ""
 
 #: src/utils/shortcuts.ts:57
 msgid "Copy node"
-msgstr "Copy node"
+msgstr ""
 
 #: src/components/WelcomeScreen.tsx:102
 msgid "Create"
@@ -141,9 +150,9 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:58
 msgid "Cut node"
-msgstr "Cut node"
+msgstr ""
 
-#: src/components/FormatPanel.tsx:151
+#: src/components/FormatPanel.tsx:153
 msgid "Default child template"
 msgstr ""
 
@@ -163,12 +172,12 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:56
 msgid "Delete node"
-msgstr "Delete node"
+msgstr ""
 
-#: src/components/EditorView.tsx:323
+#: src/components/EditorView.tsx:324
 #: src/components/TemplateManager.tsx:70
 msgid "Divider"
-msgstr "Divider"
+msgstr ""
 
 #: src/components/TemplateManager.tsx:311
 msgid "Edit content"
@@ -180,87 +189,92 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:55
 msgid "Edit title"
-msgstr "Edit title"
+msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:101
+#: src/components/KeyboardShortcuts.tsx:100
 msgid "Editing"
 msgstr ""
 
-#: src/components/EditorView.tsx:732
 #: src/components/EditorView.tsx:733
+#: src/components/EditorView.tsx:734
 msgid "Editor options"
 msgstr ""
 
 #: src/utils/shortcuts.ts:31
 msgid "Expand / enter"
-msgstr "Expand / enter"
+msgstr ""
 
 #: src/components/OutlineSwitcher.tsx:247
 msgid "Export to file"
 msgstr ""
 
-#: src/components/OutlineView.tsx:412
+#: src/components/OutlineView.tsx:411
 msgid "Filter..."
 msgstr ""
 
 #: src/utils/shortcuts.ts:33
 msgid "Focus editor"
-msgstr "Focus editor"
+msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:102
+#: src/components/KeyboardShortcuts.tsx:101
 msgid "Formatting"
-msgstr "Formatting"
+msgstr ""
 
 #: src/editor/calloutPlugin.ts:14
 msgid "Gray"
-msgstr "Gray"
+msgstr ""
 
 #: src/editor/calloutPlugin.ts:9
 msgid "Green"
-msgstr "Green"
-
-#: src/components/EditorView.tsx:316
-#: src/components/TemplateManager.tsx:63
-msgid "Heading 1"
-msgstr "Heading 1"
+msgstr ""
 
 #: src/components/EditorView.tsx:317
-#: src/components/TemplateManager.tsx:64
-msgid "Heading 2"
-msgstr "Heading 2"
+#: src/components/TemplateManager.tsx:63
+msgid "Heading 1"
+msgstr ""
 
 #: src/components/EditorView.tsx:318
-#: src/components/TemplateManager.tsx:65
-msgid "Heading 3"
-msgstr "Heading 3"
+#: src/components/TemplateManager.tsx:64
+msgid "Heading 2"
+msgstr ""
 
 #: src/components/EditorView.tsx:319
-#: src/components/TemplateManager.tsx:66
-msgid "Heading 4"
-msgstr "Heading 4"
+#: src/components/TemplateManager.tsx:65
+msgid "Heading 3"
+msgstr ""
 
 #: src/components/EditorView.tsx:320
-#: src/components/TemplateManager.tsx:67
-msgid "Heading 5"
-msgstr "Heading 5"
+#: src/components/TemplateManager.tsx:66
+msgid "Heading 4"
+msgstr ""
 
 #: src/components/EditorView.tsx:321
+#: src/components/TemplateManager.tsx:67
+msgid "Heading 5"
+msgstr ""
+
+#: src/components/EditorView.tsx:322
 #: src/components/TemplateManager.tsx:68
 msgid "Heading 6"
-msgstr "Heading 6"
+msgstr ""
 
-#: src/components/EditorView.tsx:411
+#: src/components/EditorView.tsx:412
 msgid "Highlight"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:172
+#: src/components/FormatPanel.tsx:174
 msgid "Hold Shift to apply to children"
-msgstr "Hold Shift to apply to children"
+msgstr ""
 
-#: src/components/EditorView.tsx:333
+#. placeholder {0}: colorLabel(color)
+#: src/components/IconPickerPanel.tsx:49
+msgid "Icon color: {0}"
+msgstr ""
+
+#: src/components/EditorView.tsx:334
 #: src/components/TemplateManager.tsx:80
 msgid "Image"
-msgstr "Image"
+msgstr ""
 
 #: src/components/OutlineSwitcher.tsx:276
 msgid "Import from file (.olz)"
@@ -277,25 +291,25 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:37
 msgid "Indent"
-msgstr "Indent"
+msgstr ""
 
 #: src/utils/shortcuts.ts:62
 msgid "Insert date"
-msgstr "Insert date"
+msgstr ""
 
 #: src/utils/shortcuts.ts:64
 msgid "Insert date+time"
-msgstr "Insert date+time"
+msgstr ""
 
 #: src/utils/shortcuts.ts:63
 msgid "Insert time"
-msgstr "Insert time"
+msgstr ""
 
 #: src/utils/shortcuts.ts:69
 msgid "Italic"
-msgstr "Italic"
+msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:115
+#: src/components/KeyboardShortcuts.tsx:114
 msgid "Keyboard Shortcuts"
 msgstr ""
 
@@ -303,10 +317,10 @@ msgstr ""
 msgid "Keyboard Shortcuts (?)"
 msgstr ""
 
-#: src/components/EditorView.tsx:326
+#: src/components/EditorView.tsx:327
 #: src/components/TemplateManager.tsx:73
 msgid "List"
-msgstr "List"
+msgstr ""
 
 #: src/App.tsx:67
 #: src/App.tsx:160
@@ -319,19 +333,19 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:30
 msgid "Move down"
-msgstr "Move down"
+msgstr ""
 
 #: src/utils/shortcuts.ts:50
 msgid "Move node down"
-msgstr "Move node down"
+msgstr ""
 
 #: src/utils/shortcuts.ts:49
 msgid "Move node up"
-msgstr "Move node up"
+msgstr ""
 
 #: src/utils/shortcuts.ts:29
 msgid "Move up"
-msgstr "Move up"
+msgstr ""
 
 #: src/components/WelcomeScreen.tsx:23
 #: src/components/WelcomeScreen.tsx:95
@@ -342,7 +356,7 @@ msgstr ""
 msgid "Name your outline"
 msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:99
+#: src/components/KeyboardShortcuts.tsx:98
 msgid "Navigation"
 msgstr ""
 
@@ -358,11 +372,11 @@ msgstr ""
 msgid "No matches"
 msgstr ""
 
-#: src/components/OutlineView.tsx:452
+#: src/components/OutlineView.tsx:451
 msgid "No results for \"{filterText}\""
 msgstr ""
 
-#: src/components/FormatPanel.tsx:159
+#: src/components/FormatPanel.tsx:161
 msgid "None"
 msgstr ""
 
@@ -372,16 +386,16 @@ msgstr ""
 
 #: src/editor/calloutPlugin.ts:12
 msgid "Orange"
-msgstr "Orange"
+msgstr ""
 
-#: src/components/EditorView.tsx:328
+#: src/components/EditorView.tsx:329
 #: src/components/TemplateManager.tsx:75
 msgid "Ordered List"
-msgstr "Ordered List"
+msgstr ""
 
 #: src/utils/shortcuts.ts:44
 msgid "Outdent"
-msgstr "Outdent"
+msgstr ""
 
 #: src/components/WelcomeScreen.tsx:61
 msgid "Outlines"
@@ -389,46 +403,46 @@ msgstr ""
 
 #: src/utils/shortcuts.ts:59
 msgid "Paste"
-msgstr "Paste"
+msgstr ""
 
-#: src/components/EditorView.tsx:363
-#: src/components/EditorView.tsx:371
+#: src/components/EditorView.tsx:364
+#: src/components/EditorView.tsx:372
 #: src/components/TemplateManager.tsx:105
 #: src/components/TemplateManager.tsx:111
 msgid "Placeholder"
 msgstr ""
 
-#: src/components/EditorView.tsx:360
+#: src/components/EditorView.tsx:361
 #: src/components/TemplateManager.tsx:103
 msgid "Placeholders"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:129
+#: src/components/FormatPanel.tsx:131
 msgid "Presets"
 msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:191
+#: src/components/KeyboardShortcuts.tsx:190
 msgid "Press a key…"
 msgstr ""
 
 #: src/editor/calloutPlugin.ts:13
 msgid "Purple"
-msgstr "Purple"
+msgstr ""
 
-#: src/components/EditorView.tsx:322
+#: src/components/EditorView.tsx:323
 #: src/components/TemplateManager.tsx:69
 msgid "Quote"
-msgstr "Quote"
+msgstr ""
 
 #: src/utils/shortcuts.ts:66
 msgid "Redo"
-msgstr "Redo"
+msgstr ""
 
 #: src/App.tsx:121
 msgid "Refresh"
 msgstr ""
 
-#: src/components/IconPickerPanel.tsx:54
+#: src/components/IconPickerPanel.tsx:56
 msgid "REMOVE ICON"
 msgstr ""
 
@@ -437,31 +451,31 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:211
+#: src/components/KeyboardShortcuts.tsx:210
 msgid "Reset to default"
 msgstr ""
 
 #: src/components/ErrorBoundary.tsx:58
 msgid "Retry"
-msgstr "Retry"
+msgstr ""
 
 #: src/editor/calloutPlugin.ts:11
 msgid "Rose"
-msgstr "Rose"
+msgstr ""
 
 #: src/components/TemplateManager.tsx:153
 msgid "Save"
 msgstr ""
 
-#: src/components/EditorView.tsx:678
+#: src/components/EditorView.tsx:679
 msgid "Select a note to edit..."
 msgstr ""
 
-#: src/components/EditorView.tsx:756
+#: src/components/EditorView.tsx:757
 msgid "Show character count"
 msgstr ""
 
-#: src/components/EditorView.tsx:748
+#: src/components/EditorView.tsx:749
 msgid "Show word count"
 msgstr ""
 
@@ -482,15 +496,15 @@ msgstr ""
 msgid "Start locally"
 msgstr ""
 
-#: src/components/OutlineView.tsx:379
+#: src/components/OutlineView.tsx:378
 msgid "Start outlining"
 msgstr ""
 
 #: src/utils/shortcuts.ts:70
 msgid "Strikethrough"
-msgstr "Strikethrough"
+msgstr ""
 
-#: src/components/KeyboardShortcuts.tsx:100
+#: src/components/KeyboardShortcuts.tsx:99
 msgid "Structure"
 msgstr ""
 
@@ -506,7 +520,7 @@ msgstr ""
 msgid "Switch to Light Mode"
 msgstr ""
 
-#: src/components/EditorView.tsx:765
+#: src/components/EditorView.tsx:766
 msgid "Sync title style"
 msgstr ""
 
@@ -518,29 +532,34 @@ msgstr ""
 msgid "Syncing…"
 msgstr ""
 
-#: src/components/EditorView.tsx:335
+#: src/components/EditorView.tsx:336
 #: src/components/TemplateManager.tsx:82
 msgid "Table"
-msgstr "Table"
+msgstr ""
 
-#: src/components/EditorView.tsx:329
+#: src/components/EditorView.tsx:330
 #: src/components/TemplateManager.tsx:76
 msgid "Task List"
-msgstr "Task List"
+msgstr ""
 
-#: src/components/EditorView.tsx:383
+#: src/components/EditorView.tsx:384
 msgid "Templates"
 msgstr ""
 
-#: src/components/EditorView.tsx:314
 #: src/components/EditorView.tsx:315
+#: src/components/EditorView.tsx:316
 #: src/components/TemplateManager.tsx:61
 #: src/components/TemplateManager.tsx:62
 msgid "Text"
-msgstr "Text"
+msgstr ""
 
 #: src/components/FormatPanel.tsx:81
 msgid "Text Color"
+msgstr ""
+
+#. placeholder {0}: colorLabel(color)
+#: src/components/FormatPanel.tsx:96
+msgid "Text color: {0}"
 msgstr ""
 
 #: src/components/FormatPanel.tsx:40
@@ -549,27 +568,27 @@ msgstr ""
 
 #: src/components/ErrorBoundary.tsx:43
 msgid "The editor crashed — your data is safe."
-msgstr "The editor crashed — your data is safe."
+msgstr ""
 
 #: src/components/SplitLayout.tsx:120
 msgid "Toggle Layout"
 msgstr ""
 
-#: src/components/EditorView.tsx:293
+#: src/components/EditorView.tsx:294
 #: src/components/TemplateManager.tsx:57
 msgid "Type / to use the slash menu"
-msgstr "Type / to use the slash menu"
+msgstr ""
 
 #: src/utils/shortcuts.ts:65
 msgid "Undo"
-msgstr "Undo"
+msgstr ""
 
 #: src/components/Breadcrumbs.tsx:26
 #: src/components/NodeLinkSearch.tsx:31
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61
 #: src/components/OutlineSwitcher.tsx:153
-#: src/components/OutlineView.tsx:511
+#: src/components/OutlineView.tsx:510
 msgid "Untitled"
 msgstr ""
 
@@ -579,4 +598,4 @@ msgstr ""
 
 #: src/editor/calloutPlugin.ts:8
 msgid "Yellow"
-msgstr "Yellow"
+msgstr ""

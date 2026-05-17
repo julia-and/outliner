@@ -1,8 +1,9 @@
 import { Trans } from "@lingui/react/macro"
+import { t } from "@lingui/core/macro"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import { ICON_NAMES } from "../utils/iconMap"
-import { COLOR_PALETTE } from "../utils/palette"
+import { colorLabel, COLOR_PALETTE } from "../utils/palette"
 import { NodeIcon } from "./NodeIcon"
 import styles from "./IconPickerPanel.module.css"
 
@@ -45,7 +46,8 @@ export const IconPickerPanel = ({
             })}
             style={{ background: color }}
             onClick={() => onSelectColor(color)}
-            title={color}
+            aria-label={t`Icon color: ${colorLabel(color)}`}
+            title={colorLabel(color)}
           />
         ))}
       </div>
