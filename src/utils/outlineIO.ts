@@ -163,7 +163,7 @@ export async function importOutlineFromZip(
     const newNodeId = idMap.get(oldNodeId)
     if (!newNodeId) continue
 
-    await db.nodeContents.put({ nodeId: newNodeId } as any)
+    await db.nodeContents.put({ nodeId: newNodeId })
     const row = await db.nodeContents.get(newNodeId)
     if (!row?.content) continue
 

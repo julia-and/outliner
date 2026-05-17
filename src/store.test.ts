@@ -1,7 +1,7 @@
 // Must be the very first import to install fake IndexedDB before Dexie loads.
 import "fake-indexeddb/auto"
 
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import * as Y from "yjs"
 
 // ---------------------------------------------------------------------------

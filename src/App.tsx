@@ -182,7 +182,8 @@ const OutlineWorkspace = ({
   onSelectOutline: (id: string) => void
 }) => {
   const isNewRef = useRef(consumeIsJustCreated(outlineId))
-  const templates = useLiveQuery(() => db.templates.orderBy("createdAt").toArray(), []) ?? []
+  const templatesData = useLiveQuery(() => db.templates.orderBy("createdAt").toArray(), [])
+  const templates = useMemo(() => templatesData ?? [], [templatesData])
   const templatesById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates])
   const getTemplateContent = useCallback((id: string) => templatesById.get(id)?.content, [templatesById])
   const getTemplates = useCallback(() => templates, [templates])

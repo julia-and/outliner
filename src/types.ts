@@ -17,7 +17,7 @@ export interface NodeYRecord {
   order: number
   collapsed: boolean
   style: NodeStyle
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 // View model (flattened, passed to React)
@@ -29,7 +29,7 @@ export interface OutletNode {
   style: NodeStyle
   collapsed: boolean
   hasChildren: boolean
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 export interface OutlineRow {
