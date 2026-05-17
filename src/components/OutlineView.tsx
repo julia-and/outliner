@@ -222,8 +222,9 @@ export const OutlineView = ({
       window.removeEventListener("pointerup", handleUp)
       window.removeEventListener("keydown", handleKeyDown)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragState?.draggingId])
+    // outlineDoc is stable while a drag is in progress, so adding it to
+    // deps doesn't cause listener churn.
+  }, [dragState?.draggingId, outlineDoc])
 
   // Drag: auto-scroll
   useEffect(() => {
