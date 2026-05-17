@@ -89,7 +89,9 @@ function loadOptions(): EditorOptions {
   try {
     const stored = localStorage.getItem(OPTIONS_KEY)
     if (stored) return { ...DEFAULT_OPTIONS, ...JSON.parse(stored) }
-  } catch {}
+  } catch {
+    // fall through to defaults if storage is unavailable or JSON is corrupt
+  }
   return DEFAULT_OPTIONS
 }
 
@@ -284,7 +286,6 @@ const LoadedEditor = ({
   useEditor((root) => {
     const crepe = new Crepe({
       root,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       featureConfigs: {
         [CrepeFeature.CodeMirror]: {
           theme: appCodeMirrorTheme,
@@ -580,7 +581,7 @@ const Editor = ({
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    if (nodeId) db.nodeContents.add({ nodeId } as any).catch(() => {})
+    if (nodeId) db.nodeContents.add({ nodeId }).catch(() => {})
   }, [nodeId])
 
   useEffect(() => {

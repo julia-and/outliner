@@ -81,7 +81,7 @@ describe("matchesBinding", () => {
   it("matches combined modifiers", () => {
     const binding: KeyBinding = { key: "z", cmd: true, shift: true }
     // On non-Mac environments, cmd maps to ctrlKey
-    const event = makeEvent("z", { ctrlKey: true, shiftKey: true })
+    const _event = makeEvent("z", { ctrlKey: true, shiftKey: true })
     // Result depends on isMac constant — just verify the function doesn't throw
     // and that wrong keys definitely fail
     expect(matchesBinding(makeEvent("x", { ctrlKey: true, shiftKey: true }), binding)).toBe(false)

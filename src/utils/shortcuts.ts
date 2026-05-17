@@ -118,7 +118,9 @@ export function setBinding(id: string, binding: KeyBinding): void {
     const overrides = getStoredOverrides()
     overrides[id] = binding
     localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
-  } catch {}
+  } catch {
+    // localStorage may be unavailable; binding overrides simply won't persist
+  }
 }
 
 export function resetBinding(id: string): void {
@@ -126,7 +128,9 @@ export function resetBinding(id: string): void {
     const overrides = getStoredOverrides()
     delete overrides[id]
     localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
-  } catch {}
+  } catch {
+    // localStorage may be unavailable; binding overrides simply won't persist
+  }
 }
 
 export function findConflict(

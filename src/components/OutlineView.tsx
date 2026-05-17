@@ -251,7 +251,6 @@ export const OutlineView = ({
     }
     rafId = requestAnimationFrame(scroll)
     return () => cancelAnimationFrame(rafId)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState?.draggingId])
 
   const contextMenuVirtualRef: VirtualElement = {
