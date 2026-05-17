@@ -1,33 +1,27 @@
-import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from "react"
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+  useSyncExternalStore,
+} from "react"
 import * as Y from "yjs"
 import {
-  addSibling,
-  addRootSibling,
-  addChild,
-  toggleCollapse,
-  deleteNode,
-  moveNode,
-  indentNode,
-  outdentNode,
   updateTitle as storeUpdateTitle,
-  updateStyle,
   getActiveNodeId,
   setActiveNodeId,
   pasteSubtree,
   createNode,
   getNodesMap,
 } from "../store"
-import { getBindings, matchesBinding } from "../utils/shortcuts"
-import { currentDateString, currentTimeString } from "../utils/dateTime"
 import { NodeYRecord, OutletNode } from "../types"
-import {
-  buildClipboardPayload,
-  payloadToHtml,
-  payloadToPlainText,
-  parseClipboard,
-} from "../utils/clipboard"
+import { parseClipboard } from "../utils/clipboard"
+import { dispatchOutlineKey, OutlineKeyContext } from "./outlineKeyboard"
 
-function flattenVisibleNodes(nodesSnapshot: Map<string, NodeYRecord>): OutletNode[] {
+function flattenVisibleNodes(
+  nodesSnapshot: Map<string, NodeYRecord>,
+): OutletNode[] {
   const result: OutletNode[] = []
 
   const childMap = new Map<string | null, [string, NodeYRecord][]>()
@@ -53,7 +47,8 @@ function flattenVisibleNodes(nodesSnapshot: Map<string, NodeYRecord>): OutletNod
       data: node.data || {},
     })
     if (!node.collapsed) {
-      for (const [childId, childNode] of children) visit(childId, childNode, depth + 1)
+      for (const [childId, childNode] of children)
+        visit(childId, childNode, depth + 1)
     }
   }
 
@@ -63,21 +58,32 @@ function flattenVisibleNodes(nodesSnapshot: Map<string, NodeYRecord>): OutletNod
   return result
 }
 
-function useNodesSnapshot(nodesMap: Y.Map<NodeYRecord>): Map<string, NodeYRecord> {
-  const cacheRef = useRef<{ map: Y.Map<NodeYRecord>; snapshot: Map<string, NodeYRecord> }>({
+function useNodesSnapshot(
+  nodesMap: Y.Map<NodeYRecord>,
+): Map<string, NodeYRecord> {
+  const cacheRef = useRef<{
+    map: Y.Map<NodeYRecord>
+    snapshot: Map<string, NodeYRecord>
+  }>({
     map: nodesMap,
     snapshot: new Map(nodesMap.entries()),
   })
 
   // Synchronously update cache if nodesMap changed (outline switch)
   if (cacheRef.current.map !== nodesMap) {
-    cacheRef.current = { map: nodesMap, snapshot: new Map(nodesMap.entries()) }
+    cacheRef.current = {
+      map: nodesMap,
+      snapshot: new Map(nodesMap.entries()),
+    }
   }
 
   const subscribe = useCallback(
     (cb: () => void) => {
       const handler = () => {
-        cacheRef.current = { ...cacheRef.current, snapshot: new Map(nodesMap.entries()) }
+        cacheRef.current = {
+          ...cacheRef.current,
+          snapshot: new Map(nodesMap.entries()),
+        }
         cb()
       }
       nodesMap.observeDeep(handler)
@@ -86,10 +92,21 @@ function useNodesSnapshot(nodesMap: Y.Map<NodeYRecord>): Map<string, NodeYRecord
     [nodesMap],
   )
 
-  // Stable getter — always returns the cached snapshot reference
   const getSnapshot = useCallback(() => cacheRef.current.snapshot, [])
 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+}
+
+// Snapshot of everything the keyboard dispatch and other handlers need to
+// read synchronously. Updated in render so every handler always sees the
+// latest state without scheduling.
+interface LiveState {
+  activeId: string | null
+  mode: "nav" | "insert"
+  nodes: OutletNode[]
+  nodeMap: Map<string, NodeYRecord>
+  getTemplateContent?: (id: string) => string | undefined
+  onFocusEditor?: () => void
 }
 
 export function useOutline(
@@ -101,18 +118,9 @@ export function useOutline(
   const [activeId, setActiveId] = useState<string | null>(getActiveNodeId)
   const [mode, setMode] = useState<"nav" | "insert">("nav")
 
-  const activeIdRef = useRef(activeId)
-  const modeRef = useRef(mode)
+  // originalTitle is plain mutable state (not React state) — handlers read
+  // and write it directly, no re-render needed.
   const originalTitleRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    activeIdRef.current = activeId
-    setActiveNodeId(activeId)
-  }, [activeId])
-
-  useEffect(() => {
-    modeRef.current = mode
-  }, [mode])
 
   const nodesMap = useMemo(() => getNodesMap(outlineDoc), [outlineDoc])
   const undoManager = useMemo(
@@ -121,38 +129,49 @@ export function useOutline(
   )
 
   const nodesSnapshot = useNodesSnapshot(nodesMap)
-  const nodes = useMemo(() => flattenVisibleNodes(nodesSnapshot), [nodesSnapshot])
-  const nodeMap = nodesSnapshot
+  const nodes = useMemo(
+    () => flattenVisibleNodes(nodesSnapshot),
+    [nodesSnapshot],
+  )
 
-  const nodesRef = useRef(nodes)
+  // Single liveRef for handlers to read. Assigned in render so it always
+  // reflects the latest render's state without needing a useEffect chain.
+  const liveRef = useRef<LiveState>({
+    activeId,
+    mode,
+    nodes,
+    nodeMap: nodesSnapshot,
+    getTemplateContent,
+    onFocusEditor,
+  })
+  liveRef.current = {
+    activeId,
+    mode,
+    nodes,
+    nodeMap: nodesSnapshot,
+    getTemplateContent,
+    onFocusEditor,
+  }
+
   useEffect(() => {
-    nodesRef.current = nodes
-  }, [nodes])
-
-  const nodesSnapshotRef = useRef(nodesSnapshot)
-  useEffect(() => {
-    nodesSnapshotRef.current = nodesSnapshot
-  }, [nodesSnapshot])
-
-  const getTemplateContentRef = useRef(getTemplateContent)
-  getTemplateContentRef.current = getTemplateContent
-
-  const onFocusEditorRef = useRef(onFocusEditor)
-  onFocusEditorRef.current = onFocusEditor
+    setActiveNodeId(activeId)
+  }, [activeId])
 
   // Auto-init empty outline: only seed for outlines created in this session.
-  // Read nodesMap.size directly (not the React snapshot) so StrictMode's double-fire
-  // sees the node added by the first invocation and skips the second.
+  // Read nodesMap.size directly (not the React snapshot) so StrictMode's
+  // double-fire sees the node added by the first invocation and skips the
+  // second.
   useEffect(() => {
     if (isNew && nodesMap.size === 0) {
       createNode(outlineDoc, null, "Welcome to Outline")
     }
   }, [outlineDoc, isNew, nodesMap])
 
-  // Auto-select: restore persisted selection if still valid, else fall back to first node
+  // Auto-select: restore persisted selection if still valid, else fall back
+  // to first node.
   useEffect(() => {
     if (nodes.length === 0) return
-    const current = activeIdRef.current
+    const current = liveRef.current.activeId
     if (current && nodes.some((n) => n.id === current)) return
     setActiveId(nodes[0].id)
   }, [nodes])
@@ -163,8 +182,8 @@ export function useOutline(
 
   const handleSetMode = useCallback((m: "nav" | "insert", forId?: string) => {
     if (m === "insert") {
-      const id = forId ?? activeIdRef.current
-      const node = nodesRef.current.find((n) => n.id === id)
+      const id = forId ?? liveRef.current.activeId
+      const node = liveRef.current.nodes.find((n) => n.id === id)
       originalTitleRef.current = node ? node.title : ""
     } else {
       originalTitleRef.current = null
@@ -179,262 +198,45 @@ export function useOutline(
     [outlineDoc],
   )
 
-  const handleUndo = useCallback(() => {
-    undoManager.undo()
-  }, [undoManager])
-
-  const handleRedo = useCallback(() => {
-    undoManager.redo()
-  }, [undoManager])
+  const handleUndo = useCallback(() => undoManager.undo(), [undoManager])
+  const handleRedo = useCallback(() => undoManager.redo(), [undoManager])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
-      const bindings = getBindings()
-      const m = (id: string) => matchesBinding(e, bindings[id])
-
-      const currentNodes = nodesRef.current
-      const currentActiveId = activeIdRef.current
-      const currentMode = modeRef.current
-      const idx = currentNodes.findIndex((n) => n.id === currentActiveId)
-
-      if (currentMode === "insert") {
-        const dateText = m("insert.date") ? currentDateString()
-          : m("insert.time") ? currentTimeString()
-          : m("insert.datetime") ? `${currentDateString()} ${currentTimeString()}`
-          : null
-        if (dateText && currentActiveId) {
-          e.preventDefault()
-          const input = document.activeElement as HTMLInputElement
-          const start = input.selectionStart ?? input.value.length
-          const end = input.selectionEnd ?? input.value.length
-          const newValue = input.value.slice(0, start) + dateText + input.value.slice(end)
-          storeUpdateTitle(outlineDoc, currentActiveId, newValue)
-          requestAnimationFrame(() => input.setSelectionRange(start + dateText.length, start + dateText.length))
-          return
-        }
-
-        if (m("insert.cancel")) {
-          e.preventDefault()
-          if (currentActiveId && originalTitleRef.current !== null) {
-            storeUpdateTitle(outlineDoc, currentActiveId, originalTitleRef.current)
-          }
-          handleSetMode("nav")
-        } else if (m("insert.confirm")) {
-          e.preventDefault()
-          handleSetMode("nav")
-        }
-        return
+      const live = liveRef.current
+      const idx = live.nodes.findIndex((n) => n.id === live.activeId)
+      const ctx: OutlineKeyContext = {
+        e,
+        doc: outlineDoc,
+        nodes: live.nodes,
+        nodeMap: live.nodeMap,
+        activeId: live.activeId,
+        idx,
+        setActive: handleSetActive,
+        setMode: handleSetMode,
+        undo: handleUndo,
+        redo: handleRedo,
+        focusEditor: live.onFocusEditor,
+        getTemplateContent: live.getTemplateContent,
+        originalTitleRef,
       }
-
-      if (currentMode === "nav") {
-        const node = currentNodes[idx]
-
-        // Tab is a hardcoded alias for indent/outdent
-        if (e.key === "Tab") {
-          e.preventDefault()
-          if (currentActiveId) {
-            if (e.shiftKey) outdentNode(outlineDoc, currentActiveId)
-            else indentNode(outlineDoc, currentActiveId)
-          }
-          return
-        }
-
-        if (m("node.undo")) {
-          e.preventDefault()
-          handleUndo()
-          return
-        }
-        if (m("node.redo")) {
-          e.preventDefault()
-          handleRedo()
-          return
-        }
-
-        if (m("node.move-up")) {
-          e.preventDefault()
-          if (currentActiveId) moveNode(outlineDoc, currentActiveId, "up")
-          return
-        }
-        if (m("node.move-down")) {
-          e.preventDefault()
-          if (currentActiveId) moveNode(outlineDoc, currentActiveId, "down")
-          return
-        }
-        if (m("node.indent")) {
-          e.preventDefault()
-          if (currentActiveId) indentNode(outlineDoc, currentActiveId)
-          return
-        }
-        if (m("node.outdent")) {
-          e.preventDefault()
-          if (currentActiveId) outdentNode(outlineDoc, currentActiveId)
-          return
-        }
-
-        if (m("node.add-root")) {
-          e.preventDefault()
-          if (currentActiveId) {
-            const newId = addRootSibling(outlineDoc, currentActiveId)
-            handleSetActive(newId)
-            handleSetMode("insert", newId)
-          }
-          return
-        }
-        if (m("node.add-child")) {
-          e.preventDefault()
-          if (currentActiveId) {
-            const parentNode = nodesSnapshotRef.current.get(currentActiveId)
-            const templateId = parentNode?.data?.defaultChildTemplateId as string | undefined
-            const templateContent = templateId ? getTemplateContentRef.current?.(templateId) : undefined
-            const newId = addChild(outlineDoc, currentActiveId, templateContent)
-            handleSetActive(newId)
-            handleSetMode("insert", newId)
-          }
-          return
-        }
-        if (m("node.add-sibling")) {
-          e.preventDefault()
-          if (currentActiveId) {
-            const newId = addSibling(outlineDoc, currentActiveId)
-            handleSetActive(newId)
-            handleSetMode("insert", newId)
-          }
-          return
-        }
-
-        if (m("node.copy") || m("node.cut")) {
-          e.preventDefault()
-          if (!currentActiveId) return
-          const payload = buildClipboardPayload(currentActiveId, nodesSnapshotRef.current)
-          navigator.clipboard
-            .write([
-              new ClipboardItem({
-                "text/html": new Blob([payloadToHtml(payload)], { type: "text/html" }),
-                "text/plain": new Blob([payloadToPlainText(payload)], { type: "text/plain" }),
-              }),
-            ])
-            .catch(() => {
-              const ta = document.createElement("textarea")
-              ta.value = payloadToPlainText(payload)
-              document.body.appendChild(ta)
-              ta.select()
-              document.execCommand("copy")
-              document.body.removeChild(ta)
-            })
-          if (m("node.cut")) {
-            let nextId: string | null = null
-            const nodeToDelete = currentNodes[idx]
-            if (idx > 0) {
-              nextId = currentNodes[idx - 1].id
-            } else if (idx < currentNodes.length - 1) {
-              const found = currentNodes
-                .slice(idx + 1)
-                .find((n) => n.depth <= nodeToDelete.depth)
-              if (found) nextId = found.id
-            }
-            const idToDelete = currentActiveId
-            if (nextId) handleSetActive(nextId)
-            deleteNode(outlineDoc, idToDelete)
-          }
-          return
-        }
-        if (m("node.paste")) {
-          return
-        }
-
-        const tryToggleFormat = (
-          shortcutId: string,
-          styleKey: "bold" | "italic" | "strikethrough",
-        ): boolean => {
-          if (!m(shortcutId)) return false
-          e.preventDefault()
-          if (!currentActiveId) return true
-          const record = nodesSnapshotRef.current.get(currentActiveId)
-          if (!record) return true
-          updateStyle(outlineDoc, currentActiveId, {
-            [styleKey]: !record.style?.[styleKey],
-          })
-          return true
-        }
-        if (tryToggleFormat("format.bold", "bold")) return
-        if (tryToggleFormat("format.italic", "italic")) return
-        if (tryToggleFormat("format.strikethrough", "strikethrough")) return
-
-        if (m("nav.up")) {
-          e.preventDefault()
-          if (idx > 0) handleSetActive(currentNodes[idx - 1].id)
-          return
-        }
-        if (m("nav.down")) {
-          e.preventDefault()
-          if (idx < currentNodes.length - 1) handleSetActive(currentNodes[idx + 1].id)
-          return
-        }
-        if (m("nav.expand")) {
-          e.preventDefault()
-          if (node?.hasChildren && node.collapsed) toggleCollapse(outlineDoc, node.id)
-          return
-        }
-        if (m("nav.collapse")) {
-          e.preventDefault()
-          if (node?.hasChildren && !node.collapsed) {
-            toggleCollapse(outlineDoc, node.id)
-          } else {
-            for (let i = idx - 1; i >= 0; i--) {
-              if (currentNodes[i].depth < node.depth) {
-                handleSetActive(currentNodes[i].id)
-                break
-              }
-            }
-          }
-          return
-        }
-        if (m("nav.focus-editor")) {
-          e.preventDefault()
-          onFocusEditorRef.current?.()
-          return
-        }
-        if (m("node.edit")) {
-          e.preventDefault()
-          handleSetMode("insert")
-          return
-        }
-        if (m("node.delete")) {
-          e.preventDefault()
-          if (currentActiveId) {
-            let nextId: string | null = null
-            const nodeToDelete = currentNodes[idx]
-            if (idx > 0) {
-              nextId = currentNodes[idx - 1].id
-            } else if (idx < currentNodes.length - 1) {
-              const found = currentNodes
-                .slice(idx + 1)
-                .find((n) => n.depth <= nodeToDelete.depth)
-              if (found) nextId = found.id
-            }
-            const idToDelete = currentActiveId
-            if (nextId) handleSetActive(nextId)
-            deleteNode(outlineDoc, idToDelete)
-          }
-          return
-        }
-      }
+      dispatchOutlineKey(ctx, live.mode)
     },
     [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
   )
 
   const handlePasteEvent = useCallback(
     async (e: React.ClipboardEvent) => {
-      const currentActiveId = activeIdRef.current
-      if (!currentActiveId) return
+      const live = liveRef.current
+      if (!live.activeId) return
       e.preventDefault()
       const html = e.clipboardData.getData("text/html") || null
       const plain = e.clipboardData.getData("text/plain") || null
       const payload = parseClipboard(html, plain)
       if (payload.nodes.length === 0) return
-      const node = nodesSnapshotRef.current.get(currentActiveId)
+      const node = live.nodeMap.get(live.activeId)
       const parentId = node?.parentId ?? null
-      const newIds = pasteSubtree(outlineDoc, payload, parentId, currentActiveId)
+      const newIds = pasteSubtree(outlineDoc, payload, parentId, live.activeId)
       if (newIds.length > 0) handleSetActive(newIds[0])
     },
     [outlineDoc, handleSetActive],
@@ -442,7 +244,7 @@ export function useOutline(
 
   return {
     nodes,
-    nodeMap,
+    nodeMap: nodesSnapshot,
     activeId,
     mode,
     setActiveId: handleSetActive,

@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro"
 import classNames from "classnames"
 import { NodeStyle } from "../types"
 import { TemplateRow } from "../store"
-import { COLOR_PALETTE, PRESETS } from "../utils/palette"
+import { colorLabel, COLOR_PALETTE, PRESETS } from "../utils/palette"
 import styles from "./FormatPanel.module.css"
 
 interface FormatPanelProps {
@@ -93,7 +93,8 @@ export const FormatPanel = ({
                   e.shiftKey,
                 )
               }
-              title={color}
+              aria-label={t`Text color: ${colorLabel(color)}`}
+              title={colorLabel(color)}
             />
           ))}
         </div>
@@ -117,7 +118,8 @@ export const FormatPanel = ({
                   e.shiftKey,
                 )
               }
-              title={color}
+              aria-label={t`Background color: ${colorLabel(color)}`}
+              title={colorLabel(color)}
             />
           ))}
         </div>
@@ -157,9 +159,9 @@ export const FormatPanel = ({
               }
             >
               <option value="">{t`None`}</option>
-              {(templates ?? []).map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+              {(templates ?? []).map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
                 </option>
               ))}
             </select>

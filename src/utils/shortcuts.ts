@@ -2,7 +2,7 @@ import React from "react"
 import { msg } from "@lingui/core/macro"
 import type { MessageDescriptor } from "@lingui/core"
 
-const isMac =
+export const IS_MAC =
   typeof navigator !== "undefined" &&
   navigator.platform.toUpperCase().includes("MAC")
 
@@ -159,7 +159,7 @@ export function matchesBinding(
   binding: KeyBinding,
 ): boolean {
   if (e.key !== binding.key) return false
-  const cmd = isMac ? e.metaKey : e.ctrlKey
+  const cmd = IS_MAC ? e.metaKey : e.ctrlKey
   if (!!binding.cmd !== cmd) return false
   if (!!binding.shift !== e.shiftKey) return false
   if (!!binding.alt !== e.altKey) return false
@@ -168,9 +168,9 @@ export function matchesBinding(
 
 export function formatBinding(binding: KeyBinding): string {
   const parts: string[] = []
-  if (binding.cmd) parts.push(isMac ? "⌘" : "Ctrl")
-  if (binding.shift) parts.push(isMac ? "⇧" : "Shift")
-  if (binding.alt) parts.push(isMac ? "⌥" : "Alt")
+  if (binding.cmd) parts.push(IS_MAC ? "⌘" : "Ctrl")
+  if (binding.shift) parts.push(IS_MAC ? "⇧" : "Shift")
+  if (binding.alt) parts.push(IS_MAC ? "⌥" : "Alt")
   parts.push(formatKey(binding.key))
   return parts.join(" ")
 }
