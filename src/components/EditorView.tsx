@@ -11,6 +11,7 @@ import {
 } from "@milkdown/react"
 import "@milkdown/crepe/theme/common/style.css"
 import { collabServiceCtx } from "@milkdown/plugin-collab"
+import { getMarkdown } from "@milkdown/utils"
 import { useLiveQuery } from "dexie-react-hooks"
 import { DexieYProvider } from "y-dexie"
 import type { NodeType } from "@milkdown/prose/model"
@@ -20,12 +21,13 @@ import {
   TemplateRow,
   consumePendingNodeContent,
   clearPendingContent,
+  touchNode,
 } from "../store"
 import { preCacheImagesFromText, revokeAll } from "../utils/imageStore"
 import { TriggerInfo } from "../editor/nodeLinkPlugin"
 import { CalloutPickerInfo } from "../editor/calloutPlugin"
 import { resolveAutoPlaceholders } from "../utils/dateTime"
-import { buildCrepeEditor } from "../editor/crepeConfig"
+import { buildCrepeEditor, countWordsAndChars } from "../editor/crepeConfig"
 import { useImageCacheRefresh } from "../editor/imageCacheRefresh"
 import { NodeLinkSearch } from "./NodeLinkSearch"
 import { CalloutColorPicker } from "./CalloutColorPicker"
@@ -142,7 +144,17 @@ const LoadedEditor = ({
       }
       service.connect()
     })
+    // markdownUpdated fires only on user edits, not on the initial collab
+    // sync — seed the word/char counts once the loaded content is in the
+    // view (next frame, after y-sync has rendered the Y.Doc into ProseMirror).
+    const seedCounts = requestAnimationFrame(() => {
+      get().action((ctx) => {
+        const { words, chars } = countWordsAndChars(getMarkdown()(ctx))
+        onCountsChange(words, chars)
+      })
+    })
     return () => {
+      cancelAnimationFrame(seedCounts)
       if (loading) return
       get().action((ctx) => {
         ctx.get(collabServiceCtx).disconnect()
@@ -278,6 +290,35 @@ const Editor = ({
       revokeAll()
     }
   }, [doc])
+
+  // Advance the node's modifiedAt when its markdown content changes locally.
+  // Debounced so a burst of keystrokes produces one outline-doc write; a
+  // pending bump is flushed on unmount so quick navigation isn't lost.
+  useEffect(() => {
+    if (!doc || !outlineDoc) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const handler = (
+      _update: Uint8Array,
+      _origin: unknown,
+      _doc: Y.Doc,
+      tr: Y.Transaction,
+    ) => {
+      if (!tr.local) return
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = undefined
+        touchNode(outlineDoc, nodeId)
+      }, 800)
+    }
+    doc.on("update", handler)
+    return () => {
+      doc.off("update", handler)
+      if (timer !== undefined) {
+        clearTimeout(timer)
+        touchNode(outlineDoc, nodeId)
+      }
+    }
+  }, [doc, outlineDoc, nodeId])
 
   if (!loaded || !row) return null
   return (

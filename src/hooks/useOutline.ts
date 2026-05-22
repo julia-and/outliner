@@ -230,6 +230,9 @@ export function useOutline(
     async (e: React.ClipboardEvent) => {
       const live = liveRef.current
       if (!live.activeId) return
+      // In insert mode the row's <input> is focused — let the browser paste
+      // text into the field instead of creating new outline items.
+      if (live.mode === "insert") return
       e.preventDefault()
       const html = e.clipboardData.getData("text/html") || null
       const plain = e.clipboardData.getData("text/plain") || null
