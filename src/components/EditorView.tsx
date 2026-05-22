@@ -41,6 +41,7 @@ import "./EditorView.css"
 const LoadedEditor = ({
   doc,
   onCountsChange,
+  onSelectionCountsChange,
   spellcheck,
   autocorrect,
   getTemplates,
@@ -50,6 +51,7 @@ const LoadedEditor = ({
 }: {
   doc: Y.Doc
   onCountsChange: (words: number, chars: number) => void
+  onSelectionCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
@@ -203,6 +205,7 @@ const LoadedEditor = ({
         onNavigateRef,
         onCalloutPickerRef,
         onCountsChange,
+        onSelectionChange: onSelectionCountsChange,
       }),
     [],
   )
@@ -231,6 +234,7 @@ const LoadedEditor = ({
 const Editor = ({
   nodeId,
   onCountsChange,
+  onSelectionCountsChange,
   spellcheck,
   autocorrect,
   getTemplates,
@@ -241,6 +245,7 @@ const Editor = ({
 }: {
   nodeId: string
   onCountsChange: (words: number, chars: number) => void
+  onSelectionCountsChange: (words: number, chars: number) => void
   spellcheck: boolean
   autocorrect: boolean
   getTemplates?: () => TemplateRow[]
@@ -326,6 +331,7 @@ const Editor = ({
       <LoadedEditor
         doc={doc!}
         onCountsChange={onCountsChange}
+        onSelectionCountsChange={onSelectionCountsChange}
         spellcheck={spellcheck}
         autocorrect={autocorrect}
         getTemplates={getTemplates}
@@ -364,6 +370,8 @@ export const EditorView = ({
 }: EditorViewProps) => {
   const [words, setWords] = useState(0)
   const [chars, setChars] = useState(0)
+  const [selWords, setSelWords] = useState(0)
+  const [selChars, setSelChars] = useState(0)
   const [options, setOption] = useEditorOptions()
 
   const { i18n } = useLingui()
@@ -372,6 +380,13 @@ export const EditorView = ({
     setWords(w)
     setChars(c)
   }, [])
+
+  const handleSelectionCountsChange = useCallback((w: number, c: number) => {
+    setSelWords(w)
+    setSelChars(c)
+  }, [])
+
+  const hasSelection = selWords > 0 || selChars > 0
 
   if (!activeId || !activeNode) {
     return (
@@ -405,6 +420,7 @@ export const EditorView = ({
           key={`${activeId}-${i18n.locale}`}
           nodeId={activeId}
           onCountsChange={handleCountsChange}
+          onSelectionCountsChange={handleSelectionCountsChange}
           spellcheck={options.spellcheck}
           autocorrect={options.autocorrect}
           getTemplates={getTemplates}
@@ -419,11 +435,31 @@ export const EditorView = ({
       <div className="editor-footer">
         <div className="editor-footer-counts">
           {options.showWords && (
-            <span>{plural(words, { one: "# word", other: "# words" })}</span>
+            <span>
+              {plural(words, { one: "# word", other: "# words" })}
+              {hasSelection && (
+                <span className="editor-footer-selected">
+                  {" · "}
+                  {plural(selWords, {
+                    one: "# word selected",
+                    other: "# words selected",
+                  })}
+                </span>
+              )}
+            </span>
           )}
           {options.showChars && (
             <span>
               {plural(chars, { one: "# character", other: "# characters" })}
+              {hasSelection && (
+                <span className="editor-footer-selected">
+                  {" · "}
+                  {plural(selChars, {
+                    one: "# character selected",
+                    other: "# characters selected",
+                  })}
+                </span>
+              )}
             </span>
           )}
         </div>

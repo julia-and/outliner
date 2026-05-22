@@ -91,6 +91,10 @@
   gap: 16px;
 }
 
+.editor-footer-selected {
+  color: var(--text-primary);
+}
+
 .editor-footer-btn {
   display: flex;
   align-items: center;
