@@ -81,6 +81,7 @@ export interface CrepeBuildOptions {
     (info: CalloutPickerInfo | null) => void
   >
   onCountsChange: (words: number, chars: number) => void
+  onSelectionChange: (words: number, chars: number) => void
 }
 
 export function buildCrepeEditor(opts: CrepeBuildOptions): Crepe {
@@ -93,6 +94,7 @@ export function buildCrepeEditor(opts: CrepeBuildOptions): Crepe {
     onNavigateRef,
     onCalloutPickerRef,
     onCountsChange,
+    onSelectionChange,
   } = opts
 
   const crepe = new Crepe({
@@ -327,12 +329,39 @@ export function buildCrepeEditor(opts: CrepeBuildOptions): Crepe {
       }),
   )
 
+  // Reports word/char counts of the current text selection (0/0 when the
+  // selection is collapsed). markdownUpdated only fires on doc edits, so
+  // selection tracking needs its own view-update hook.
+  const selectionCountPlugin = $prose(() => {
+    let prevWords = -1
+    let prevChars = -1
+    return new Plugin({
+      view: () => ({
+        update: (view) => {
+          const { from, to } = view.state.selection
+          const text =
+            from === to
+              ? ""
+              : view.state.doc.textBetween(from, to, "\n", " ")
+          const { words, chars } = text
+            ? countWordsAndChars(text)
+            : { words: 0, chars: 0 }
+          if (words === prevWords && chars === prevChars) return
+          prevWords = words
+          prevChars = chars
+          onSelectionChange(words, chars)
+        },
+      }),
+    })
+  })
+
   crepe.editor.use([
     ...nodeLinkPlugins,
     ...highlightPlugins,
     ...calloutPlugins,
     ...placeholderPlugins,
     dateTimePlugin,
+    selectionCountPlugin,
   ])
   crepe.editor.use(collab)
 
