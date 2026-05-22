@@ -42,6 +42,7 @@ export function createNode(
   const siblings = getSortedSiblings(nodesMap, parentId)
   const lastSibling = siblings.at(-1)
   const nodeOrder = order ?? (lastSibling ? lastSibling[1].order + 1 : 0)
+  const now = Date.now()
   nodesMap.set(newId, {
     parentId,
     title,
@@ -49,6 +50,8 @@ export function createNode(
     collapsed: false,
     style: {},
     data: {},
+    createdAt: now,
+    modifiedAt: now,
   })
   // Ensure nodeContents entry exists for the editor (fire-and-forget)
   db.nodeContents.put({ nodeId: newId }).catch(console.error)
@@ -180,7 +183,16 @@ export function outdentNode(doc: Y.Doc, id: string): void {
 export function updateTitle(doc: Y.Doc, id: string, title: string): void {
   const nodesMap = getNodesMap(doc)
   const node = nodesMap.get(id)
-  if (node) nodesMap.set(id, { ...node, title })
+  if (node) nodesMap.set(id, { ...node, title, modifiedAt: Date.now() })
+}
+
+// Advance a node's modifiedAt. Call after any user edit to the node that
+// isn't already routed through updateTitle/updateStyle — e.g. its markdown
+// content changing.
+export function touchNode(doc: Y.Doc, id: string): void {
+  const nodesMap = getNodesMap(doc)
+  const node = nodesMap.get(id)
+  if (node) nodesMap.set(id, { ...node, modifiedAt: Date.now() })
 }
 
 export function toggleCollapse(doc: Y.Doc, id: string): void {

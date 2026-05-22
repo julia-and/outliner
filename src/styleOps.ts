@@ -23,7 +23,11 @@ export function updateStyle(
   const nodesMap = getNodesMap(doc)
   const node = nodesMap.get(id)
   if (!node) return
-  nodesMap.set(id, { ...node, style: mergeStyle(node.style, style) })
+  nodesMap.set(id, {
+    ...node,
+    style: mergeStyle(node.style, style),
+    modifiedAt: Date.now(),
+  })
 }
 
 export function updateStyleRecursive(
@@ -38,11 +42,16 @@ export function updateStyleRecursive(
     list.push(nid)
     childMap.set(n.parentId, list)
   }
+  const now = Date.now()
   doc.transact(() => {
     const apply = (nodeId: string) => {
       const node: NodeYRecord | undefined = nodesMap.get(nodeId)
       if (!node) return
-      nodesMap.set(nodeId, { ...node, style: mergeStyle(node.style, style) })
+      nodesMap.set(nodeId, {
+        ...node,
+        style: mergeStyle(node.style, style),
+        modifiedAt: now,
+      })
       const children = childMap.get(nodeId) ?? []
       for (const childId of children) apply(childId)
     }

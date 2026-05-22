@@ -18,6 +18,8 @@ export interface NodeYRecord {
   collapsed: boolean
   style: NodeStyle
   data: Record<string, unknown>
+  createdAt: number
+  modifiedAt: number
 }
 
 // View model (flattened, passed to React)
