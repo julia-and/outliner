@@ -15,6 +15,12 @@
   background-color: var(--bg-primary);
 }
 
+/* In the Tauri desktop shell the title bar is an overlay, so the macOS traffic
+   lights sit on top of the toolbar's left edge — pad it clear of them. */
+:global(html[data-tauri="mac"]) .toolbar {
+  padding-left: 80px;
+}
+
 .content {
   flex: 1;
   overflow: hidden;

@@ -15,7 +15,10 @@ export interface UiStateRow {
   id: string
   panelLayout?: { [id: string]: number }
   layoutDirection: "horizontal" | "vertical"
+  // Legacy binary toggle, kept for back-compat with rows written before
+  // themeMode existed. themeMode is the source of truth when present.
   darkMode: boolean
+  themeMode?: "system" | "light" | "dark"
   activeOutlineId?: string
   activeNodeId?: string
 }
