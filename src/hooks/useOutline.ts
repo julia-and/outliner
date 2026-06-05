@@ -257,16 +257,12 @@ export function useOutline(
     [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
   )
 
-  const handlePasteEvent = useCallback(
-    async (e: React.ClipboardEvent) => {
+  // Shared paste core: turn clipboard html/plain into a subtree under the
+  // active node. Used by both the paste event and the menu-driven paste.
+  const applyPaste = useCallback(
+    (html: string | null, plain: string | null) => {
       const live = liveRef.current
       if (!live.activeId) return
-      // In insert mode the row's <input> is focused — let the browser paste
-      // text into the field instead of creating new outline items.
-      if (live.mode === "insert") return
-      e.preventDefault()
-      const html = e.clipboardData.getData("text/html") || null
-      const plain = e.clipboardData.getData("text/plain") || null
       const payload = parseClipboard(html, plain)
       if (payload.nodes.length === 0) return
       const node = live.nodeMap.get(live.activeId)
@@ -277,6 +273,44 @@ export function useOutline(
     },
     [outlineDoc, handleSetActive],
   )
+
+  const handlePasteEvent = useCallback(
+    async (e: React.ClipboardEvent) => {
+      const live = liveRef.current
+      if (!live.activeId) return
+      // In insert mode the row's <input> is focused — let the browser paste
+      // text into the field instead of creating new outline items.
+      if (live.mode === "insert") return
+      e.preventDefault()
+      applyPaste(
+        e.clipboardData.getData("text/html") || null,
+        e.clipboardData.getData("text/plain") || null,
+      )
+    },
+    [applyPaste],
+  )
+
+  // Read the system clipboard and paste as a subtree. Drives the Edit menu's
+  // Paste in nav mode (no ClipboardEvent to ride on).
+  const pasteFromClipboard = useCallback(async () => {
+    try {
+      const items = await navigator.clipboard.read()
+      let html: string | null = null
+      let plain: string | null = null
+      for (const item of items) {
+        if (item.types.includes("text/html")) {
+          html = await (await item.getType("text/html")).text()
+        }
+        if (item.types.includes("text/plain")) {
+          plain = await (await item.getType("text/plain")).text()
+        }
+      }
+      applyPaste(html, plain)
+    } catch {
+      const text = await navigator.clipboard.readText().catch(() => null)
+      if (text) applyPaste(null, text)
+    }
+  }, [applyPaste])
 
   return {
     nodes,
@@ -291,5 +325,6 @@ export function useOutline(
     handleUndo,
     handleRedo,
     runCommand,
+    pasteFromClipboard,
   }
 }

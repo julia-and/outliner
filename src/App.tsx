@@ -223,6 +223,41 @@ const OutlineWorkspace = ({
     return () => unsubs.forEach((u) => u())
   }, [runCommand])
 
+  // Native (Tauri) Edit-menu commands, dispatched by mode: nav → node ops,
+  // insert (text field / editor focused) → native text editing. Mode is read
+  // through a ref so the listeners subscribe once. The menu items carry no
+  // accelerators, so keyboard ⌘C/⌘Z/… still flow to the webview/app unshadowed.
+  const modeRef = useRef(outline.mode)
+  modeRef.current = outline.mode
+  const { handleUndo, handleRedo, pasteFromClipboard } = outline
+  useEffect(() => {
+    const insert = () => modeRef.current === "insert"
+    const exec = (cmd: string) => {
+      document.execCommand(cmd)
+    }
+    const unsubs = [
+      onMenuCommand("edit.undo", () =>
+        insert() ? exec("undo") : handleUndo(),
+      ),
+      onMenuCommand("edit.redo", () =>
+        insert() ? exec("redo") : handleRedo(),
+      ),
+      onMenuCommand("edit.copy", () =>
+        insert() ? exec("copy") : runCommand("node.copy"),
+      ),
+      onMenuCommand("edit.cut", () =>
+        insert() ? exec("cut") : runCommand("node.cut"),
+      ),
+      onMenuCommand("edit.paste", () =>
+        insert() ? exec("paste") : void pasteFromClipboard(),
+      ),
+      onMenuCommand("edit.select-all", () => {
+        if (insert()) exec("selectAll")
+      }),
+    ]
+    return () => unsubs.forEach((u) => u())
+  }, [runCommand, handleUndo, handleRedo, pasteFromClipboard])
+
   const getNodes = useCallback(() => outline.nodes, [outline.nodes])
   const activeNode = outline.nodes.find((n) => n.id === outline.activeId) ?? null
   const nodesMap = useMemo(() => getNodesMap(outlineDoc) as Y.Map<NodeYRecord>, [outlineDoc])

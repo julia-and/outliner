@@ -67,20 +67,24 @@ fn build_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     .item(&export_outline)
     .build()?;
 
+  // Helper for accelerator-free custom items. These never carry a ⌘ shortcut:
+  // the OS would otherwise intercept the key before the webview handler runs.
+  // Keyboard shortcuts stay owned by the webview (insert) and the app's
+  // keydown handler (nav); the menu items are a discoverable click path.
+  let mi = |id: &str, label: &str| MenuItemBuilder::with_id(id.to_string(), label).build(app);
+
+  // Edit — dispatched by mode in the frontend: nav → node ops, insert → text.
   let edit_menu = SubmenuBuilder::new(app, "Edit")
-    .undo()
-    .redo()
+    .item(&mi("edit.undo", "Undo")?)
+    .item(&mi("edit.redo", "Redo")?)
     .separator()
-    .cut()
-    .copy()
-    .paste()
-    .select_all()
+    .item(&mi("edit.cut", "Cut")?)
+    .item(&mi("edit.copy", "Copy")?)
+    .item(&mi("edit.paste", "Paste")?)
+    .item(&mi("edit.select-all", "Select All")?)
     .build()?;
 
-  // Outline — node structure ops on the active node. Deliberately accelerator
-  // -free: the app's own remappable keyboard shortcuts handle the keystrokes;
-  // a menu accelerator would intercept the key before the webview sees it.
-  let mi = |id: &str, label: &str| MenuItemBuilder::with_id(id.to_string(), label).build(app);
+  // Outline — node structure ops on the active node, also accelerator-free.
   let outline_menu = SubmenuBuilder::new(app, "Outline")
     .item(&mi("node.indent", "Indent")?)
     .item(&mi("node.outdent", "Outdent")?)
