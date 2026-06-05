@@ -17,7 +17,11 @@ import {
 } from "../store"
 import { NodeYRecord, OutletNode } from "../types"
 import { parseClipboard } from "../utils/clipboard"
-import { dispatchOutlineKey, OutlineKeyContext } from "./outlineKeyboard"
+import {
+  dispatchOutlineKey,
+  runOutlineCommand,
+  OutlineKeyContext,
+} from "./outlineKeyboard"
 
 function flattenVisibleNodes(
   nodesSnapshot: Map<string, NodeYRecord>,
@@ -226,6 +230,33 @@ export function useOutline(
     [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
   )
 
+  // Run a node op by its shortcut id, independent of the keyboard. Drives the
+  // native Outline menu. Builds the same live ctx as handleKeyDown with a stub
+  // event (handlers never read it).
+  const runCommand = useCallback(
+    (id: string) => {
+      const live = liveRef.current
+      const idx = live.nodes.findIndex((n) => n.id === live.activeId)
+      const ctx: OutlineKeyContext = {
+        e: { preventDefault() {} } as unknown as KeyboardEvent,
+        doc: outlineDoc,
+        nodes: live.nodes,
+        nodeMap: live.nodeMap,
+        activeId: live.activeId,
+        idx,
+        setActive: handleSetActive,
+        setMode: handleSetMode,
+        undo: handleUndo,
+        redo: handleRedo,
+        focusEditor: live.onFocusEditor,
+        getTemplateContent: live.getTemplateContent,
+        originalTitleRef,
+      }
+      runOutlineCommand(ctx, id)
+    },
+    [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
+  )
+
   const handlePasteEvent = useCallback(
     async (e: React.ClipboardEvent) => {
       const live = liveRef.current
@@ -259,5 +290,6 @@ export function useOutline(
     handlePasteEvent,
     handleUndo,
     handleRedo,
+    runCommand,
   }
 }

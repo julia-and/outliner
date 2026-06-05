@@ -77,6 +77,33 @@ fn build_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     .select_all()
     .build()?;
 
+  // Outline — node structure ops on the active node. Deliberately accelerator
+  // -free: the app's own remappable keyboard shortcuts handle the keystrokes;
+  // a menu accelerator would intercept the key before the webview sees it.
+  let mi = |id: &str, label: &str| MenuItemBuilder::with_id(id.to_string(), label).build(app);
+  let outline_menu = SubmenuBuilder::new(app, "Outline")
+    .item(&mi("node.indent", "Indent")?)
+    .item(&mi("node.outdent", "Outdent")?)
+    .separator()
+    .item(&mi("node.move-up", "Move Up")?)
+    .item(&mi("node.move-down", "Move Down")?)
+    .separator()
+    .item(&mi("node.add-sibling", "Add Sibling")?)
+    .item(&mi("node.add-child", "Add Child")?)
+    .item(&mi("node.add-root", "Add Root Node")?)
+    .separator()
+    .item(&mi("node.edit", "Edit Title")?)
+    .item(&mi("node.delete", "Delete Node")?)
+    .separator()
+    .item(
+      &SubmenuBuilder::new(app, "Format")
+        .item(&mi("format.bold", "Bold")?)
+        .item(&mi("format.italic", "Italic")?)
+        .item(&mi("format.strikethrough", "Strikethrough")?)
+        .build()?,
+    )
+    .build()?;
+
   // View — layout, theme, help.
   let toggle_layout = MenuItemBuilder::with_id("toggle-layout", "Toggle Split Direction")
     .accelerator("CmdOrCtrl+\\")
@@ -113,6 +140,7 @@ fn build_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
       &app_menu,
       &file_menu,
       &edit_menu,
+      &outline_menu,
       &view_menu,
       &window_menu,
     ])

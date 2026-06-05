@@ -12,7 +12,7 @@ import { TemplateManager } from "./components/TemplateManager"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { WelcomeScreen } from "./components/WelcomeScreen"
-import { initMenuBridge } from "./desktop/menuBridge"
+import { initMenuBridge, onMenuCommand } from "./desktop/menuBridge"
 import { NodeYRecord } from "./types"
 
 export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
@@ -200,6 +200,29 @@ const OutlineWorkspace = ({
   const focusEditor = useCallback(() => document.querySelector<HTMLElement>(".ProseMirror")?.focus(), [])
 
   const outline = useOutline(outlineDoc, isNewRef.current, getTemplateContent, focusEditor)
+
+  // Native (Tauri) Outline-menu commands → run the matching node op on the
+  // active node. Ids mirror the shortcut ids in NAV_HANDLERS.
+  const runCommand = outline.runCommand
+  useEffect(() => {
+    const ids = [
+      "node.indent",
+      "node.outdent",
+      "node.move-up",
+      "node.move-down",
+      "node.add-sibling",
+      "node.add-child",
+      "node.add-root",
+      "node.edit",
+      "node.delete",
+      "format.bold",
+      "format.italic",
+      "format.strikethrough",
+    ]
+    const unsubs = ids.map((id) => onMenuCommand(id, () => runCommand(id)))
+    return () => unsubs.forEach((u) => u())
+  }, [runCommand])
+
   const getNodes = useCallback(() => outline.nodes, [outline.nodes])
   const activeNode = outline.nodes.find((n) => n.id === outline.activeId) ?? null
   const nodesMap = useMemo(() => getNodesMap(outlineDoc) as Y.Map<NodeYRecord>, [outlineDoc])

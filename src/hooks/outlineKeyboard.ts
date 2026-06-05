@@ -227,6 +227,16 @@ const INSERT_HANDLERS: Record<string, Handler> = {
     insertDateText(ctx, `${currentDateString()} ${currentTimeString()}`),
 }
 
+// Run a nav-mode action by its shortcut id, bypassing key matching. Used to
+// drive node ops from the native menu (no KeyboardEvent involved). Handlers
+// never read ctx.e, so a stub event in the ctx is fine.
+export function runOutlineCommand(ctx: OutlineKeyContext, id: string): boolean {
+  const handler = NAV_HANDLERS[id]
+  if (!handler) return false
+  handler(ctx)
+  return true
+}
+
 function tryDispatch(
   ctx: OutlineKeyContext,
   handlers: Record<string, Handler>,
