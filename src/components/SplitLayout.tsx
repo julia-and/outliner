@@ -27,6 +27,7 @@ import type { SyncState } from "dexie-cloud-addon"
 import { LOCALES, getLocale, loadLocale, type Locale } from "../i18n"
 import styles from "./SplitLayout.module.css"
 import { KeyboardShortcuts } from "./KeyboardShortcuts"
+import { onMenuCommand } from "../desktop/menuBridge"
 type SyncStatePhase = SyncState["phase"]
 
 interface SplitLayoutProps {
@@ -113,6 +114,28 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
       return next
     })
   }
+
+  // Native (Tauri) View-menu commands. Inert on the web.
+  useEffect(() => {
+    const setTheme = (mode: ThemeMode) => {
+      setThemeModeState(mode)
+      setThemeMode(mode)
+    }
+    const unsubs = [
+      onMenuCommand("toggle-layout", () =>
+        setDirection((prev) => {
+          const next = prev === "horizontal" ? "vertical" : "horizontal"
+          setLayoutDirection(next)
+          return next
+        }),
+      ),
+      onMenuCommand("theme-system", () => setTheme("system")),
+      onMenuCommand("theme-light", () => setTheme("light")),
+      onMenuCommand("theme-dark", () => setTheme("dark")),
+      onMenuCommand("show-shortcuts", () => setShowShortcuts(true)),
+    ]
+    return () => unsubs.forEach((u) => u())
+  }, [])
 
   return (
     <div className={styles.container}>

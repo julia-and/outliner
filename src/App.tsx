@@ -12,6 +12,7 @@ import { TemplateManager } from "./components/TemplateManager"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { WelcomeScreen } from "./components/WelcomeScreen"
+import { initMenuBridge } from "./desktop/menuBridge"
 import { NodeYRecord } from "./types"
 
 export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
@@ -33,6 +34,9 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
     window.addEventListener("sw-update-available", handler)
     return () => window.removeEventListener("sw-update-available", handler)
   }, [])
+
+  // Bridge native (Tauri) menu clicks into window "ol:command" events.
+  useEffect(() => initMenuBridge(), [])
 
   const handleUpdate = useCallback(async () => {
     const registration = await navigator.serviceWorker.getRegistration()
