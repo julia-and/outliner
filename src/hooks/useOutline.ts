@@ -125,6 +125,9 @@ export function useOutline(
   // originalTitle is plain mutable state (not React state) — handlers read
   // and write it directly, no re-render needed.
   const originalTitleRef = useRef<string | null>(null)
+  // Set true when a native paste event handled ⌘V, so the keydown fallback
+  // (for webviews that don't fire paste on the outline container) skips.
+  const pasteHandledRef = useRef(false)
 
   const nodesMap = useMemo(() => getNodesMap(outlineDoc), [outlineDoc])
   const undoManager = useMemo(
@@ -206,6 +209,74 @@ export function useOutline(
   const handleUndo = useCallback(() => undoManager.undo(), [undoManager])
   const handleRedo = useCallback(() => undoManager.redo(), [undoManager])
 
+  // Shared paste core: turn clipboard html/plain into a subtree under the
+  // active node. Used by the paste event, the menu, and the ⌘V fallback.
+  const applyPaste = useCallback(
+    (html: string | null, plain: string | null) => {
+      const live = liveRef.current
+      if (!live.activeId) return
+      const payload = parseClipboard(html, plain)
+      if (payload.nodes.length === 0) return
+      const node = live.nodeMap.get(live.activeId)
+      const parentId = node?.parentId ?? null
+      const newIds = pasteSubtree(outlineDoc, payload, parentId, live.activeId)
+      const firstNew = newIds[0]
+      if (firstNew) handleSetActive(firstNew)
+    },
+    [outlineDoc, handleSetActive],
+  )
+
+  // Read the system clipboard and paste as a subtree. Drives the Edit menu's
+  // Paste and the ⌘V fallback (no ClipboardEvent to ride on).
+  const pasteFromClipboard = useCallback(async () => {
+    try {
+      const items = await navigator.clipboard.read()
+      let html: string | null = null
+      let plain: string | null = null
+      for (const item of items) {
+        if (item.types.includes("text/html")) {
+          html = await (await item.getType("text/html")).text()
+        }
+        if (item.types.includes("text/plain")) {
+          plain = await (await item.getType("text/plain")).text()
+        }
+      }
+      applyPaste(html, plain)
+    } catch {
+      const text = await navigator.clipboard.readText().catch(() => null)
+      if (text) applyPaste(null, text)
+    }
+  }, [applyPaste])
+
+  const handlePasteEvent = useCallback(
+    async (e: React.ClipboardEvent) => {
+      const live = liveRef.current
+      if (!live.activeId) return
+      // In insert mode the row's <input> is focused — let the browser paste
+      // text into the field instead of creating new outline items.
+      if (live.mode === "insert") return
+      e.preventDefault()
+      // Mark it handled so the keydown fallback below doesn't double-paste.
+      pasteHandledRef.current = true
+      applyPaste(
+        e.clipboardData.getData("text/html") || null,
+        e.clipboardData.getData("text/plain") || null,
+      )
+    },
+    [applyPaste],
+  )
+
+  // ⌘V fallback: some webviews (notably WKWebView) don't fire a paste event on
+  // the non-editable outline container, so handlePasteEvent never runs. Arm a
+  // flag and, on the next tick, read the clipboard ourselves unless the native
+  // paste event already handled it.
+  const requestPaste = useCallback(() => {
+    pasteHandledRef.current = false
+    setTimeout(() => {
+      if (!pasteHandledRef.current) void pasteFromClipboard()
+    }, 0)
+  }, [pasteFromClipboard])
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
       const live = liveRef.current
@@ -223,11 +294,19 @@ export function useOutline(
         redo: handleRedo,
         focusEditor: live.onFocusEditor,
         getTemplateContent: live.getTemplateContent,
+        requestPaste,
         originalTitleRef,
       }
       dispatchOutlineKey(ctx, live.mode)
     },
-    [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
+    [
+      outlineDoc,
+      handleSetActive,
+      handleSetMode,
+      handleUndo,
+      handleRedo,
+      requestPaste,
+    ],
   )
 
   // Run a node op by its shortcut id, independent of the keyboard. Drives the
@@ -256,61 +335,6 @@ export function useOutline(
     },
     [outlineDoc, handleSetActive, handleSetMode, handleUndo, handleRedo],
   )
-
-  // Shared paste core: turn clipboard html/plain into a subtree under the
-  // active node. Used by both the paste event and the menu-driven paste.
-  const applyPaste = useCallback(
-    (html: string | null, plain: string | null) => {
-      const live = liveRef.current
-      if (!live.activeId) return
-      const payload = parseClipboard(html, plain)
-      if (payload.nodes.length === 0) return
-      const node = live.nodeMap.get(live.activeId)
-      const parentId = node?.parentId ?? null
-      const newIds = pasteSubtree(outlineDoc, payload, parentId, live.activeId)
-      const firstNew = newIds[0]
-      if (firstNew) handleSetActive(firstNew)
-    },
-    [outlineDoc, handleSetActive],
-  )
-
-  const handlePasteEvent = useCallback(
-    async (e: React.ClipboardEvent) => {
-      const live = liveRef.current
-      if (!live.activeId) return
-      // In insert mode the row's <input> is focused — let the browser paste
-      // text into the field instead of creating new outline items.
-      if (live.mode === "insert") return
-      e.preventDefault()
-      applyPaste(
-        e.clipboardData.getData("text/html") || null,
-        e.clipboardData.getData("text/plain") || null,
-      )
-    },
-    [applyPaste],
-  )
-
-  // Read the system clipboard and paste as a subtree. Drives the Edit menu's
-  // Paste in nav mode (no ClipboardEvent to ride on).
-  const pasteFromClipboard = useCallback(async () => {
-    try {
-      const items = await navigator.clipboard.read()
-      let html: string | null = null
-      let plain: string | null = null
-      for (const item of items) {
-        if (item.types.includes("text/html")) {
-          html = await (await item.getType("text/html")).text()
-        }
-        if (item.types.includes("text/plain")) {
-          plain = await (await item.getType("text/plain")).text()
-        }
-      }
-      applyPaste(html, plain)
-    } catch {
-      const text = await navigator.clipboard.readText().catch(() => null)
-      if (text) applyPaste(null, text)
-    }
-  }, [applyPaste])
 
   return {
     nodes,
