@@ -12,6 +12,8 @@ import { TemplateManager } from "./components/TemplateManager"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { WelcomeScreen } from "./components/WelcomeScreen"
+import { initMenuBridge, onMenuCommand } from "./desktop/menuBridge"
+import { syncMenuAccelerators } from "./desktop/menuAccelerators"
 import { NodeYRecord } from "./types"
 
 export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
@@ -32,6 +34,18 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
     const handler = () => setUpdateAvailable(true)
     window.addEventListener("sw-update-available", handler)
     return () => window.removeEventListener("sw-update-available", handler)
+  }, [])
+
+  // Bridge native (Tauri) menu clicks into window "ol:command" events.
+  useEffect(() => initMenuBridge(), [])
+
+  // Keep native menu accelerators in sync with live keyboard bindings: once on
+  // startup and again whenever a shortcut is remapped. No-op on the web.
+  useEffect(() => {
+    void syncMenuAccelerators()
+    const onChange = () => void syncMenuAccelerators()
+    window.addEventListener("ol:shortcuts-changed", onChange)
+    return () => window.removeEventListener("ol:shortcuts-changed", onChange)
   }, [])
 
   const handleUpdate = useCallback(async () => {
@@ -196,6 +210,69 @@ const OutlineWorkspace = ({
   const focusEditor = useCallback(() => document.querySelector<HTMLElement>(".ProseMirror")?.focus(), [])
 
   const outline = useOutline(outlineDoc, isNewRef.current, getTemplateContent, focusEditor)
+
+  // Native (Tauri) Outline-menu commands → run the matching node op on the
+  // active node. Ids mirror the shortcut ids in NAV_HANDLERS.
+  const runCommand = outline.runCommand
+  useEffect(() => {
+    const ids = [
+      "node.indent",
+      "node.outdent",
+      "node.move-up",
+      "node.move-down",
+      "node.add-sibling",
+      "node.add-child",
+      "node.add-root",
+      "node.edit",
+      "node.delete",
+      "format.bold",
+      "format.italic",
+      "format.strikethrough",
+    ]
+    const unsubs = ids.map((id) => onMenuCommand(id, () => runCommand(id)))
+    return () => unsubs.forEach((u) => u())
+  }, [runCommand])
+
+  // Native (Tauri) Edit-menu commands, dispatched by *focus* (not outline
+  // mode): a text field or the editor pane → browser-routed text editing via
+  // execCommand; otherwise (outline in nav) → node ops. Focus-based because
+  // Copy/Cut/Select-All carry window-global accelerators that fire regardless
+  // of which pane is active. Undo/Redo/Paste stay click-only (no accelerator):
+  // execCommand can't reliably drive ProseMirror's history/paste.
+  const { handleUndo, handleRedo, pasteFromClipboard } = outline
+  useEffect(() => {
+    const editable = () => {
+      const el = document.activeElement as HTMLElement | null
+      if (!el) return false
+      const tag = el.tagName
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable
+    }
+    const exec = (cmd: string) => {
+      document.execCommand(cmd)
+    }
+    const unsubs = [
+      onMenuCommand("edit.undo", () =>
+        editable() ? exec("undo") : handleUndo(),
+      ),
+      onMenuCommand("edit.redo", () =>
+        editable() ? exec("redo") : handleRedo(),
+      ),
+      onMenuCommand("edit.copy", () =>
+        editable() ? exec("copy") : runCommand("node.copy"),
+      ),
+      onMenuCommand("edit.cut", () =>
+        editable() ? exec("cut") : runCommand("node.cut"),
+      ),
+      onMenuCommand("edit.paste", () =>
+        editable() ? exec("paste") : void pasteFromClipboard(),
+      ),
+      onMenuCommand("edit.select-all", () => {
+        if (editable()) exec("selectAll")
+      }),
+    ]
+    return () => unsubs.forEach((u) => u())
+  }, [runCommand, handleUndo, handleRedo, pasteFromClipboard])
+
   const getNodes = useCallback(() => outline.nodes, [outline.nodes])
   const activeNode = outline.nodes.find((n) => n.id === outline.activeId) ?? null
   const nodesMap = useMemo(() => getNodesMap(outlineDoc) as Y.Map<NodeYRecord>, [outlineDoc])

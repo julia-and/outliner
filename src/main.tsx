@@ -6,7 +6,13 @@ import { App } from "./App"
 import { initStore } from "./store"
 import "./styles.css"
 
-if ("serviceWorker" in navigator) {
+// Flag the desktop shell + platform so CSS can clear the macOS traffic lights
+// that overlay the toolbar (titleBarStyle: Overlay).
+if (__IS_TAURI__ && navigator.userAgent.includes("Macintosh")) {
+  document.documentElement.dataset.tauri = "mac"
+}
+
+if (!__IS_TAURI__ && "serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").then((registration) => {
     const notifyUpdate = () => window.dispatchEvent(new Event("sw-update-available"))
 

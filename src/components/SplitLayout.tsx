@@ -8,6 +8,7 @@ import {
   Rows,
   Moon,
   Sun,
+  Monitor,
   Cloud,
   CloudOff,
   RefreshCw,
@@ -17,14 +18,16 @@ import {
   setPanelLayout,
   getLayoutDirection,
   setLayoutDirection,
-  getDarkMode,
-  setDarkMode,
+  getThemeMode,
+  setThemeMode,
+  type ThemeMode,
   db,
 } from "../store"
 import type { SyncState } from "dexie-cloud-addon"
 import { LOCALES, getLocale, loadLocale, type Locale } from "../i18n"
 import styles from "./SplitLayout.module.css"
 import { KeyboardShortcuts } from "./KeyboardShortcuts"
+import { onMenuCommand } from "../desktop/menuBridge"
 type SyncStatePhase = SyncState["phase"]
 
 interface SplitLayoutProps {
@@ -38,7 +41,7 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
   const [direction, setDirection] = useState<"horizontal" | "vertical">(
     getLayoutDirection,
   )
-  const [darkMode, setDarkModeState] = useState(getDarkMode)
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode)
   const [syncPhase, setSyncPhase] = useState<SyncStatePhase>("initial")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -61,9 +64,21 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
     }
   }, [])
 
+  // Resolve theme to a concrete light/dark value and keep it in sync with the
+  // OS when in "system" mode (e.g. macOS auto light/dark schedule).
   useEffect(() => {
-    document.documentElement.dataset.theme = darkMode ? "dark" : "light"
-  }, [darkMode])
+    const mql = window.matchMedia("(prefers-color-scheme: dark)")
+    const apply = () => {
+      const resolved =
+        themeMode === "system" ? (mql.matches ? "dark" : "light") : themeMode
+      document.documentElement.dataset.theme = resolved
+    }
+    apply()
+    if (themeMode === "system") {
+      mql.addEventListener("change", apply)
+      return () => mql.removeEventListener("change", apply)
+    }
+  }, [themeMode])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -91,17 +106,40 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
     })
   }
 
-  const toggleDarkMode = () => {
-    setDarkModeState((prev) => {
-      const next = !prev
-      setDarkMode(next)
+  const cycleTheme = () => {
+    setThemeModeState((prev) => {
+      const order = ["system", "light", "dark"] as const
+      const next = order[(order.indexOf(prev) + 1) % order.length]!
+      setThemeMode(next)
       return next
     })
   }
 
+  // Native (Tauri) View-menu commands. Inert on the web.
+  useEffect(() => {
+    const setTheme = (mode: ThemeMode) => {
+      setThemeModeState(mode)
+      setThemeMode(mode)
+    }
+    const unsubs = [
+      onMenuCommand("toggle-layout", () =>
+        setDirection((prev) => {
+          const next = prev === "horizontal" ? "vertical" : "horizontal"
+          setLayoutDirection(next)
+          return next
+        }),
+      ),
+      onMenuCommand("theme-system", () => setTheme("system")),
+      onMenuCommand("theme-light", () => setTheme("light")),
+      onMenuCommand("theme-dark", () => setTheme("dark")),
+      onMenuCommand("show-shortcuts", () => setShowShortcuts(true)),
+    ]
+    return () => unsubs.forEach((u) => u())
+  }, [])
+
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
+      <div className={styles.toolbar} data-tauri-drag-region>
         {outlineSwitcher && (
           <>
             {outlineSwitcher}
@@ -126,11 +164,23 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
           )}
         </button>
         <button
-          onClick={toggleDarkMode}
+          onClick={cycleTheme}
           className={styles.button}
-          title={darkMode ? t`Switch to Light Mode` : t`Switch to Dark Mode`}
+          title={
+            themeMode === "system"
+              ? t`Theme: System (click for Light)`
+              : themeMode === "light"
+                ? t`Theme: Light (click for Dark)`
+                : t`Theme: Dark (click for System)`
+          }
         >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {themeMode === "system" ? (
+            <Monitor size={20} />
+          ) : themeMode === "light" ? (
+            <Sun size={20} />
+          ) : (
+            <Moon size={20} />
+          )}
         </button>
         <div className={styles.divider} />
         <SyncButton phase={syncPhase} isLoggedIn={isLoggedIn} />

@@ -33,6 +33,19 @@ export function getDarkMode(): boolean {
   return uiCache.darkMode
 }
 
+export type ThemeMode = "system" | "light" | "dark"
+
+export function getThemeMode(): ThemeMode {
+  // Fall back to the legacy darkMode boolean for rows written before themeMode.
+  return uiCache.themeMode ?? (uiCache.darkMode ? "dark" : "system")
+}
+
+export function setThemeMode(mode: ThemeMode) {
+  // Keep darkMode roughly in sync so anything still reading it stays sane.
+  uiCache = { ...uiCache, themeMode: mode, darkMode: mode === "dark" }
+  db.uiState.put(uiCache).catch(console.error)
+}
+
 export function getActiveOutlineId(): string | null {
   return uiCache.activeOutlineId ?? null
 }

@@ -33,6 +33,9 @@ export interface OutlineKeyContext {
   redo: () => void
   focusEditor?: () => void
   getTemplateContent?: (id: string) => string | undefined
+  // Read the clipboard and paste a subtree. Used for ⌘V when no native paste
+  // event fires (e.g. on the non-editable outline container in WKWebView).
+  requestPaste?: () => void
   // Carries the title-on-entry into insert mode; insert.cancel restores it.
   originalTitleRef: { current: string | null }
 }
@@ -200,10 +203,9 @@ const NAV_HANDLERS: Record<string, Handler> = {
     if (nextId) ctx.setActive(nextId)
     deleteNode(ctx.doc, idToDelete)
   },
-  // Paste is handled by the document-level paste event, not keydown — but
-  // the shortcut still needs to be a no-op so the cascade doesn't fall
-  // through to a different handler.
-  "node.paste": () => {},
+  // Prefer the native paste event (richer, no clipboard-read permission), but
+  // fall back to reading the clipboard directly when no paste event fires.
+  "node.paste": ({ requestPaste }) => requestPaste?.(),
 
   "node.undo": ({ undo }) => undo(),
   "node.redo": ({ redo }) => redo(),
@@ -225,6 +227,16 @@ const INSERT_HANDLERS: Record<string, Handler> = {
   "insert.time": (ctx) => insertDateText(ctx, currentTimeString()),
   "insert.datetime": (ctx) =>
     insertDateText(ctx, `${currentDateString()} ${currentTimeString()}`),
+}
+
+// Run a nav-mode action by its shortcut id, bypassing key matching. Used to
+// drive node ops from the native menu (no KeyboardEvent involved). Handlers
+// never read ctx.e, so a stub event in the ctx is fine.
+export function runOutlineCommand(ctx: OutlineKeyContext, id: string): boolean {
+  const handler = NAV_HANDLERS[id]
+  if (!handler) return false
+  handler(ctx)
+  return true
 }
 
 function tryDispatch(

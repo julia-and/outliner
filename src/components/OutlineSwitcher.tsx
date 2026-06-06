@@ -16,6 +16,7 @@ import {
 } from "@floating-ui/react"
 import classNames from "classnames"
 import { db, createOutline, renameOutline, deleteOutline, importDocxAsOutline, exportOutlineToFile, importOutlineFromFile } from "../store"
+import { onMenuCommand } from "../desktop/menuBridge"
 import styles from "./OutlineSwitcher.module.css"
 
 interface OutlineSwitcherProps {
@@ -110,6 +111,30 @@ export const OutlineSwitcher = ({ activeOutlineId, onSelect }: OutlineSwitcherPr
       setImportingOlz(false)
     }
   }
+
+  // Native (Tauri) File-menu commands. A ref keeps the latest closures so the
+  // listeners can subscribe once without re-binding on every render.
+  const menuActionsRef = useRef({
+    create: () => {},
+    exportActive: () => {},
+  })
+  menuActionsRef.current.create = () => {
+    void handleCreate()
+  }
+  menuActionsRef.current.exportActive = () => {
+    if (activeOutlineId) void handleExport(activeOutlineId)
+  }
+  useEffect(() => {
+    const unsubs = [
+      onMenuCommand("new-outline", () => menuActionsRef.current.create()),
+      onMenuCommand("import-docx", () => fileInputRef.current?.click()),
+      onMenuCommand("import-olz", () => olzFileInputRef.current?.click()),
+      onMenuCommand("export-outline", () =>
+        menuActionsRef.current.exportActive(),
+      ),
+    ]
+    return () => unsubs.forEach((u) => u())
+  }, [])
 
   const handleSelect = (id: string) => {
     if (editingId !== null || confirmDeleteId !== null) return

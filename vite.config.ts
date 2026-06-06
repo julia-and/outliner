@@ -39,9 +39,15 @@ function csp(): Plugin {
   }
 }
 
+// Tauri sets TAURI_ENV_* during its before{Dev,Build}Command hooks. In the
+// native shell the assets are already local, so the service worker (offline
+// caching) is redundant and Tauri owns the CSP — skip both PWA and the meta CSP.
+const isTauri = !!process.env.TAURI_ENV_PLATFORM
+
 export default defineConfig({
   define: {
     __COMMIT_HASH__: JSON.stringify(commitHash),
+    __IS_TAURI__: JSON.stringify(isTauri),
   },
   plugins: [
     lingui(),
@@ -50,17 +56,21 @@ export default defineConfig({
         plugins: ["@lingui/babel-plugin-lingui-macro"],
       },
     }),
-    VitePWA({
-      injectRegister: false,
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
-      manifest: false,
-      injectManifest: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      },
-    }),
-    csp(),
+    ...(isTauri
+      ? []
+      : [
+          VitePWA({
+            injectRegister: false,
+            strategies: "injectManifest",
+            srcDir: "src",
+            filename: "sw.ts",
+            manifest: false,
+            injectManifest: {
+              maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+            },
+          }),
+          csp(),
+        ]),
   ],
   build: {
     target: "esnext",

@@ -12,7 +12,10 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "i18n:extract": "lingui extract",
-    "i18n:compile": "lingui compile"
+    "i18n:compile": "lingui compile",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
@@ -42,6 +45,8 @@
     "@lingui/babel-plugin-lingui-macro": "^5.9.3",
     "@lingui/cli": "^5.9.3",
     "@lingui/vite-plugin": "^5.9.3",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/cli": "^2.11.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
