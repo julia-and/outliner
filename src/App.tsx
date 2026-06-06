@@ -13,6 +13,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
 import { WelcomeScreen } from "./components/WelcomeScreen"
 import { initMenuBridge, onMenuCommand } from "./desktop/menuBridge"
+import { syncMenuAccelerators } from "./desktop/menuAccelerators"
 import { NodeYRecord } from "./types"
 
 export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
@@ -37,6 +38,15 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
 
   // Bridge native (Tauri) menu clicks into window "ol:command" events.
   useEffect(() => initMenuBridge(), [])
+
+  // Keep native menu accelerators in sync with live keyboard bindings: once on
+  // startup and again whenever a shortcut is remapped. No-op on the web.
+  useEffect(() => {
+    void syncMenuAccelerators()
+    const onChange = () => void syncMenuAccelerators()
+    window.addEventListener("ol:shortcuts-changed", onChange)
+    return () => window.removeEventListener("ol:shortcuts-changed", onChange)
+  }, [])
 
   const handleUpdate = useCallback(async () => {
     const registration = await navigator.serviceWorker.getRegistration()
@@ -223,36 +233,41 @@ const OutlineWorkspace = ({
     return () => unsubs.forEach((u) => u())
   }, [runCommand])
 
-  // Native (Tauri) Edit-menu commands, dispatched by mode: nav → node ops,
-  // insert (text field / editor focused) → native text editing. Mode is read
-  // through a ref so the listeners subscribe once. The menu items carry no
-  // accelerators, so keyboard ⌘C/⌘Z/… still flow to the webview/app unshadowed.
-  const modeRef = useRef(outline.mode)
-  modeRef.current = outline.mode
+  // Native (Tauri) Edit-menu commands, dispatched by *focus* (not outline
+  // mode): a text field or the editor pane → browser-routed text editing via
+  // execCommand; otherwise (outline in nav) → node ops. Focus-based because
+  // Copy/Cut/Select-All carry window-global accelerators that fire regardless
+  // of which pane is active. Undo/Redo/Paste stay click-only (no accelerator):
+  // execCommand can't reliably drive ProseMirror's history/paste.
   const { handleUndo, handleRedo, pasteFromClipboard } = outline
   useEffect(() => {
-    const insert = () => modeRef.current === "insert"
+    const editable = () => {
+      const el = document.activeElement as HTMLElement | null
+      if (!el) return false
+      const tag = el.tagName
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable
+    }
     const exec = (cmd: string) => {
       document.execCommand(cmd)
     }
     const unsubs = [
       onMenuCommand("edit.undo", () =>
-        insert() ? exec("undo") : handleUndo(),
+        editable() ? exec("undo") : handleUndo(),
       ),
       onMenuCommand("edit.redo", () =>
-        insert() ? exec("redo") : handleRedo(),
+        editable() ? exec("redo") : handleRedo(),
       ),
       onMenuCommand("edit.copy", () =>
-        insert() ? exec("copy") : runCommand("node.copy"),
+        editable() ? exec("copy") : runCommand("node.copy"),
       ),
       onMenuCommand("edit.cut", () =>
-        insert() ? exec("cut") : runCommand("node.cut"),
+        editable() ? exec("cut") : runCommand("node.cut"),
       ),
       onMenuCommand("edit.paste", () =>
-        insert() ? exec("paste") : void pasteFromClipboard(),
+        editable() ? exec("paste") : void pasteFromClipboard(),
       ),
       onMenuCommand("edit.select-all", () => {
-        if (insert()) exec("selectAll")
+        if (editable()) exec("selectAll")
       }),
     ]
     return () => unsubs.forEach((u) => u())

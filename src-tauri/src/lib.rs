@@ -1,10 +1,62 @@
-use tauri::menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
-use tauri::Emitter;
+use tauri::menu::{
+  AboutMetadataBuilder, Menu, MenuBuilder, MenuItemKind, MenuItemBuilder, SubmenuBuilder,
+};
+use tauri::{Emitter, Runtime};
+
+// One accelerator change pushed from the frontend. `accelerator` is None to
+// clear (e.g. a shortcut remapped to a non-accelerator-safe key).
+#[derive(serde::Deserialize)]
+struct AccelUpdate {
+  id: String,
+  accelerator: Option<String>,
+}
+
+// Apply accelerator updates to matching menu items, recursing into submenus.
+// muda menu mutation must happen on the main thread (see the command below).
+fn apply_accelerators<R: Runtime>(menu: &Menu<R>, updates: &[AccelUpdate]) {
+  fn walk<R: Runtime>(kind: &MenuItemKind<R>, updates: &[AccelUpdate]) {
+    match kind {
+      MenuItemKind::MenuItem(item) => {
+        let id = item.id().as_ref();
+        if let Some(u) = updates.iter().find(|u| u.id == id) {
+          let _ = item.set_accelerator(u.accelerator.as_deref());
+        }
+      }
+      MenuItemKind::Submenu(sub) => {
+        if let Ok(items) = sub.items() {
+          for it in &items {
+            walk(it, updates);
+          }
+        }
+      }
+      _ => {}
+    }
+  }
+  if let Ok(items) = menu.items() {
+    for it in &items {
+      walk(it, updates);
+    }
+  }
+}
+
+// Push live keyboard bindings from the frontend onto the native menu so the
+// accelerators stay in sync with user remaps. The frontend only sends
+// accelerator-safe (modifier-bearing) bindings.
+#[tauri::command]
+fn set_menu_accelerators<R: Runtime>(app: tauri::AppHandle<R>, updates: Vec<AccelUpdate>) {
+  let handle = app.clone();
+  let _ = app.run_on_main_thread(move || {
+    if let Some(menu) = handle.menu() {
+      apply_accelerators(&menu, &updates);
+    }
+  });
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_window_state::Builder::default().build())
+    .invoke_handler(tauri::generate_handler![set_menu_accelerators])
     // Forward clicks on our custom menu items to the webview as a "menu"
     // event; the frontend bridge turns each into an app command. Predefined
     // items (copy/paste/quit/…) are handled natively and never reach here.

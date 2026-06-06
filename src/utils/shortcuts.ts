@@ -114,6 +114,14 @@ export function getBindings(): Record<string, KeyBinding> {
   return result
 }
 
+// Fired whenever bindings change so the native menu can re-sync its
+// accelerators. Harmless no-op on the web (nothing listens).
+function notifyShortcutsChanged(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ol:shortcuts-changed"))
+  }
+}
+
 export function setBinding(id: string, binding: KeyBinding): void {
   try {
     const overrides = getStoredOverrides()
@@ -122,6 +130,7 @@ export function setBinding(id: string, binding: KeyBinding): void {
   } catch {
     // localStorage may be unavailable; binding overrides simply won't persist
   }
+  notifyShortcutsChanged()
 }
 
 export function resetBinding(id: string): void {
@@ -132,6 +141,7 @@ export function resetBinding(id: string): void {
   } catch {
     // localStorage may be unavailable; binding overrides simply won't persist
   }
+  notifyShortcutsChanged()
 }
 
 export function findConflict(
