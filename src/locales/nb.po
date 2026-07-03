@@ -33,13 +33,26 @@ msgstr "{words, plural, one {# ord} other {# ord}}"
 msgid "← Back"
 msgstr "← Tilbake"
 
+#: src/components/CommandPalette.tsx:216
+msgid "↑↓ to navigate · ↵ to select · Esc to close"
+msgstr "↑↓ for å navigere · ↵ for å velge · Esc for å lukke"
+
 #: src/components/WelcomeScreen.tsx:62
 msgid "A fast, local-first outliner"
 msgstr "En rask, lokal disposisjonsverktøy"
 
-#: src/App.tsx:110
+#: src/App.tsx:112
 msgid "A new version is available."
 msgstr "En ny versjon er tilgjengelig."
+
+#: src/components/CommandPalette.tsx:193
+#~ msgid "Actions"
+#~ msgstr ""
+
+#: src/components/CommandPalette.tsx:196
+msgctxt "command palette section"
+msgid "Actions"
+msgstr "Handlinger"
 
 #: src/utils/shortcuts.ts:52
 msgid "Add child"
@@ -135,6 +148,10 @@ msgstr "Kode"
 #: src/utils/shortcuts.ts:32
 msgid "Collapse / parent"
 msgstr "Lukk / overordnet"
+
+#: src/components/CommandPalette.tsx:167
+msgid "Command palette"
+msgstr "Kommandopalett"
 
 #: src/utils/shortcuts.ts:60
 msgid "Confirm edit"
@@ -284,6 +301,7 @@ msgstr "Bilde"
 msgid "Import from file (.olz)"
 msgstr "Importer fra fil (.olz)"
 
+#: src/components/CommandPalette.tsx:96
 #: src/components/OutlineSwitcher.tsx:274
 msgid "Import from Word"
 msgstr "Importer fra Word"
@@ -326,8 +344,8 @@ msgstr "Tastatursnarveier (?)"
 msgid "List"
 msgstr "Liste"
 
-#: src/App.tsx:67
-#: src/App.tsx:163
+#: src/App.tsx:68
+#: src/App.tsx:165
 msgid "Loading…"
 msgstr "Laster…"
 
@@ -364,9 +382,14 @@ msgstr "Gi disposisjonen et navn"
 msgid "Navigation"
 msgstr "Navigasjon"
 
+#: src/components/CommandPalette.tsx:85
 #: src/components/OutlineSwitcher.tsx:270
 msgid "New outline"
 msgstr "Ny disposisjon"
+
+#: src/components/CommandPalette.tsx:85
+msgid "New outline \"{name}\""
+msgstr "Ny disposisjon «{name}»"
 
 #: src/components/TemplateManager.tsx:331
 msgid "New template"
@@ -405,6 +428,11 @@ msgstr "Rykk ut"
 msgid "Outlines"
 msgstr "Outlines"
 
+#: src/components/CommandPalette.tsx:194
+msgctxt "command palette section"
+msgid "Outlines"
+msgstr "Disposisjoner"
+
 #: src/utils/shortcuts.ts:59
 msgid "Paste"
 msgstr "Lim inn"
@@ -442,7 +470,7 @@ msgstr "Sitat"
 msgid "Redo"
 msgstr "Gjør om"
 
-#: src/App.tsx:124
+#: src/App.tsx:126
 msgid "Refresh"
 msgstr "Oppdater"
 
@@ -470,6 +498,10 @@ msgstr "Rosa"
 #: src/components/TemplateManager.tsx:153
 msgid "Save"
 msgstr "Lagre"
+
+#: src/components/CommandPalette.tsx:175
+msgid "Search outlines or run a command…"
+msgstr "Søk i disposisjoner eller kjør en kommando…"
 
 #: src/components/EditorView.tsx:395
 msgid "Select a note to edit..."
@@ -574,6 +606,10 @@ msgstr "Tekstformat"
 msgid "The editor crashed — your data is safe."
 msgstr "Redigereren krasjet — dataene dine er trygge."
 
+#: src/components/CommandPalette.tsx:106
+msgid "Toggle dark mode"
+msgstr "Veksle mørk modus"
+
 #: src/components/SplitLayout.tsx:120
 msgid "Toggle Layout"
 msgstr "Bytt oppsett"
@@ -588,6 +624,7 @@ msgid "Undo"
 msgstr "Angre"
 
 #: src/components/Breadcrumbs.tsx:26
+#: src/components/CommandPalette.tsx:89
 #: src/components/NodeLinkSearch.tsx:31
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61

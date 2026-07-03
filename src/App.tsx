@@ -8,6 +8,7 @@ import { SplitLayout } from "./components/SplitLayout"
 import { OutlineView } from "./components/OutlineView"
 import { EditorView } from "./components/EditorView"
 import { OutlineSwitcher } from "./components/OutlineSwitcher"
+import { CommandPalette } from "./components/CommandPalette"
 import { TemplateManager } from "./components/TemplateManager"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { db, getActiveOutlineId, setActiveOutlineId, createOutline, getNodesMap, getAncestors, updateStyle, consumeIsJustCreated } from "./store"
@@ -80,6 +81,7 @@ export const App = ({ initPromise }: { initPromise: Promise<boolean> }) => {
         outlineId={activeOutlineId}
         onSelectOutline={handleSelectOutline}
       />
+      <CommandPalette onSelectOutline={handleSelectOutline} />
       {updateAvailable && <UpdateBanner onUpdate={handleUpdate} />}
     </>
   )
@@ -157,9 +159,13 @@ const OutlineLoader = ({
   )
 
   if (!loaded || !outline) {
+    // Keep the toolbar identical to the loaded state (same switcher +
+    // template button) so switching outlines doesn't shift toolbar layout
+    // for the frame or two the new doc takes to load.
     return (
       <SplitLayout
         outlineSwitcher={switcher}
+        templateManager={<TemplateManager />}
         left={<div style={{ padding: "20px", color: "var(--text-secondary)" }}><Trans>Loading…</Trans></div>}
         right={null}
       />

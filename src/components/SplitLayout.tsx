@@ -18,7 +18,7 @@ import {
   getLayoutDirection,
   setLayoutDirection,
   getDarkMode,
-  setDarkMode,
+  toggleDarkMode,
   db,
 } from "../store"
 import type { SyncState } from "dexie-cloud-addon"
@@ -65,6 +65,14 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
     document.documentElement.dataset.theme = darkMode ? "dark" : "light"
   }, [darkMode])
 
+  // Keep the toggle button in sync when dark mode is flipped elsewhere
+  // (the command palette calls the same shared toggleDarkMode()).
+  useEffect(() => {
+    const sync = () => setDarkModeState(getDarkMode())
+    window.addEventListener("ol-theme-change", sync)
+    return () => window.removeEventListener("ol-theme-change", sync)
+  }, [])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as Element
@@ -87,14 +95,6 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
     setDirection((prev) => {
       const next = prev === "horizontal" ? "vertical" : "horizontal"
       setLayoutDirection(next)
-      return next
-    })
-  }
-
-  const toggleDarkMode = () => {
-    setDarkModeState((prev) => {
-      const next = !prev
-      setDarkMode(next)
       return next
     })
   }
