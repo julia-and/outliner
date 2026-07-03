@@ -3,9 +3,6 @@ import { t } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
 import { Panel, Group, Separator } from "react-resizable-panels"
 import {
-  Columns,
-  Keyboard,
-  Rows,
   Moon,
   Sun,
   Cloud,
@@ -22,9 +19,10 @@ import {
   db,
 } from "../store"
 import type { SyncState } from "dexie-cloud-addon"
-import { LOCALES, getLocale, loadLocale, type Locale } from "../i18n"
+import { getLocale, loadLocale, type Locale } from "../i18n"
 import styles from "./SplitLayout.module.css"
 import { KeyboardShortcuts } from "./KeyboardShortcuts"
+import { SettingsMenu } from "./SettingsMenu"
 type SyncStatePhase = SyncState["phase"]
 
 interface SplitLayoutProps {
@@ -91,13 +89,10 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
     return () => document.removeEventListener("keydown", handler)
   }, [])
 
-  const toggleDirection = () => {
-    setDirection((prev) => {
-      const next = prev === "horizontal" ? "vertical" : "horizontal"
-      setLayoutDirection(next)
-      return next
-    })
-  }
+  const handleSetDirection = useCallback((next: "horizontal" | "vertical") => {
+    setDirection(next)
+    setLayoutDirection(next)
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -108,23 +103,8 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
             <div className={styles.divider} />
           </>
         )}
-        {templateManager && (
-          <>
-            {templateManager}
-            <div className={styles.divider} />
-          </>
-        )}
-        <button
-          onClick={toggleDirection}
-          className={styles.button}
-          title={t`Toggle Layout`}
-        >
-          {direction === "horizontal" ? (
-            <Columns size={20} />
-          ) : (
-            <Rows size={20} />
-          )}
-        </button>
+        {templateManager}
+        <div className={styles.spacer} />
         <button
           onClick={toggleDarkMode}
           className={styles.button}
@@ -132,27 +112,16 @@ export const SplitLayout = ({ left, right, outlineSwitcher, templateManager }: S
         >
           {darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
-        <div className={styles.divider} />
         <SyncButton phase={syncPhase} isLoggedIn={isLoggedIn} />
         <div className={styles.divider} />
-        <select
-          className={styles.localeSelect}
-          value={locale}
-          onChange={handleLocaleChange}
-        >
-          {Object.entries(LOCALES).map(([code, name]) => (
-            <option key={code} value={code}>{name}</option>
-          ))}
-        </select>
-        <div className={styles.spacer} />
-        <span className={styles.commitHash}>{__COMMIT_HASH__}</span>
-        <button
-          onClick={() => setShowShortcuts(true)}
-          className={styles.button}
-          title={t`Keyboard Shortcuts (?)`}
-        >
-          <Keyboard size={18} />
-        </button>
+        <SettingsMenu
+          direction={direction}
+          onSetDirection={handleSetDirection}
+          locale={locale}
+          onLocaleChange={handleLocaleChange}
+          onOpenShortcuts={() => setShowShortcuts(true)}
+          version={__COMMIT_HASH__}
+        />
       </div>
       <KeyboardShortcuts
         open={showShortcuts}

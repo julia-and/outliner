@@ -331,13 +331,26 @@ msgstr "Sett inn tid"
 msgid "Italic"
 msgstr "Kursiv"
 
+#: src/components/SettingsMenu.tsx:86
+msgid "Keyboard shortcuts"
+msgstr "Tastatursnarveier"
+
 #: src/components/KeyboardShortcuts.tsx:115
 msgid "Keyboard Shortcuts"
 msgstr "Tastatursnarveier"
 
 #: src/components/SplitLayout.tsx:152
-msgid "Keyboard Shortcuts (?)"
-msgstr "Tastatursnarveier (?)"
+#~ msgid "Keyboard Shortcuts (?)"
+#~ msgstr "Tastatursnarveier (?)"
+
+#: src/components/SettingsMenu.tsx:68
+msgid "Language"
+msgstr "Språk"
+
+#: src/components/SettingsMenu.tsx:46
+#: src/components/SettingsMenu.tsx:47
+msgid "Layout"
+msgstr "Oppsett"
 
 #: src/components/TemplateManager.tsx:73
 #: src/editor/crepeConfig.ts:140
@@ -407,7 +420,7 @@ msgstr "Ingen resultater for «{filterText}»"
 msgid "None"
 msgstr "Ingen"
 
-#: src/components/SplitLayout.tsx:201
+#: src/components/SplitLayout.tsx:170
 msgid "Offline"
 msgstr "Frakoblet"
 
@@ -507,6 +520,11 @@ msgstr "Søk i disposisjoner eller kjør en kommando…"
 msgid "Select a note to edit..."
 msgstr "Velg et notat å redigere…"
 
+#: src/components/SettingsMenu.tsx:39
+#: src/components/SettingsMenu.tsx:39
+msgid "Settings"
+msgstr "Innstillinger"
+
 #: src/components/EditorOptions.tsx:55
 msgid "Show character count"
 msgstr "Vis tegnantall"
@@ -515,18 +533,26 @@ msgstr "Vis tegnantall"
 msgid "Show word count"
 msgstr "Vis ordantall"
 
-#: src/components/SplitLayout.tsx:224
+#: src/components/SettingsMenu.tsx:51
+msgid "Side by side"
+msgstr "Side ved side"
+
+#: src/components/SplitLayout.tsx:193
 msgid "Sign in"
 msgstr "Logg inn"
 
-#: src/components/SplitLayout.tsx:204
+#: src/components/SplitLayout.tsx:173
 #: src/components/WelcomeScreen.tsx:65
 msgid "Sign in to sync"
 msgstr "Logg inn for å synkronisere"
 
-#: src/components/SplitLayout.tsx:212
+#: src/components/SplitLayout.tsx:181
 msgid "Sign out and stop syncing?"
 msgstr "Logge ut og slutte å synkronisere?"
+
+#: src/components/SettingsMenu.tsx:59
+msgid "Stacked"
+msgstr "Stablet"
 
 #: src/components/WelcomeScreen.tsx:68
 msgid "Start locally"
@@ -548,11 +574,11 @@ msgstr "Struktur"
 msgid "Switch outline"
 msgstr "Bytt disposisjon"
 
-#: src/components/SplitLayout.tsx:131
+#: src/components/SplitLayout.tsx:111
 msgid "Switch to Dark Mode"
 msgstr "Bytt til mørk modus"
 
-#: src/components/SplitLayout.tsx:131
+#: src/components/SplitLayout.tsx:111
 msgid "Switch to Light Mode"
 msgstr "Bytt til lys modus"
 
@@ -560,11 +586,11 @@ msgstr "Bytt til lys modus"
 msgid "Sync title style"
 msgstr "Synkroniser tittelstil"
 
-#: src/components/SplitLayout.tsx:203
+#: src/components/SplitLayout.tsx:172
 msgid "Synced"
 msgstr "Synkronisert"
 
-#: src/components/SplitLayout.tsx:199
+#: src/components/SplitLayout.tsx:168
 msgid "Syncing…"
 msgstr "Synkroniserer…"
 
@@ -611,8 +637,8 @@ msgid "Toggle dark mode"
 msgstr "Veksle mørk modus"
 
 #: src/components/SplitLayout.tsx:120
-msgid "Toggle Layout"
-msgstr "Bytt oppsett"
+#~ msgid "Toggle Layout"
+#~ msgstr "Bytt oppsett"
 
 #: src/components/TemplateManager.tsx:57
 #: src/editor/crepeConfig.ts:107

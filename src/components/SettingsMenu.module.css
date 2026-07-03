@@ -1,0 +1,141 @@
+/* Trigger mirrors the toolbar button in SplitLayout.module.css */
+.gearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gearBtn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.menu {
+  padding: 6px;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+}
+
+.label {
+  color: var(--text-primary);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 9px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.segBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.segBtn + .segBtn {
+  border-left: 1px solid var(--border);
+}
+
+.segActive,
+.segActive:hover {
+  background: var(--active-bg);
+  color: var(--active-text);
+}
+
+.select {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.select:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 2px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 7px 8px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.menuItem:hover {
+  background: var(--bg-hover);
+}
+
+.menuItemIcon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.menuItemLabel {
+  flex: 1;
+}
+
+.kbd {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 5px;
+  background: var(--bg-surface);
+}
+
+.version {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  padding: 4px 8px 2px;
+  user-select: none;
+}
