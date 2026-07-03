@@ -4,6 +4,15 @@ on:
   push:
     branches: [main]
 
+# Serialize deploys to the shared bucket. Two pushes close together (e.g. two
+# PRs merged seconds apart) would otherwise run concurrent `aws s3 sync
+# --delete` jobs with different hashed assets, and one job's --delete can wipe
+# the other's assets — leaving index.html pointing at 404'd JS/CSS. Queue
+# instead of cancel so each deploy finishes atomically and the last push wins.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
