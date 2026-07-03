@@ -36,13 +36,26 @@ msgstr ""
 msgid "← Back"
 msgstr ""
 
+#: src/components/CommandPalette.tsx:216
+msgid "↑↓ to navigate · ↵ to select · Esc to close"
+msgstr "↑↓ to navigate · ↵ to select · Esc to close"
+
 #: src/components/WelcomeScreen.tsx:62
 msgid "A fast, local-first outliner"
 msgstr ""
 
-#: src/App.tsx:110
+#: src/App.tsx:112
 msgid "A new version is available."
 msgstr ""
+
+#: src/components/CommandPalette.tsx:193
+#~ msgid "Actions"
+#~ msgstr "Actions"
+
+#: src/components/CommandPalette.tsx:196
+msgctxt "command palette section"
+msgid "Actions"
+msgstr "Actions"
 
 #: src/utils/shortcuts.ts:52
 msgid "Add child"
@@ -138,6 +151,10 @@ msgstr ""
 #: src/utils/shortcuts.ts:32
 msgid "Collapse / parent"
 msgstr ""
+
+#: src/components/CommandPalette.tsx:167
+msgid "Command palette"
+msgstr "Command palette"
 
 #: src/utils/shortcuts.ts:60
 msgid "Confirm edit"
@@ -287,6 +304,7 @@ msgstr ""
 msgid "Import from file (.olz)"
 msgstr ""
 
+#: src/components/CommandPalette.tsx:96
 #: src/components/OutlineSwitcher.tsx:274
 msgid "Import from Word"
 msgstr ""
@@ -329,8 +347,8 @@ msgstr ""
 msgid "List"
 msgstr ""
 
-#: src/App.tsx:67
-#: src/App.tsx:163
+#: src/App.tsx:68
+#: src/App.tsx:165
 msgid "Loading…"
 msgstr ""
 
@@ -367,9 +385,14 @@ msgstr ""
 msgid "Navigation"
 msgstr ""
 
+#: src/components/CommandPalette.tsx:85
 #: src/components/OutlineSwitcher.tsx:270
 msgid "New outline"
 msgstr ""
+
+#: src/components/CommandPalette.tsx:85
+msgid "New outline \"{name}\""
+msgstr "New outline \"{name}\""
 
 #: src/components/TemplateManager.tsx:331
 msgid "New template"
@@ -408,6 +431,11 @@ msgstr ""
 msgid "Outlines"
 msgstr ""
 
+#: src/components/CommandPalette.tsx:194
+msgctxt "command palette section"
+msgid "Outlines"
+msgstr "Outlines"
+
 #: src/utils/shortcuts.ts:59
 msgid "Paste"
 msgstr ""
@@ -445,7 +473,7 @@ msgstr ""
 msgid "Redo"
 msgstr ""
 
-#: src/App.tsx:124
+#: src/App.tsx:126
 msgid "Refresh"
 msgstr ""
 
@@ -473,6 +501,10 @@ msgstr ""
 #: src/components/TemplateManager.tsx:153
 msgid "Save"
 msgstr ""
+
+#: src/components/CommandPalette.tsx:175
+msgid "Search outlines or run a command…"
+msgstr "Search outlines or run a command…"
 
 #: src/components/EditorView.tsx:395
 msgid "Select a note to edit..."
@@ -577,6 +609,10 @@ msgstr ""
 msgid "The editor crashed — your data is safe."
 msgstr ""
 
+#: src/components/CommandPalette.tsx:106
+msgid "Toggle dark mode"
+msgstr "Toggle dark mode"
+
 #: src/components/SplitLayout.tsx:120
 msgid "Toggle Layout"
 msgstr ""
@@ -591,6 +627,7 @@ msgid "Undo"
 msgstr ""
 
 #: src/components/Breadcrumbs.tsx:26
+#: src/components/CommandPalette.tsx:89
 #: src/components/NodeLinkSearch.tsx:31
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61

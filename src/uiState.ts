@@ -56,6 +56,17 @@ export function setDarkMode(value: boolean) {
   db.uiState.put(uiCache).catch(console.error)
 }
 
+// Flip dark mode, persist, apply to the DOM, and notify any listeners so
+// UI toggling from elsewhere (e.g. the command palette) stays in sync with
+// the toolbar button. Returns the new value.
+export function toggleDarkMode(): boolean {
+  const next = !getDarkMode()
+  setDarkMode(next)
+  document.documentElement.dataset.theme = next ? "dark" : "light"
+  window.dispatchEvent(new CustomEvent("ol-theme-change"))
+  return next
+}
+
 export function setActiveOutlineId(id: string | null) {
   uiCache = { ...uiCache, activeOutlineId: id ?? undefined }
   db.uiState.put(uiCache).catch(console.error)
