@@ -316,13 +316,26 @@ msgstr ""
 msgid "Italic"
 msgstr ""
 
+#: src/components/SettingsMenu.tsx:86
+msgid "Keyboard shortcuts"
+msgstr "Keyboard shortcuts"
+
 #: src/components/KeyboardShortcuts.tsx:115
 msgid "Keyboard Shortcuts"
 msgstr ""
 
 #: src/components/SplitLayout.tsx:152
-msgid "Keyboard Shortcuts (?)"
-msgstr ""
+#~ msgid "Keyboard Shortcuts (?)"
+#~ msgstr ""
+
+#: src/components/SettingsMenu.tsx:68
+msgid "Language"
+msgstr "Language"
+
+#: src/components/SettingsMenu.tsx:46
+#: src/components/SettingsMenu.tsx:47
+msgid "Layout"
+msgstr "Layout"
 
 #: src/components/TemplateManager.tsx:73
 #: src/editor/crepeConfig.ts:140
@@ -387,7 +400,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:201
+#: src/components/SplitLayout.tsx:170
 msgid "Offline"
 msgstr ""
 
@@ -478,6 +491,11 @@ msgstr ""
 msgid "Select a note to edit..."
 msgstr ""
 
+#: src/components/SettingsMenu.tsx:39
+#: src/components/SettingsMenu.tsx:39
+msgid "Settings"
+msgstr "Settings"
+
 #: src/components/EditorOptions.tsx:55
 msgid "Show character count"
 msgstr ""
@@ -486,18 +504,26 @@ msgstr ""
 msgid "Show word count"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:224
+#: src/components/SettingsMenu.tsx:51
+msgid "Side by side"
+msgstr "Side by side"
+
+#: src/components/SplitLayout.tsx:193
 msgid "Sign in"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:204
+#: src/components/SplitLayout.tsx:173
 #: src/components/WelcomeScreen.tsx:65
 msgid "Sign in to sync"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:212
+#: src/components/SplitLayout.tsx:181
 msgid "Sign out and stop syncing?"
 msgstr ""
+
+#: src/components/SettingsMenu.tsx:59
+msgid "Stacked"
+msgstr "Stacked"
 
 #: src/components/WelcomeScreen.tsx:68
 msgid "Start locally"
@@ -519,11 +545,11 @@ msgstr ""
 msgid "Switch outline"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:131
+#: src/components/SplitLayout.tsx:111
 msgid "Switch to Dark Mode"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:131
+#: src/components/SplitLayout.tsx:111
 msgid "Switch to Light Mode"
 msgstr ""
 
@@ -531,11 +557,11 @@ msgstr ""
 msgid "Sync title style"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:203
+#: src/components/SplitLayout.tsx:172
 msgid "Synced"
 msgstr ""
 
-#: src/components/SplitLayout.tsx:199
+#: src/components/SplitLayout.tsx:168
 msgid "Syncing…"
 msgstr ""
 
@@ -578,8 +604,8 @@ msgid "The editor crashed — your data is safe."
 msgstr ""
 
 #: src/components/SplitLayout.tsx:120
-msgid "Toggle Layout"
-msgstr ""
+#~ msgid "Toggle Layout"
+#~ msgstr ""
 
 #: src/components/TemplateManager.tsx:57
 #: src/editor/crepeConfig.ts:107
