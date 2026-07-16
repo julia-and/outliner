@@ -17,6 +17,7 @@ interface FormatPanelProps {
     preset: { color: string; backgroundColor: string },
     recursive: boolean,
   ) => void
+  onCopyMarkdown?: () => void
   templates?: TemplateRow[]
   defaultChildTemplateId?: string
   onSetDefaultChildTemplate?: (id: string | null) => void
@@ -30,6 +31,7 @@ export const FormatPanel = ({
   onSetColor,
   onSetBackground,
   onApplyPreset,
+  onCopyMarkdown,
   templates,
   defaultChildTemplateId,
   onSetDefaultChildTemplate,
@@ -161,6 +163,17 @@ export const FormatPanel = ({
                 </option>
               ))}
             </select>
+          </div>
+        </>
+      )}
+
+      {onCopyMarkdown && (
+        <>
+          <div className={styles.divider} />
+          <div className={styles.section}>
+            <button className={styles.actionBtn} onClick={onCopyMarkdown}>
+              <Trans>Copy as Markdown</Trans>
+            </button>
           </div>
         </>
       )}

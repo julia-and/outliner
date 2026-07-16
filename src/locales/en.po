@@ -74,12 +74,12 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:101
+#: src/components/FormatPanel.tsx:103
 msgid "Background Color"
 msgstr ""
 
 #. placeholder {0}: colorLabel(color)
-#: src/components/FormatPanel.tsx:117
+#: src/components/FormatPanel.tsx:119
 msgid "Background color: {0}"
 msgstr ""
 
@@ -125,7 +125,7 @@ msgstr ""
 msgid "Change icon"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:67
+#: src/components/FormatPanel.tsx:69
 msgid "Clear all"
 msgstr ""
 
@@ -137,9 +137,9 @@ msgstr ""
 msgid "Click to remap"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:45
-#: src/components/FormatPanel.tsx:52
-#: src/components/FormatPanel.tsx:59
+#: src/components/FormatPanel.tsx:47
+#: src/components/FormatPanel.tsx:54
+#: src/components/FormatPanel.tsx:61
 msgid "Click to toggle (Shift+click to apply to children)"
 msgstr ""
 
@@ -164,6 +164,10 @@ msgstr ""
 msgid "Conflicts with \"{label}\" — press a different key"
 msgstr ""
 
+#: src/components/FormatPanel.tsx:175
+msgid "Copy as Markdown"
+msgstr "Copy as Markdown"
+
 #: src/utils/shortcuts.ts:57
 msgid "Copy node"
 msgstr ""
@@ -176,7 +180,7 @@ msgstr ""
 msgid "Cut node"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:149
+#: src/components/FormatPanel.tsx:151
 msgid "Default child template"
 msgstr ""
 
@@ -232,7 +236,7 @@ msgstr ""
 msgid "Export to file"
 msgstr ""
 
-#: src/components/OutlineView.tsx:412
+#: src/components/OutlineView.tsx:469
 msgid "Filter..."
 msgstr ""
 
@@ -286,7 +290,7 @@ msgstr ""
 msgid "Highlight"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:170
+#: src/components/FormatPanel.tsx:183
 msgid "Hold Shift to apply to children"
 msgstr ""
 
@@ -361,7 +365,7 @@ msgid "List"
 msgstr ""
 
 #: src/App.tsx:68
-#: src/App.tsx:165
+#: src/App.tsx:169
 msgid "Loading…"
 msgstr ""
 
@@ -415,11 +419,11 @@ msgstr ""
 msgid "No matches"
 msgstr ""
 
-#: src/components/OutlineView.tsx:452
+#: src/components/OutlineView.tsx:509
 msgid "No results for \"{filterText}\""
 msgstr ""
 
-#: src/components/FormatPanel.tsx:157
+#: src/components/FormatPanel.tsx:159
 msgid "None"
 msgstr ""
 
@@ -465,7 +469,7 @@ msgstr ""
 msgid "Placeholders"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:127
+#: src/components/FormatPanel.tsx:129
 msgid "Presets"
 msgstr ""
 
@@ -561,7 +565,7 @@ msgstr "Stacked"
 msgid "Start locally"
 msgstr ""
 
-#: src/components/OutlineView.tsx:379
+#: src/components/OutlineView.tsx:436
 msgid "Start outlining"
 msgstr ""
 
@@ -618,16 +622,16 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:75
+#: src/components/FormatPanel.tsx:77
 msgid "Text Color"
 msgstr ""
 
 #. placeholder {0}: colorLabel(color)
-#: src/components/FormatPanel.tsx:91
+#: src/components/FormatPanel.tsx:93
 msgid "Text color: {0}"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:40
+#: src/components/FormatPanel.tsx:42
 msgid "Text Format"
 msgstr ""
 
@@ -658,7 +662,7 @@ msgstr ""
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61
 #: src/components/OutlineSwitcher.tsx:154
-#: src/components/OutlineView.tsx:512
+#: src/components/OutlineView.tsx:569
 msgid "Untitled"
 msgstr ""
 

@@ -71,12 +71,12 @@ msgstr "Legg til sidepunkt"
 msgid "Advanced"
 msgstr "Avansert"
 
-#: src/components/FormatPanel.tsx:101
+#: src/components/FormatPanel.tsx:103
 msgid "Background Color"
 msgstr "Bakgrunnsfarge"
 
 #. placeholder {0}: colorLabel(color)
-#: src/components/FormatPanel.tsx:117
+#: src/components/FormatPanel.tsx:119
 msgid "Background color: {0}"
 msgstr "Bakgrunnsfarge: {0}"
 
@@ -122,7 +122,7 @@ msgstr "Avbryt redigering"
 msgid "Change icon"
 msgstr "Endre ikon"
 
-#: src/components/FormatPanel.tsx:67
+#: src/components/FormatPanel.tsx:69
 msgid "Clear all"
 msgstr "Fjern alt"
 
@@ -134,9 +134,9 @@ msgstr "Klikk en snarvei for å endre · Esc for å lukke"
 msgid "Click to remap"
 msgstr "Klikk for å endre"
 
-#: src/components/FormatPanel.tsx:45
-#: src/components/FormatPanel.tsx:52
-#: src/components/FormatPanel.tsx:59
+#: src/components/FormatPanel.tsx:47
+#: src/components/FormatPanel.tsx:54
+#: src/components/FormatPanel.tsx:61
 msgid "Click to toggle (Shift+click to apply to children)"
 msgstr "Trykk for å bytte (Shift+trykk for å gjelde for barn)"
 
@@ -161,6 +161,10 @@ msgstr "Bekreft redigering"
 msgid "Conflicts with \"{label}\" — press a different key"
 msgstr "Konflikt med «{label}» — trykk en annen tast"
 
+#: src/components/FormatPanel.tsx:175
+msgid "Copy as Markdown"
+msgstr "Kopier som Markdown"
+
 #: src/utils/shortcuts.ts:57
 msgid "Copy node"
 msgstr "Kopier punkt"
@@ -173,7 +177,7 @@ msgstr "Opprett"
 msgid "Cut node"
 msgstr "Klipp ut punkt"
 
-#: src/components/FormatPanel.tsx:149
+#: src/components/FormatPanel.tsx:151
 msgid "Default child template"
 msgstr "Standard undermal"
 
@@ -229,7 +233,7 @@ msgstr "Utvid / gå inn"
 msgid "Export to file"
 msgstr "Eksporter til fil"
 
-#: src/components/OutlineView.tsx:412
+#: src/components/OutlineView.tsx:469
 msgid "Filter..."
 msgstr "Filtrer…"
 
@@ -283,7 +287,7 @@ msgstr "Overskrift 6"
 msgid "Highlight"
 msgstr "Utheving"
 
-#: src/components/FormatPanel.tsx:170
+#: src/components/FormatPanel.tsx:183
 msgid "Hold Shift to apply to children"
 msgstr "Hold Shift nede for å gjelde for barn"
 
@@ -358,7 +362,7 @@ msgid "List"
 msgstr "Liste"
 
 #: src/App.tsx:68
-#: src/App.tsx:165
+#: src/App.tsx:169
 msgid "Loading…"
 msgstr "Laster…"
 
@@ -412,11 +416,11 @@ msgstr "Ny mal"
 msgid "No matches"
 msgstr "Ingen treff"
 
-#: src/components/OutlineView.tsx:452
+#: src/components/OutlineView.tsx:509
 msgid "No results for \"{filterText}\""
 msgstr "Ingen resultater for «{filterText}»"
 
-#: src/components/FormatPanel.tsx:157
+#: src/components/FormatPanel.tsx:159
 msgid "None"
 msgstr "Ingen"
 
@@ -462,7 +466,7 @@ msgstr "Plassholder"
 msgid "Placeholders"
 msgstr "Plassholdere"
 
-#: src/components/FormatPanel.tsx:127
+#: src/components/FormatPanel.tsx:129
 msgid "Presets"
 msgstr "Forhåndsinnstillinger"
 
@@ -558,7 +562,7 @@ msgstr "Stablet"
 msgid "Start locally"
 msgstr "Start lokalt"
 
-#: src/components/OutlineView.tsx:379
+#: src/components/OutlineView.tsx:436
 msgid "Start outlining"
 msgstr "Begynn å skrive"
 
@@ -615,16 +619,16 @@ msgstr "Maler"
 msgid "Text"
 msgstr "Tekst"
 
-#: src/components/FormatPanel.tsx:75
+#: src/components/FormatPanel.tsx:77
 msgid "Text Color"
 msgstr "Tekstfarge"
 
 #. placeholder {0}: colorLabel(color)
-#: src/components/FormatPanel.tsx:91
+#: src/components/FormatPanel.tsx:93
 msgid "Text color: {0}"
 msgstr ""
 
-#: src/components/FormatPanel.tsx:40
+#: src/components/FormatPanel.tsx:42
 msgid "Text Format"
 msgstr "Tekstformat"
 
@@ -655,7 +659,7 @@ msgstr "Angre"
 #: src/components/NoteHeader.tsx:76
 #: src/components/OutlineSwitcher.tsx:61
 #: src/components/OutlineSwitcher.tsx:154
-#: src/components/OutlineView.tsx:512
+#: src/components/OutlineView.tsx:569
 msgid "Untitled"
 msgstr "Uten tittel"
 
