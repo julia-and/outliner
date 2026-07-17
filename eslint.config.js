@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh"
 import globals from "globals"
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "node_modules", "src/locales/**"] },
+  { ignores: ["dist", "coverage", "node_modules", "src/locales/**", "src-tauri"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

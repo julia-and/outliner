@@ -1,7 +1,8 @@
 import { execSync } from "child_process"
 import { defineConfig, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
-import { lingui } from "@lingui/vite-plugin"
+import babel from "@rolldown/plugin-babel"
+import { lingui, linguiTransformerBabelPreset } from "@lingui/vite-plugin"
 import { VitePWA } from "vite-plugin-pwa"
 
 const commitHash = (() => {
@@ -45,11 +46,8 @@ export default defineConfig({
   },
   plugins: [
     lingui(),
-    react({
-      babel: {
-        plugins: ["@lingui/babel-plugin-lingui-macro"],
-      },
-    }),
+    react(),
+    babel({ presets: [linguiTransformerBabelPreset()] }),
     VitePWA({
       injectRegister: false,
       strategies: "injectManifest",
