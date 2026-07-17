@@ -72,6 +72,23 @@
   color: var(--text-primary);
 }
 
+.actionBtn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-align: left;
+  width: 100%;
+}
+
+.actionBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
 .swatchRow {
   display: flex;
   gap: 4px;

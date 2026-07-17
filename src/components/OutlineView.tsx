@@ -16,11 +16,59 @@ import {
   TemplateRow,
 } from "../store"
 import { VirtualElement } from "@floating-ui/react"
+import { DexieYProvider } from "y-dexie"
+import { yDocToProsemirrorJSON } from "y-prosemirror"
+import { db } from "../db"
+import { getNodesMap } from "../nodeOps"
+import { subtreeToMarkdown, PMJson } from "../utils/markdownExport"
+import { createMarkdownSerializer } from "../editor/markdownSerializer"
 import styles from "./OutlineView.module.css"
 import { NodeStyle, OutletNode } from "../types"
 import { Popover } from "./Popover"
 import { FormatPanel } from "./FormatPanel"
 import { IconPickerPanel } from "./IconPickerPanel"
+
+async function getContentJSON(nodeId: string): Promise<PMJson | null> {
+  const row = await db.nodeContents.get(nodeId)
+  if (!row?.content) return null
+  const doc = row.content
+  const provider = DexieYProvider.load(doc)
+  try {
+    await provider.whenLoaded
+    return yDocToProsemirrorJSON(doc, "prosemirror")
+  } finally {
+    DexieYProvider.release(doc)
+  }
+}
+
+let copyMarkdownInFlight = false
+
+async function copySubtreeAsMarkdown(outlineDoc: Y.Doc, nodeId: string) {
+  if (copyMarkdownInFlight) return
+  copyMarkdownInFlight = true
+  const serializer = await createMarkdownSerializer()
+  try {
+    const nodesMap = new Map(getNodesMap(outlineDoc).entries())
+    const md = await subtreeToMarkdown(
+      nodeId,
+      nodesMap,
+      getContentJSON,
+      serializer.serialize,
+    )
+    if (!md) return
+    await navigator.clipboard.writeText(md).catch(() => {
+      const ta = document.createElement("textarea")
+      ta.value = md
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand("copy")
+      document.body.removeChild(ta)
+    })
+  } finally {
+    await serializer.destroy()
+    copyMarkdownInFlight = false
+  }
+}
 
 interface OutlineViewProps {
   outlineDoc: Y.Doc
@@ -344,6 +392,15 @@ export const OutlineView = ({
     parentRef.current?.focus()
   }
 
+  const handleCopyMarkdown = () => {
+    const nodeId = contextMenu.nodeId
+    setContextMenu((prev) => ({ ...prev, open: false }))
+    if (!nodeId) return
+    copySubtreeAsMarkdown(outlineDoc, nodeId).catch((err) =>
+      console.error("Copy as Markdown failed:", err),
+    )
+  }
+
   const handleSelectIcon = (name: string) => {
     if (!iconPicker.nodeId) return
     updateStyle(outlineDoc, iconPicker.nodeId, { icon: name })
@@ -528,6 +585,7 @@ export const OutlineView = ({
             onSetColor={handleSetColor}
             onSetBackground={handleSetBackground}
             onApplyPreset={handleApplyPreset}
+            onCopyMarkdown={handleCopyMarkdown}
             templates={templates}
             defaultChildTemplateId={contextMenuNode.data?.defaultChildTemplateId as string | undefined}
             onSetDefaultChildTemplate={(id) => {
